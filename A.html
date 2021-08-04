@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+  <!--
+
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script id=ck5 src="https://utep.zrenix.com/~nalandi/ckeditor/ckeditor5-inline/build/ckeditor.js"></script>
+  -->
+
+
+  <link rel="stylesheet" href="../CSS/css.css">
+  <script src="../JS/functions.js"></script>
+  <script type="text/javascript">
+    var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
+    if(getURLVars()['ckeditor']=='ck4') LoadJSs(["https://cdn.ckeditor.com/4.15.1/full-all/ckeditor.js"]); 
+    LoadJSs(["../JS/Login.js", "../JS/myconfig.js", "../JS/IO.js", "../JS/UserManagement.js","../JS/Q.js"]); //Load our style and JS files
+    firebase.initializeApp(firebaseConfig); var db = firebase.firestore();
+    window.addEventListener('load', function() { 
+      initApp({}); 
+    });
+  </script>
+
+</head>
+
+<body>
+    
+    <span id=TopLeft class=BoxBorder> </span>
+    <span id=TopMiddle class=BoxBorderGreen style='text-align:center;'></span>
+    <span style='float:right;' id=Login data-logged=0>Login</span>
+    <div id=TopLine2></div>
+    <hr/>
+    <table border="1" width=100%>
+      <tr >
+      <td width=10% id=ContentLeft valign=top>
+          <h3>Assessment</h3>
+          <br/><input id=AHomeID value='/COURSES/Math-9th/A'></input>
+
+   
+
+          <br/><button onclick=" A.List({oid: 'ContentMiddle'});">List</button>
+               <button onclick=" A.New({});">New</button>
+          
+          <p/><input id=AID value='/COURSES/Math-9th/A/1626223646709910259'></input>
+          <br/><button onclick="A.EditRaw({id:$('#AID').val(), oid:'ContentMiddle'});">List</button>
+          <hr/><div id=Left2></div><div id="Left3"></div>
+         
+      </td> 
+      <td id=ContentMiddle valign=top> </td> 
+      <td width=10% id=ContentRight valign=top></td> 
+
+      </tr>
+    </table>
+    <script src='./A.js'></script>
+    <script>
+       var A = new Assessment({col:$('#AHomeID').val()}); 
+    </script>
+
+
+<select id='statusprocess'>
+  <option value='optSelected' selected="selected">Selected</option>
+  <option value='optNotSelected' >Not Selected</option>
+</select>
+<button onclick='alert($("#statusprocess").val());'>Opt</button>'
+<div id="app-4">
+  <span v-html="Desc"></span>
+  <ol>
+    <li v-for="todo in todos">
+      {{ todo.text }}
+    </li>
+  </ol>
+</div>
+
+
+
+<script>
+
+var template = (tpl, args) => tpl.replace(/\${(\w+)}/g, (_, v) => args[v]);
+function tem (tpl, args) { return tpl.replace(/\${(\w+)}/g, (_, v) => args[v]); }
+var tpl = 'Hello ${str} and ${other}';
+console.log(template(tpl, {str: 'foo', other: 'bar'}));
+
+  var app4 = new Vue({
+  el: '#app-4',
+  data: {
+    Desc:'<b>hhh</b>',
+    todos: [
+      { text: 'Learn JavaScript' },
+      { text: 'Learn Vue' },
+      { text: 'Build something awesome' }
+    ]
+  }
+});
+</script>
+</body>
+
+
+</html>
