@@ -1,1 +1,120 @@
-This is for tree class
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+  <!--
+
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script id=ck5 src="https://utep.zrenix.com/~nalandi/ckeditor/ckeditor5-inline/build/ckeditor.js"></script>
+    <link rel="stylesheet" href="../CSS/css.css">
+  -->
+
+
+  
+  <style>
+  .dropbtn {
+    background-color: #04AA6D;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+  }
+  
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+  }
+  
+  .dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+  }
+  
+  .dropdown-content a:hover {background-color: #ddd;}  
+  .dropdown:hover .dropdown-content {display: block;}
+  .dropdown:hover .dropbtn {background-color: #3e8e41;}
+  </style>
+  <link rel="stylesheet" href="COURSES.css">
+
+  <script src="../JS/functions.js"></script>
+  <script type="text/javascript">
+    var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
+    if(getURLVars()['ckeditor']=='ck4') LoadJSs(["https://cdn.ckeditor.com/4.15.1/full-all/ckeditor.js"]); 
+    LoadJSs(["../JS/Login.js", "../JS/myconfig.js", "../JS/IO.js", "../JS/UserManagement.js","../JS/Q.js"]); //Load our style and JS files
+    firebase.initializeApp(firebaseConfig); var db = firebase.firestore();
+    window.addEventListener('load', function() { 
+      initApp({}); 
+    });
+  </script>
+
+</head>
+
+<body>
+ <span id=Top11></span> 
+ <span id=Top12></span> 
+ <hr/>
+ <span id=Middle11></span>
+ <hr/>
+ <span id=Bottom11></span>
+
+
+</body>
+</html>
+
+    
+    <script src='./A.js'></script>
+    <script>
+       var A = new Assessment({col:'/COURSES/List'}); 
+       //A.List({oid: 'classlist'}); 
+  function SelectedA(e) { var d=e.data(); 
+    $('#dropbtn1').html(e.html());
+    A.List({col:d.id+'/A', oid: 'Middle11'});
+
+  }
+  db.doc('/COURSES/List').onSnapshot(function(doc) { var s='', d=doc.data();
+    for (var k in d) { var id='/COURSES/'+k; //console.log(col);
+      s += `<a href="#" data-id=${id} onclick=" SelectedA(\$(this));">${k}</a>`; 
+    }
+    $('#Top11').html(dropdown(s));
+  });
+
+  function dropdown(s) {
+    return `
+    <div class="dropdown">
+       <button id=dropbtn1 class="dropbtn">COURSES</button>
+      <div id=TLeft class="dropdown-content"> ${s} </div>
+    </div>
+    `; 
+  
+
+  }
+
+    </script>
+
+
+
+
+</body>
+
+
+</html>
