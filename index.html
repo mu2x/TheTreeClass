@@ -56,11 +56,11 @@
   </style>
   <link rel="stylesheet" href="COURSES.css">
 
-  <script src="../JS/functions.js"></script>
+  <script src="functions.js"></script>
   <script type="text/javascript">
     var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
     if(getURLVars()['ckeditor']=='ck4') LoadJSs(["https://cdn.ckeditor.com/4.15.1/full-all/ckeditor.js"]); 
-    LoadJSs(["../JS/Login.js", "../JS/myconfig.js", "../JS/IO.js", "../JS/UserManagement.js","../JS/Q.js"]); //Load our style and JS files
+    LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js"]); //Load our style and JS files
     firebase.initializeApp(firebaseConfig); var db = firebase.firestore();
     window.addEventListener('load', function() { 
       initApp({}); 
