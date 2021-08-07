@@ -8,28 +8,13 @@
   </head>
   <body>
     
-<math-field id="formula" virtual-keyboard-mode=manual>
+<math-field>
     x=\frac{-b\pm \sqrt{b^2-4ac}}{2a}
 </math-field>
-<textarea id="latex"></textarea>
     
-    # Hi
-    This is 
-    $$\rho \partial u \over \partial t $$
+ 
   </body>
   
-  <script>
-    import 'mathlive';
-const mf = document.querySelector('#formula');
-const latexField = document.querySelector('#latex');
-latexField.addEventListener('input', () => 
-  mf.setValue(latexField.value)
-);
-function updateLatex() {
-  document.querySelector('#latex').value = mf.value;
-}
-mf.addEventListener('input', updateLatex);
-updateLatex();
-    
-  </script>
+
+
 </html>
