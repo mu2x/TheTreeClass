@@ -25,7 +25,6 @@
   <script src="functions.js"></script>
   <script type="text/javascript">
     var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
-    if(getURLVars()['ckeditor']=='ck4') LoadJSs(["https://cdn.ckeditor.com/4.15.1/full-all/ckeditor.js"]); 
     LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js"]); //Load our style and JS files
     firebase.initializeApp(firebaseConfig); var db = firebase.firestore();
     window.addEventListener('load', function() { 
@@ -38,6 +37,8 @@
 <body>
  <span id=Top11></span> 
  <span id=Top12></span> 
+ <span style='float:right;' id=Login data-logged=0>Login</span>
+ <div id=Top21></div>
  <hr/>
  <span id=Middle11></span>
  <span id=ContentMiddle></span>
