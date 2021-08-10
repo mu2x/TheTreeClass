@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
@@ -10,6 +10,8 @@
   <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-firestore.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+  <script src="https://cdn.ckeditor.com/4.16.1/standard/ckeditor.js"></script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=MML_HTMLorMML"></script>
 
   <!--
 
@@ -19,61 +21,85 @@
   -->
 
 
-  <link rel="stylesheet" href="index.css" />
+  <link rel="stylesheet" href="index2.css" />
 
 
   <script src="functions.js"></script>
   <script type="text/javascript">
     var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
-    LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js"]); //Load our style and JS files
-    firebase.initializeApp(firebaseConfig); var db = firebase.firestore();
+    LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js", "A.js"]); //Load our style and JS files
+    firebase.initializeApp(firebaseConfig); 
+    var  debug=0, role='student', db = firebase.firestore(), A = new Assessment({col:'/COURSES/List'}); 
     window.addEventListener('load', function() { 
       initApp({}); 
     });
+    //MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
   </script>
 
 </head>
 
 <body>
- <span id=Top11></span> 
- <span id=Top12></span> 
- <span style='float:right;' id=Login data-logged=0>Login</span>
- <div id=Top21></div>
- <hr/>
- <span id=Middle11></span>
- <span id=ContentMiddle></span>
+  <div class="navbar">
+    <span id=Top11></span>     <span id=Top12></span>     <span id=Top13></span>     <span id=Top14></span> 
+    <a style='float:right;' href="#"> <span id=Login data-logged=0>Login</span>   </a>
+  </div>
+  <p id=Top21></p>
+  <hr/>
+  <span id=Middle1>    <span id=Middle11></span>   <span id=Middle12 align="center"></span>   <span style='float:right;' id=Middle13></span>  </span>
+  <span id=Middle2></span>
+  <textarea rows=10 style="width: 100%; max-width: 100%; display:none;" id=TA></textarea>
+ 
+  <hr/>
+  <span id=Bottom1 style='left: 0; position: fixed; text-align: left; bottom: 0; width: 100%;'>
+   <span id=Bottom11></span>   <span id=Bottom12></span> 
+   <button onclick="ListByCol($('#ListByCol').val(),'Middle2'); ">List</button> <input id=ListByCol value='/public'/> 
+   <button onclick="EditRawByID($('#EditRawByID').val(),'Middle2'); ">Edit</button> <input id=EditRawByID value='/public/test'/> 
+ 
+   <span style='float:right;' id=Bottom13><button onclick="$('#Bottom13').append(InitialUinfo()); $(this).prop('disabled',true); ">More</button></span>
+  </span>
 
- <hr/>
- <span id=Bottom11></span>
 
-
-</body>
-</html>
-
-    
-    <script src='./A.js'></script>
     <script>
-       var A = new Assessment({col:'/COURSES/List'}); 
-       //A.List({oid: 'classlist'}); 
-  function SelectedA(e) { var d=e.data(); 
-    $('#dropbtn1').html(e.html());
-    A.List({col:d.id+'/A', oid: 'Middle11'});
 
+       //A.List({oid: 'classlist'}); 
+  function SelectedA(e) { var d=e.data(), mainid=d.mainid?d.mainid:'dropbtn1', col=d.id+'/A'; 
+    $('#'+mainid).html(e.html());
+    var s = `<a href=# data-col=${col} data-oid=Middle2 data-oid2=ContentRight data-oid3=ContentMiddle onclick="A.Setup(\$(this).data());">Assessment</a>`; 
+    $('#Top12').html(s); if(debug) console.log(s);
+    //A.ListDropdown({col:d.id+'/A', oid: 'Top12', mainid:'btn2', name:'Assessment',v:2});
   }
-  db.doc('/COURSES/List').onSnapshot(function(doc) { var s='', d=doc.data();
-    for (var k in d) { var id='/COURSES/'+k; //console.log(col);
-      s += `<a href="#" data-id=${id} onclick=" SelectedA(\$(this));">${k}</a>`; 
-    }
-    $('#Top11').html(dropdown(s));
+  db.doc('/COURSES/COURSES').onSnapshot(function(doc) {  
+    $('#Top11').html(dropdown({d:doc.data()}));  
   });
 
-  function dropdown(s) {
-    return `
+  function InitialUinfo() {
+    if(uinfo.email=='vkumar@utep.edu') {
+      s = '<input type=checkbox onclick="debug=$(this).prop(\'checked\')?1:0; ">debug</input>'; 
+      s += `| <input type=checkbox onclick="role=\$(this).prop(\'checked\')?'instructor':'student'; ">Instructor</input>`; 
+
+    }
+    return s; 
+  }
+  
+  function dropdown(O) { var s='', mainid=O.mainid?O.mainid:'dropbtn1'; 
+   for (var kkk in O.d) { var sss=''; 
+    for (var kk in O.d[kkk]) { var ss=''; 
+      for (var k in O.d[kkk][kk]) { var id=O.d[kkk][kk][k]['col']; //console.log(col);
+        ss += `<a href="#" data-id=${id} data-mainid=${mainid} onclick=" SelectedA(\$(this));">${k}</a>`; 
+      }
+      sss += `<div class="column"><b>${kk}</b> ${ss}  </div> `;
+    }
+    s += `<h3>${kkk}</h3><div class="row"> ${sss} </div>`;
+  }
+
+    var ss =`
     <div class="dropdown">
-       <button id=dropbtn1 class="dropbtn">COURSES</button>
-      <div id=TLeft class="dropdown-content"> ${s} </div>
+      <button id=dropbtn1 class="dropbtn">COURSES</button>
+      <div class="dropdown-content">  ${s}   </div>
     </div>
-    `; 
+    `;
+    //console.log(ss);
+    return ss;  
   
 
   }

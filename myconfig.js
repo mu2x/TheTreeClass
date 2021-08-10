@@ -13,10 +13,12 @@ var ckfull = [
     '/',
     { name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },
     { name: 'colors', items: [ 'TextColor', 'BGColor' ] },
-    { name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] }
+    { name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] },
+    { name: 'wiris', items : [ 'ckeditor_wiris_formulaEditor','ckeditor_wiris_formulaEditorChemistry']}
 ];
 var tb=ckbasic;
 var ckconfig = {startupMode:'source'};
+var role='student', debug=0, group='default', permission='------rwx', groups=[]; 
 //-----------------------------
 var name, email, emailVerified, uid, uinfo={};
 var firebaseConfig = {

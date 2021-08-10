@@ -36,15 +36,19 @@ function EditQ(id){ var col = 'Q/'+id;
 function LoadOneQ(O){ var id = O.id;
   LogUserInfo('EditQ: %s '.format(O.id));
   db.doc(id).get().then(function(doc) { 
-    var s = '<span id=QID qid='+id+'><u>'+id+'</u></span>', sc='', k, d=doc.data(); 
+    var s = '', sc='', k, d=doc.data(); 
      if(!d['Desc']) d['Desc']='Description';
      if(!d['Soln']) d['Soln']='Solution';
      if(!d['Choices']) d['Choices']=[{v:1},{v:2}];
      if(!d['a']) d['a']={group:"default",groups:["default"]};
 
      qdata=d;
-     k='group'; s += '<br/>Group:<input id=a-'+k+' class=BoxBorderGreen size=3 color="green" value='+d['a'][k]+' /> | Groups:[incomplete]<hr/>';
-     k='Desc'; s += '<div id='+k+' class=QEdit>'+d[k]+'</div>';
+     if(role=='instructor') { 
+       k='group'; 
+       s += '<span id=QID qid='+id+'><u>'+id+'</u></span>'; 
+       s += '<br/>Group:<input id=a-'+k+' class=BoxBorderGreen size=3 color="green" value='+d['a'][k]+' /> | Groups:[incomplete]<hr/>'; 
+      }
+     var Desc= `<div id=Desc${id} class=QEdit>`+d['Desc']+'</div>';
      k='Choices';
      for(var kk of Object.keys(d[k])) { if(!d[k][kk].a) d[k][kk].a=0; 
         var chkd = (d[k][kk].a==1)?'checked':'';
@@ -52,15 +56,56 @@ function LoadOneQ(O){ var id = O.id;
         sc += '<td><div id='+k+'-'+kk+' class=QEdit kk='+kk+' type=Choices>'+d[k][kk].v+'</div></td></tr>';
         nchoice=kk;
      }
-
+     s += Desc; 
      s += '<table id=myTable width=100% border=1>'+sc+'</table>';
-     k='Soln'; s += '<div id='+k+' class=QEdit>'+d[k]+'</div>';
+     if(role=='instructor') {k='Soln'; s += '<div id='+k+' class=QEdit>'+d[k]+'</div>';}
      s += '<div class=SaveMsg></div>';
-
-     $('#'+O.oid).html(s);
+      
+     var Choices=sc, Soln='<div id='+k+' class=QEdit>'+d['Soln']+'</div>';
+     var sout = `
+       <Q qid=${id} aid=AHOME>
+         <Desc>${Desc}<Desc>
+         <Choices>${Choices}</Choices>
+         <Soln>${Soln}</Soln>
+       </Q>
+     `; 
+     $('#'+O.oid).html(s); if(debug) console.log(s);
+     MathJax.Hub.Queue(["Typeset",MathJax.Hub, O.oid ]);
    });
 }
 
+function LoadOneQ2(O){ var id = O.id;
+  LogUserInfo('EditQ: %s '.format(O.id));
+  db.doc(id).get().then(function(doc) { 
+    var s = '', sc='', k, d=doc.data(); 
+     if(!d['Desc']) d['Desc']='Description';
+     if(!d['Soln']) d['Soln']='Solution';
+     if(!d['Choices']) d['Choices']=[{v:1},{v:2}];
+     if(!d['a']) d['a']={group:"default",groups:["default"]};
+
+     qdata=d;
+     if(role=='instructor') { 
+       k='group'; 
+       s += '<span id=QID qid='+id+'><u>'+id+'</u></span>'; 
+       s += '<br/>Group:<input id=a-'+k+' class=BoxBorderGreen size=3 color="green" value='+d['a'][k]+' /> | Groups:[incomplete]<hr/>'; 
+      }
+     var Desc= `<div id=Desc${id} class=QEdit>`+d['Desc']+'</div>';
+     k='Choices';
+     for(var kk of Object.keys(d[k])) { if(!d[k][kk].a) d[k][kk].a=0; 
+        var chkd = (d[k][kk].a==1)?'checked':'';
+        sc += '<tr><td width=1%><input type=checkbox id=a'+kk+' '+chkd+'></input></td>'; 
+        sc += '<td><div id='+k+'-'+kk+' class=QEdit kk='+kk+' type=Choices>'+d[k][kk].v+'</div></td></tr>';
+        nchoice=kk;
+     }
+     s += Desc; 
+     s += '<table id=myTable width=100% border=1>'+sc+'</table>';
+     if(role=='instructor') {k='Soln'; s += '<div id='+k+' class=QEdit>'+d[k]+'</div>';}
+     s += '<div class=SaveMsg></div>';
+
+     $('#'+O.oid).html(s);
+     MathJax.Hub.Queue(["Typeset",MathJax.Hub, O.oid ]);
+   });
+}
 function SaveQ(){ var qid=$('#QID').attr('qid'); var kk=0, col='Q/'+qid;
   LogUserInfo('SaveQ: %s '.format(col));
   $(".QEdit").each(function() {var id=$(this).attr('id');
@@ -95,7 +140,7 @@ function InsertRow() {var k='Choices'; nchoice = parseInt(nchoice) + 1; var kk=n
   cell1.innerHTML = '<input type=checkbox id=a'+kk+' ></input>'+kk;
   cell2.innerHTML = '<div id='+k+'-'+kk+' class=QEdit kk='+kk+' type=Choices>Enter Value</div>';
 }
- 
+
 class ListQ {
   constructor(O) { 
     for(var k of Object.keys(O)) {this[k] = O[k];} 

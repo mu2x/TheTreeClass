@@ -39,6 +39,27 @@ String.prototype.format = function() { var newStr = this, i = 0;
     return newStr;
 }
   
+function ListByCol(col, oid) {  var uqid=uniqid(); 
+  db.collection(col).get().then((qS) => {  var iq=0, s='';  
+    qS.forEach((doc) => {  iq++; var id=col+'/'+doc.id, oid=uqid+doc.id;   
+      s += `<br/> ${iq} ${id}  
+        <button class=uqid onclick="EditRawByID('${id}','${oid}'); \$('#${oid}').toggle(); ToggleBold($(this)); ">Raw</button>
+        <div style='display:none;' id=${oid}></div>`; 
+    })   
+    $('#'+oid).html(s);  if(debug) console.log(s);  
+  }); 
+}
+function EditRawByID(id,oid) {  var uqid=uniqid(), inid=id;
+  db.doc(id).get().then((doc) => {  var d=doc.data(), iq=0, s='';  
+    s += `<textarea id=${uqid} data-dbid=${id} rows=10 style="width: 100%; max-width: 100%;" title=${uqid}>`+JSON.stringify(d, null, 4)+'</textarea>'; 
+    s += `<button onclick="SaveByID('${uqid}');">Save</button>`; 
+
+    $('#'+oid).html(s);    
+  }); 
+}
+function SaveByID(id) {  var e = $('#'+id).data();  db.doc(e.dbid).set(JSON.parse($('#'+id).val()) );  }
+
+
   function TopLeft(O) { if(uinfo[uid]) ('#TopLeft').html('hh'); }
   
   function Middle(O) {}

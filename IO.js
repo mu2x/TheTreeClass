@@ -1,16 +1,29 @@
-// db----------------
-//var db = firebase.firestore();
 class Info { 
   constructor(O) { 
-    for(var k of Object.keys(O)) {this[k] = O[k];} 
-    if(!O.hasOwnProperty('col')) this['col'] = 'public'; 
-    if(!O.hasOwnProperty('id')) this['id'] = 'test1'; 
-    if(!O.hasOwnProperty('db')) this['db'] = firebase.firestore(); 
+    if(arguments.length) { for(var k of Object.keys(O)) {this[k] = O[k];} 
+    } else {this.col='public'; this.id='test1';}
+    
   }; 
-  put(O) { var col = this.col, id=this.id, db=this.db;
-   var d = (O.hasOwnProperty('d')) ? O['d'] : {name: "Los Angeles", state: "CA", country: "USA" };
-   //db.collection(col).doc(id).set(d); 
-   alert(uinfo.email); 
+  List(O) {  var col=O.col, uqid=uniqid(); 
+    db.collection(O.col).get().then((qS) => {  var iq=0, s='';  
+      qS.forEach((doc) => {  iq++; var id=col+'/'+doc.id, oid=uqid+doc.id;   
+        s += `<br/> ${iq} ${id}  
+          <button onclick="new Info().EditRaw({id:'${id}',oid:'${oid}'}); \$('#${oid}').toggle();">Raw</button>
+          <div style='display:none;' id=${oid}></div>`; 
+      })   
+      $('#'+O.oid).html(s);  if(debug) console.log(s);  
+    }); 
+  }
+  EditRaw(O) {  var uqid=uniqid(), inid=O.id;
+    db.doc(O.id).get().then((doc) => {  var d=doc.data(), iq=0, s='';  
+      s += `<textarea rows=10 style="width: 100%; max-width: 100%;" id=${uqid} >`+JSON.stringify(d)+'</textarea>'; 
+      s += `<button data-id=${inid} data-taid=${uqid} onclick="new Info().SaveRaw( \$(this).data());">Save</button>`; 
+
+      $('#'+O.oid).html(s);    
+    }); 
+  }
+  SaveRawTA(O) {  
+    db.doc(O.id).set(JSON.parse($('#'+O.taid).val()) );  
   }
 }
 

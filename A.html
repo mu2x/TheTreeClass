@@ -14,10 +14,11 @@
 
   <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <script id=ck5 src="https://utep.zrenix.com/~nalandi/ckeditor/ckeditor5-inline/build/ckeditor.js"></script>
+    <link rel="stylesheet" href="./css.css">
+
   -->
 
 
-  <link rel="stylesheet" href="./css.css">
   <script src="./functions.js"></script>
   <script type="text/javascript">
     var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
@@ -46,8 +47,8 @@
 
    
 
-          <br/><button onclick=" A.List({oid: 'ContentMiddle'});">List</button>
-               <button onclick=" A.New({});">New</button>
+          <br/><button onclick=" A.List({col:$('#AHomeID').val(), oid: 'ContentMiddle'});">List</button>
+               <button onclick=" A.New({col:$('#AHomeID').val()});">New</button>
           
           <p/><input id=AID value='/COURSES/Math-9th/A/1626223646709910259'></input>
           <br/><button onclick="A.EditRaw({id:$('#AID').val(), oid:'ContentMiddle'});">List</button>
@@ -61,10 +62,9 @@
     </table>
     <script src='./A.js'></script>
     <script>
-       var A = new Assessment({col:$('#AHomeID').val()}); 
+       var A = new Assessment({}); 
     </script>
 
-<!--
 <select id='statusprocess'>
   <option value='optSelected' selected="selected">Selected</option>
   <option value='optNotSelected' >Not Selected</option>
@@ -78,7 +78,6 @@
     </li>
   </ol>
 </div>
--->
 
 
 <script>
@@ -100,6 +99,8 @@ console.log(template(tpl, {str: 'foo', other: 'bar'}));
   }
 });
 </script>
+
+
 </body>
 
 

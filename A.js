@@ -5,11 +5,9 @@ function EditA(id){
  alert(id);
 }
 class getdb {
-  constructor(id) {   
-    db.doc(id).get().then((doc) => {  this.data =doc.data(); })
-  };
+  constructor(id) {  db.doc(id).get().then((doc) => {  this.data =doc.data(); })  };
 }
-
+function ToggleText(O) {   var c = $(O).text(), oid = $(O).attr('mainid');   $('#'+oid).html(c); }
 function ToggleBold(O) {   var c = $(O).attr('class');    $('.'+c).css("font-weight","Normal");   $(O).css("font-weight","Bold"); }
 function ToggleColor(O) {  var c = $(O).attr('class');  $('.'+c).css("background-color", ""); $(O).css("background-color", "yellow"); }
 class Assessment {
@@ -40,6 +38,7 @@ class Assessment {
          ">ListQ</button>';
         sq += "<input id=ListQcol value='/COURSES/Math-9th/Q'/>"; 
         $('#'+oid).html(s); $('#'+'Left2').html(sq);
+        if(debug) console.log(O); 
      })
       
     }
@@ -80,12 +79,12 @@ class Assessment {
     }
     List(O){  var col = O.col?O.col:this.col, oid=O.oid; 
         db.collection(col).get().then((qS) => { 
-            var s = 'Assessments: ', iq=0; 
+            var s = '', iq=0; 
                  qS.forEach((doc) => {  iq++; var aid=col+'/'+doc.id; var n=iq;
                    //var n=(doc.data().a.name)? doc.data().a.name:iq;
-                   var d = ' data-id='+aid+' data-oid='+'TAAID';
+                   var d = ' data-id='+aid+' data-oid='+O.oid2;
                    s +='<button class=AList '+ d + ' onclick=" \
-                   new Assessment($(this).data()).EditRaw({}); ToggleBold($(this)); ToggleColor($(this)); \
+                   new Assessment({}).EditRaw($(this).data()); ToggleBold($(this)); ToggleColor($(this)); \
                    ">'+iq+'</button>';
                    //console.log(doc.data().a.name?1:2);
                  });
@@ -96,7 +95,28 @@ class Assessment {
                  $('#'+oid).html(s);
           });
     }
-    
+    Setup(O){  var col = O.col?O.col:this.col, oid=O.oid, uqid=uniqid(); 
+      db.collection(col).get().then((qS) => { 
+          var s = '', iq=0; 
+               qS.forEach((doc) => {  iq++; var aid=col+'/'+doc.id; var n=iq;
+                 s +=`<button data-id=${aid} data-oid=QList${uqid} data-oid2=QDisplay${uqid} class=AList onclick="
+                 new Assessment({}).LoadOne(\$(this).data()); ToggleBold(\$(this)); ToggleColor(\$(this)); 
+                 ">${iq}</button>`;
+                 if(debug) console.log(doc.data().a.name?1:2);
+               });
+               var ss=`
+               <table border="1" width=100% CourseID=${col}>
+               <tr >
+               <td width=10% id=AList${uqid} valign=top> ${s}</td> 
+               <td id=QDisplay${uqid} valign=top> </td> 
+               <td width=10% id=QList${uqid} valign=top></td> 
+               </tr>
+               </table>
+               `; 
+
+               $('#'+oid).html(ss);
+        });
+  }  
    ListOne(O){  var id=O.id?O.id:this.id, oid=O.oid?O.oid:this.oid; 
     db.doc(id).get().then((doc) => {  
        var s='<button onclick="EditQ('+"'"+doc.id+"'"+');">'+doc.id+'</button>';
@@ -104,13 +124,32 @@ class Assessment {
     })
    }
 
-   LoadOne(O){  db.doc(O.id).get().then((doc) => {  $('#'+O.oid).html(this.Array2Qstr(doc.data().Q));  })    }
+   LoadOne(O){  db.doc(O.id).get().then((doc) => {  var s='', iq=0, oid=O.oid2?O.oid2:'Middle12';
+     for (var qid of doc.data().Q) { iq++; s += `<button data-id=${qid} data-oid=${oid} onclick="LoadOneQ($(this).data());">${iq}</button>`; }
+     $('#'+O.oid).html(s);  //     $('#'+O.oid).html(this.Array2Qstr(doc.data().Q));  
 
-   Array2Qstr(Q) { var s='', iq=0, oid='QuickQ';
+    })    }
+
+   Array2Qstr(Q) { var s='', iq=0, oid='Middle12';
     for (var qid of Q) { iq++; s += `<button data-id=${qid} data-oid=${oid} onclick="LoadOneQ($(this).data());">${iq}</button>`; }
     return s; 
    }
 
+   ListDropdown(O){  var col = O.col?O.col:this.col, oid=O.oid, mainid=O.mainid, name=O.name?O.name:"A"; 
+    db.collection(col).get().then((qS) => { 
+        var s='',iq=0; 
+         qS.forEach((doc) => {  iq++; var aid=col+'/'+doc.id; var n=iq;
+            s +=`<a href="#" mainid=${mainid} class=AList onclick="A.LoadOne({id:'${aid}', oid:'Top21'}); ToggleBold($(this)); ToggleColor($(this)); ToggleText($(this)); ">${iq}</a>`;
+          });
+          var ss = O.v==2? `<div class="column"><div class="row">${s}</div></div>`:s; 
+          s= `<div class="dropdown"><button id=${mainid} class="dropbtn">${name}</button><div class="dropdown-content"> ${ss} </div></div>`; 
+          $('#'+oid).html(s);
+          if(debug) console.log(s);
+      });
+ 
+}
+
+    
    New(O){ var col=O.col?O.col:this.col; 
      var qid='%s%s'.format(firebase.firestore.Timestamp.now().toMillis(),getRandomNumber(100000,999999));
      console.log(qid);
@@ -129,5 +168,6 @@ class Assessment {
                }
         }
        ); 
+       if(debug) console.log(`New Assessment '${col}/${qid}' created!`);
     }
   }
