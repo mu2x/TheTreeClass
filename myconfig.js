@@ -1,5 +1,6 @@
 //-----------------------------
-var ckbasic = [{items:['Source','Bold','Italic','Underline','Strike','Subscript','Superscript']}];
+var ckbasic = [{items:['Source','Bold','Italic','Underline','Strike','Subscript','Superscript', 
+                    'ckeditor_wiris_formulaEditor','ckeditor_wiris_formulaEditorChemistry', 'Mathjax']}];
 var ckfull = [
     { name: 'document', items: [ 'Source', '-', 'Save', 'NewPage', 'ExportPdf', 'Preview', 'Print', '-', 'Templates' ] },
     { name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
@@ -18,7 +19,19 @@ var ckfull = [
 ];
 var tb=ckbasic;
 var ckconfig = {startupMode:'source'};
-var role='student', debug=0, group='default', permission='------rwx', groups=[]; 
+CKEDITOR.plugins.addExternal('ckeditor_wiris', 'https://www.wiris.net/demo/plugins/ckeditor/', 'plugin.js');
+CKEDITOR.config.allowedContent = true;
+CKEDITOR.disableAutoInline = true;
+CKEDITOR.config.extraPlugins = 'ckeditor_wiris,mathjax';
+CKEDITOR.config.mathJaxLib='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML';
+MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [['$','$'], ['\\(','\\)']],
+      processEscapes: true
+    }
+  });
+
+var role='student', debug=0, admin=0, group='default', uhome='/users', permission='------rwx', groups=[], roles=[]; 
 //-----------------------------
 var name, email, emailVerified, uid, uinfo={};
 var firebaseConfig = {

@@ -1,9 +1,12 @@
 function initApp(O) {
     firebase.auth().onAuthStateChanged(function(user) {
      if (user) { 
-       uinfo = user; 
+       uinfo = user; email=user.email; 
        LoggedOutDisplay({id:'Login',photo:0},user);
        LogUserInfo('initApp');
+       db.doc('/users/'+email).get().then((doc)=>{
+         roles=doc.data().roles?doc.data().roles:['student'];  //admin= (roles.indexOf('instructor')>=0)?1:0;
+        })
      } else { 
        LoginDisplay({id:'Login'}); 
      }

@@ -34,57 +34,81 @@ function EditQ(id){ var col = 'Q/'+id;
 }
 
 function LoadOneQ(O){ var id = O.id, oid=O.oid, uqid=uniqid(); 
-  LogUserInfo('EditQ: %s '.format(O.id));
-  db.doc(id).get().then(function(doc) { 
-    var s = '', sc='', k, d=doc.data(), Desc, Ch, Soln=''; 
-     if(!d['Desc']) d['Desc']='Description';
-     if(!d['Soln']) d['Soln']='Solution';
-     if(!d['Choices']) d['Choices']=[{v:1},{v:2}];
-     if(!d['a']) d['a']={group:"default",groups:["default"]};
-
+  LogUserInfo('LoadOneQ: %s '.format(O.id));
+  db.doc(id).get().then(function(doc) {     
+    var s = '', iid=`/users/instructor/${id}`, sid=`/users/${email}/${id}`, d=doc.data(); 
+     d=InitializeQ(d); 
      qdata=d; role='instructor';
-     if(role=='instructor') { 
-       k='group'; 
-       s += '<span id=QID qid='+id+'><u>'+id+'</u></span>'; 
-       s += '<br/>Group:<input id=a-'+k+' class=BoxBorderGreen size=3 color="green" value='+d['a'][k]+' /> | Groups:[incomplete]<hr/>'; 
-      }
-     s += ` <textarea id=TA${uqid}> ` + d['Desc'] + `</textarea>
-        <button onclick="CKEDITOR.instances['Desc${uqid}'].setData( \$('#TA${uqid}').val());">Load</button>
-        <div id=Desc${uqid} class=QEdit contenteditable="true" ondblclick="
-         var opened = CKEDITOR.instances.Desc${uqid}?1:0; console.log('Desc${uqid}'); var ta=\$('#TA${uqid}').val(); 
-         //var editor=CKEDITOR.inline('Desc${uqid}', { toolbar:ckbasic, extraPlugins: 'ckeditor_wiris'} );
-         CKEDITOR.replace('Desc${uqid}', { toolbar:ckbasic} ).setData( \$('#TA${uqid}').val());
-        // if(!opened) CKEDITOR.replace( 'TA${uqid}', {extraPlugins:'mathjax', mathJaxLib:'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',height:320}  ); 
-         //CKEDITOR.instances['Desc${uqid}'].setData( \$('#TA${uqid}').val());
-         \$('#Desc${uqid}').attr('contenteditable','true'); \$('#DescB${uqid}').show();
-        //editor.on( 'change', function( evt ) {       console.log( 'Total bytes: ' + evt.editor.getData() );});
-     " >`+d['Desc']+'</div>';
-     s += `<button id=DescB${uqid} style='display:none;' onclick=" 
-         db.doc('${id}').update({Desc:CKEDITOR.instances['Desc${uqid}'].getData()});
-         CKEDITOR.instances['Desc${uqid}'].destroy();
-         \$('#Desc${uqid}').attr('contenteditable','false'); \$('#DescB${uqid}').hide();
-         ">Done</button>`;
-     k='Choices';
-     for(var kk of Object.keys(d[k])) { if(!d[k][kk].a) d[k][kk].a=0; 
-        var chkd = (d[k][kk].a==1)?'checked':'';
-        sc += '<tr><td width=1%><input type=checkbox id=a'+kk+' '+chkd+'></input></td>'; 
-        sc += '<td><div id='+k+'-'+kk+' class=QEdit kk='+kk+' type=Choices>'+d[k][kk].v+'</div></td></tr>';
-        nchoice=kk;
-     }
-     s += '<table id=myTable width=100% border=1>'+sc+'</table>';
-     if(role=='instructor') {k='Soln'; s += '<div id='+k+' class=QEdit>'+d[k]+'</div>';}
-     s += '<div class=SaveMsg></div>';
+     if(role=='instructor') s += `<div>id: ${id}, <br/>IstrID: ${iid}, <br/> SID:${sid}</div>`; 
+     //'<div id=QID qid='+id+'>id: <u>'+id+'</u> </div>'; 
+     s += AttrQ(id,'a',d.a, uqid, {});
+     s += DisplayByKey(id, 'Desc', d['Desc'], 'Desc'+uqid, {}); 
+     s += MultipleChoices(id, 'Choices', d.Choices, uqid, {}); 
+     if(role=='instructor') s += DisplayByKey(id, 'Soln', d['Soln'], 'Soln'+uqid, {tb:'ckbasic'}); 
      s += `<button onclick="EditRawByID('${id}', '${oid}'); ">Raw</button>`; 
-
+     s += `<button onclick="SaveAllInputs('${id}', '${oid}'); ">Instructor</button>`; 
+     s += `<div id=SaveMsg${uqid} class=SaveMsg></div>`;
      $('#'+O.oid).html(s); 
-
     MathJax.Hub.Queue(["Typeset",MathJax.Hub, oid ]);
-     if(debug) console.log(s);
-     //CKEDITOR.inline('Desc'+uqid, { toolbar:ckbasic}).setData(d['Desc']);
-     console.log(`<button onclick="CKEDITOR.instances['Desc${uqid}'].setData(d['Desc']);">Load</button>`);
-     //setTimeout(function() {  CKEDITOR.instances['Desc'+uqid].setData(d['Desc']); }, 5000);
-
+     if(debug) console.log(s);  //setTimeout(function() {  CKEDITOR.instances['Desc'+uqid].setData(d['Desc']); }, 5000);
    });
+}
+function SaveAllInputs(id, oid) { 
+  console.log(oid);
+}
+function InitializeQ(d) { 
+  if(!d['Desc']) d['Desc']='Description';
+  if(!d['Soln']) d['Soln']='Solution';
+  if(!d['Choices']) d['Choices']=[{v:1},{v:2}];
+  if(!d['a']) d['a']={group:"default",groups:["default"]};
+  return d; 
+}
+function AttrQ(id, key, attr, uqid, O) { var s=''; 
+ for(var k of Object.keys(attr)) { var val = $.isArray(attr[k])? JSON.stringify(attr[k]):attr[k]; 
+  s += `${k}<input id=${uqid}a-${k} size=5 color="green" value='${val}' /> | `; 
+ }
+  return s; 
+}
+function MultipleChoices(id, key, d, uqid, O) { var s='', tb=O.tb?O.tb:'ckfull'; 
+  for(var kk of Object.keys(d)) { if(!d[kk].a) d[kk].a=0; 
+    var chkd = (d[kk].a==1)?'checked':'';
+    s += `<tr><td width=1%>
+    <input type=checkbox id=c-${kk}-${uqid} class=C${uqid} data-id=${id} data-k=${key} data-kk=${kk} data-uqid=${uqid} onclick="UpdateChChecked(\$(this));" ${chkd}></input>
+    </td>`; 
+    s += `<td><div id=v-${kk}-${uqid}>`+d[kk].v+`</div></td></tr>`;
+    nchoice=kk;
+  }
+  return '<table id=myTable width=100% border=1>'+s+'</table>';
+}
+function UpdateChChecked(e) { var c=[], d=e.data(), kk=d.kk, uqid=d.uqid, i=0, key=d.k; 
+  $('.'+e.attr('class')).each(function(){ 
+    var vid=`v-${i}-${uqid}`, cid=`c-${i}-${uqid}`, a = $('#'+cid).prop('checked')?1:0, v = $('#'+vid).html(); 
+    c.push({"a":a, "v":v}); 
+    i++;  
+  }) 
+  var vv = {}; vv[d.k] = c; 
+  db.doc(d.id).update(vv);  
+  console.log(d,vv); 
+}
+
+
+function DisplayByKey(id, key, v, uqid, O) { var s='', tb=O.tb?O.tb:'ckfull'; 
+  s += ` <textarea style='display:none;' id=TADesc${uqid}> ` + v + `</textarea>`; 
+  s += `
+    <div id=Desc${uqid} class=QEdit contenteditable="false" ondblclick="
+      var opened = CKEDITOR.instances.Desc${uqid}?1:0; console.log('Desc${uqid}');  
+      if(!opened) CKEDITOR.replace('Desc${uqid}', { toolbar:${tb}} ).setData( \$('#TADesc${uqid}').val());
+      //CKEDITOR.instances['Desc${uqid}'].setData( \$('#TADesc${uqid}').val());
+      \$('#Desc${uqid}').attr('contenteditable','true'); \$('#DescB${uqid}').show();
+      //editor.on( 'change', function( evt ) {       console.log( 'Total bytes: ' + evt.editor.getData() );});
+    " >`+v+'</div>';
+  s += `<button id=DescB${uqid} style='display:none;' onclick=" 
+    var data = CKEDITOR.instances['Desc${uqid}'].getData(); \$('#TADesc${uqid}').val(data);
+    db.doc('${id}').update({'${key}':data}); 
+    CKEDITOR.instances['Desc${uqid}'].destroy();
+    \$('#Desc${uqid}').attr('contenteditable','false'); \$('#DescB${uqid}').hide();
+  ">Done</button>`;
+   return s; 
 }
 
 function LoadOneQ2(O){ var id = O.id;
