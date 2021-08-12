@@ -6,6 +6,7 @@ function initApp(O) {
        LogUserInfo('initApp');
        db.doc('/users/'+email).get().then((doc)=>{
          roles=doc.data().roles?doc.data().roles:['student'];  //admin= (roles.indexOf('instructor')>=0)?1:0;
+         role = (email=='vkumar@utep.edu')?'instructor':'student'; 
         })
      } else { 
        LoginDisplay({id:'Login'}); 
