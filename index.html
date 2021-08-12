@@ -53,7 +53,7 @@
    <span id=Bottom11></span>   <span id=Bottom12></span> 
    
  
-   <span style='float:right;' id=Bottom13><button onclick=" $('#Bottom11').html(InitialUinfo()); ">More</button></span>
+   <span style='float:right;' id=Bottom13><button onclick=" $('#Bottom11').html(InitialUinfo()); $('[role=instructor]').toggle(); ">More</button></span>
   </span>
 
 
@@ -73,14 +73,12 @@
   });
 
   function InitialUinfo() {
-    if(admin) { var s='';
-     
+     var s='';
       s += ` <button onclick="ListByCol($('#ListByCol').val(),'Middle2'); ">List</button> <input id=ListByCol value='/public'/> `;
       s += ` <button onclick="EditRawByID($('#EditRawByID').val(),'Middle2'); ">Edit</button> <input id=EditRawByID value='/public/test'/>`;
       s += ' | <input type=checkbox onclick="debug=$(this).prop(\'checked\')?1:0; ">debug</input>'; 
       s += ` | <input type=checkbox onclick="role=\$(this).prop(\'checked\')?'instructor':'student'; ">Instructor</input>`; 
-    }
-    return '<span class=more>'+s+'</span>'; 
+    return `<span style='display:none;' role=${role} class=more>${s}</span>`; 
   }
   
   function dropdown(O) { var s='', mainid=O.mainid?O.mainid:'dropbtn1'; 
