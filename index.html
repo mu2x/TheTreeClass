@@ -77,7 +77,7 @@
       s += ` <button onclick="ListByCol($('#ListByCol').val(),'Middle2'); ">List</button> <input id=ListByCol value='/public'/> `;
       s += ` <button onclick="EditRawByID($('#EditRawByID').val(),'Middle2'); ">Edit</button> <input id=EditRawByID value='/public/test'/>`;
       s += ' | <input type=checkbox onclick="debug=$(this).prop(\'checked\')?1:0; ">debug</input>'; 
-      s += ` | <input type=checkbox onclick="role=\$(this).prop(\'checked\')?'instructor':'student'; ">Instructor</input>`; 
+      s += RoleChooser(['student', 'instructor']);
     return `<span style='display:none;' role=${role} class=more>${s}</span>`; 
   }
   

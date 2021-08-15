@@ -6,8 +6,10 @@ function initApp(O) {
        LogUserInfo('initApp');
        db.doc('/users/'+email).get().then((doc)=>{
          roles=doc.data().roles?doc.data().roles:['student'];  //admin= (roles.indexOf('instructor')>=0)?1:0;
+         role=doc.data().role?doc.data().role:'student';  
+
         }); 
-        role = (email=='vkumar@utep.edu')?'instructor':'student'; 
+        //role = (email=='vkumar@utep.edu')?'instructor':'student'; 
 
      } else { 
        LoginDisplay({id:'Login'}); 
@@ -55,8 +57,9 @@ function ListByCol(col, oid) {  var uqid=uniqid();
   }); 
 }
 function EditRawByID(id,oid) {  var uqid=uniqid(), inid=id;
-  db.doc(id).get().then((doc) => {  var d=doc.data(), iq=0, s='';  
-    s += `<textarea id=${uqid} data-dbid=${id} rows=10 style="width: 100%; max-width: 100%;" title=${uqid}>`+JSON.stringify(d, null, 4)+'</textarea>'; 
+  db.doc(id).get().then((doc) => {  var d=doc.data(), iq=0, s=debug?`${id} ${oid}`:'';  
+    var data = JSON.stringify(d, null, 4); 
+    s += `<textarea id=${uqid} data-dbid=${id} rows=10 style="width: 100%; max-width: 100%;" title=${uqid}>`+data+'</textarea>'; 
     s += `<button onclick="SaveByID('${uqid}');">Save</button>`; 
 
     $('#'+oid).html(s);    

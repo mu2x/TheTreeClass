@@ -69,6 +69,7 @@ class Assessment {
         $('#'+O.oid).html(s);
         this.HighLightQ({aidta:O.aidta});
       });
+      if(debug) console.log('A.js:ListQ', O)
       return true;
     }
 
@@ -82,7 +83,7 @@ class Assessment {
             var s = '', iq=0; 
                  qS.forEach((doc) => {  iq++; var aid=col+'/'+doc.id; var n=iq;
                    //var n=(doc.data().a.name)? doc.data().a.name:iq;
-                   var d = ' data-id='+aid+' data-oid='+O.oid2;
+                   var d = ' data-id='+aid+' data-oid='+O.oid;
                    s +='<button class=AList '+ d + ' onclick=" \
                    new Assessment({}).EditRaw($(this).data()); ToggleBold($(this)); ToggleColor($(this)); \
                    ">'+iq+'</button>';
@@ -93,17 +94,22 @@ class Assessment {
 
 
                  $('#'+oid).html(s);
+                 console.log(s); 
           });
     }
     Setup(O){  var col = O.col?O.col:this.col, oid=O.oid, uqid=uniqid(); 
       db.collection(col).get().then((qS) => { 
           var s = '', iq=0; 
-               qS.forEach((doc) => {  iq++; var aid=col+'/'+doc.id; var n=iq;
+               qS.forEach((doc) => {  iq++; var aid=col+'/'+doc.id, n=doc.data().a.name?doc.data().a.name:iq; 
                  s +=`<button data-id=${aid} data-oid=QList${uqid} data-oid2=QDisplay${uqid} class=AList onclick="
                  new Assessment({}).LoadOne(\$(this).data()); ToggleBold(\$(this)); ToggleColor(\$(this)); 
-                 ">${iq}</button>`;
-                 if(debug) console.log(doc.data().a.name?1:2);
+                 ">${n}</button>`;
                });
+              
+               if(role=='instructor') {
+                s +=`<button data-col=${col} data-oid=Middle2 onclick=" A.New({col:'${col}'}); A.Setup(\$(this).data()); ">Add</button>`;
+               }
+
                var ss=`
                <table border="1" width=100% CourseID=${col}>
                <tr >
@@ -116,19 +122,35 @@ class Assessment {
 
                $('#'+oid).html(ss);
         });
+        if(debug) console.log('A.js: Setup', O);
   }  
    ListOne(O){  var id=O.id?O.id:this.id, oid=O.oid?O.oid:this.oid; 
     db.doc(id).get().then((doc) => {  
        var s='<button onclick="EditQ('+"'"+doc.id+"'"+');">'+doc.id+'</button>';
        $('#'+oid).html(s);
     })
+    if(debug) console.log('A.js ListOne', O);
    }
 
-   LoadOne(O){  db.doc(O.id).get().then((doc) => {  var s='', iq=0, oid=O.oid2?O.oid2:'Middle12';
-     for (var qid of doc.data().Q) { iq++; s += `<button data-id=${qid} data-oid=${oid} onclick="LoadOneQ($(this).data());">${iq}</button>`; }
-     $('#'+O.oid).html(s);  //     $('#'+O.oid).html(this.Array2Qstr(doc.data().Q));  
+   LoadOne(O){  
+     db.doc(O.id).get().then((doc) => {  var Desc=doc.data().Desc?doc.data().Desc:''; 
+     var s='', s2=`<div>${Desc}</div>`, iq=0, Qs=doc.data().Q, oid=O.oid2?O.oid2:'Middle12', Qstr=JSON.stringify(Qs), id=O.id;;
+     for (var qid of Qs) { 
+      s2 += `<span id=${oid}-${iq}></span>`;  
+      iq++; 
+      s += `<button class=LoadOne data-id=${qid} data-oid=${oid} onclick="LoadOneQ($(this).data()); ToggleBold(\$(this)); ToggleColor(\$(this)); ">${iq}</button>`; 
+     }
+     if(Qs.length) s += `<button class=LoadOne onclick='LoadQ({id:${Qstr}, oid:"${oid}"}); ToggleColor(\$(this)); '>All</button>`; 
+     if(role=='instructor') {
+       s +=`<button onclick=" EditRawByID('${id}', '${oid}');  ">Edit</button>`;
+     }
 
-    })    }
+      $('#'+O.oid).html(s);  //     $('#'+O.oid).html(this.Array2Qstr(doc.data().Q)); 
+      $('#'+oid).html(s2); // create a place-holder for all Qs in O.oid2 
+     })   
+    
+    if(debug) console.log('LoadOne', O); 
+   }
 
    Array2Qstr(Q) { var s='', iq=0, oid='Middle12';
     for (var qid of Q) { iq++; s += `<button data-id=${qid} data-oid=${oid} onclick="LoadOneQ($(this).data());">${iq}</button>`; }

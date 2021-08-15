@@ -33,28 +33,68 @@ function EditQ(id){ var col = 'Q/'+id;
    });
 }
 
-function LoadOneQ(O){ var id = O.id, oid=O.oid, uqid=uniqid(); 
+function LoadQ(O){ var Q = O.id, oid=O.oid; 
+  for(var i=0; i<Q.length; i++) {
+    LoadOneQ({id:Q[i], oid:`${oid}-${i}` }); 
+    if(debug) console.log({id:Q[i], oid:`${oid}-${i}` });
+  }
+  if(debug) console.log('Q.js:LoadQ',O);
+}
+function LoadOneQ(O){ //Input: O=[id, oid]
+  var id = O.id, oid=O.oid, uqid=uniqid();
+  var sid=`/users/${email}/${id}`; sid = `${sid.replace(/\/\//g, '\/')}`;
+  var ioID = (role=='instructor')?`${id}/user/submitted`:`${sid}/user/submitted`; 
+
   LogUserInfo('LoadOneQ: %s '.format(O.id));
   db.doc(id).get().then(function(doc) {     
-    var s = '', iid=`/users/instructor/${id}`, sid=`/users/${email}/${id}`, d=doc.data(); 
+    var s = '', d=doc.data(), inst=(role=='instructor'); 
      d=InitializeQ(d); 
-     qdata=d; role='instructor';
-     if(role=='instructor') s += `<div>id: ${id}, <br/>IstrID: ${iid}, <br/> SID:${sid}</div>`; 
-     //'<div id=QID qid='+id+'>id: <u>'+id+'</u> </div>'; 
-     s += AttrQ(id,'a',d.a, uqid, {});
+     qdata=d; 
+     if(role=='instructor') {
+       s += `<div>id: ${id}, <br/> SID:${sid}</div>`; 
+       s += AttrQ(id,'a',d.a, uqid, {});
+     }
      s += DisplayByKey(id, 'Desc', d['Desc'], 'Desc'+uqid, {}); 
-     s += MultipleChoices(id, 'Choices', d.Choices, uqid, {}); 
-     if(role=='instructor') s += DisplayByKey(id, 'Soln', d['Soln'], 'Soln'+uqid, {tb:'ckbasic'}); 
-     s += `<button onclick="EditRawByID('${id}', '${oid}'); ">Raw</button>`; 
-     s += `<button onclick="SaveAllInputs('${id}', '${oid}'); ">Instructor</button>`; 
-     s += `<div id=SaveMsg${uqid} class=SaveMsg></div>`;
+     s += MultipleChoices(id, 'Choices', d.Choices, uqid, {});
+     if(role=='instructor') {
+       s += DisplayByKey(id, 'Soln', d['Soln'], 'Soln'+uqid, {tb:'ckbasic'}); 
+       s += `<button onclick="EditRawByID('${id}', '${oid}'); ">Raw</button>`; 
+     }
+     s += `<button onclick=" var iv={};
+       iv.select=getAllInputValues('#DescDesc${uqid} select'); 
+       iv.input=getAllInputValues('#DescDesc${uqid} input'); 
+       iv.Choices=getAllInputValues('.C${uqid}'); 
+       var writeid = (role=='instructor')?'${id}/user/submitted':'${sid}/user/submitted'; 
+       db.doc(writeid).set(iv);  if(debug) console.log(writeid, iv)
+       ">Save</button>`; 
+
+      s += `<button onclick=" var iv={};
+       var ioID = (role=='instructor')?'${id}/user/submitted':'${sid}/user/submitted'; 
+       db.doc(ioID).get().then(function(doc) { var d=doc.data(); 
+        LoadAllInputValues('#DescDesc${uqid} select', d.select); LoadAllInputValues('#DescDesc${uqid} input', d.input);
+        LoadAllInputValues('.C${uqid}', d.Choices);
+       }); 
+       ">Load</button>`; 
+     
+    if(inst) s += RoleChooser(['student', 'instructor']); //`<select onclick="role=$(this).val(); ">${ss}</select>`; 
+
+     s += `<div id=SaveMsg${uqid} class=SaveMsg></div><hr/>`;
      $('#'+O.oid).html(s); 
     MathJax.Hub.Queue(["Typeset",MathJax.Hub, oid ]);
-     if(debug) console.log(s);  //setTimeout(function() {  CKEDITOR.instances['Desc'+uqid].setData(d['Desc']); }, 5000);
-   });
+     if(debug) console.log('Q.js:LoadOneQ', O);  
+     setTimeout(function() {  
+      db.doc(ioID).get().then(function(doc) { var d=doc.data();
+      LoadAllInputValues(`#DescDesc${uqid} select`, d.select); 
+      LoadAllInputValues(`#DescDesc${uqid} input`, d.input);
+      LoadAllInputValues(`.C${uqid}`, d.Choices);
+      })
+      }, 1000);
+   } );
 }
-function SaveAllInputs(id, oid) { 
-  console.log(oid);
+
+function RoleChooser(roles) {   var ss=''; 
+  $.each( roles, function( k, v) { var selected= (v==role)?'selected':'';   ss += `<option ${selected}>${v}</option>`;  });
+  return `<select onclick="role=$(this).val(); ">${ss}</select>`; 
 }
 function InitializeQ(d) { 
   if(!d['Desc']) d['Desc']='Description';
@@ -63,7 +103,7 @@ function InitializeQ(d) {
   if(!d['a']) d['a']={group:"default",groups:["default"]};
   return d; 
 }
-function AttrQ(id, key, attr, uqid, O) { var s=''; 
+function AttrQ(id, key, attr, uqid, O) { var s='', uqid=uniqid(); 
  for(var k of Object.keys(attr)) { var val = $.isArray(attr[k])? JSON.stringify(attr[k]):attr[k]; 
   s += `${k}<input id=${uqid}a-${k} size=5 color="green" value='${val}' /> | `; 
  }
@@ -73,12 +113,14 @@ function MultipleChoices(id, key, d, uqid, O) { var s='', tb=O.tb?O.tb:'ckfull';
   for(var kk of Object.keys(d)) { if(!d[kk].a) d[kk].a=0; 
     var chkd = (d[kk].a==1)?'checked':'';
     s += `<tr><td width=1%>
-    <input type=checkbox id=c-${kk}-${uqid} class=C${uqid} data-id=${id} data-k=${key} data-kk=${kk} data-uqid=${uqid} onclick="UpdateChChecked(\$(this));" ${chkd}></input>
+    <input type=checkbox id=c-${kk}-${uqid} class=C${uqid} data-id=${id} data-k=${key} data-kk=${kk} data-uqid=${uqid} ></input>
     </td>`; 
+    //    <input type=checkbox id=c-${kk}-${uqid} class=C${uqid} data-id=${id} data-k=${key} data-kk=${kk} data-uqid=${uqid} onclick="UpdateChChecked(\$(this));" ${chkd}></input>
+
     s += `<td><div id=v-${kk}-${uqid}>`+d[kk].v+`</div></td></tr>`;
     nchoice=kk;
   }
-  return '<table id=myTable width=100% border=1>'+s+'</table>';
+  return '<table width=100% border=1>'+s+'</table>';
 }
 function UpdateChChecked(e) { var c=[], d=e.data(), kk=d.kk, uqid=d.uqid, i=0, key=d.k; 
   $('.'+e.attr('class')).each(function(){ 
@@ -88,7 +130,7 @@ function UpdateChChecked(e) { var c=[], d=e.data(), kk=d.kk, uqid=d.uqid, i=0, k
   }) 
   var vv = {}; vv[d.k] = c; 
   db.doc(d.id).update(vv);  
-  console.log(d,vv); 
+  if(debug) console.log(d,vv); 
 }
 
 
@@ -96,12 +138,12 @@ function DisplayByKey(id, key, v, uqid, O) { var s='', tb=O.tb?O.tb:'ckfull';
   s += ` <textarea style='display:none;' id=TADesc${uqid}> ` + v + `</textarea>`; 
   s += `
     <div id=Desc${uqid} class=QEdit contenteditable="false" ondblclick="
-      var opened = CKEDITOR.instances.Desc${uqid}?1:0; console.log('Desc${uqid}');  
+      var opened = CKEDITOR.instances.Desc${uqid}?1:0;   
       if(!opened) CKEDITOR.replace('Desc${uqid}', { toolbar:${tb}} ).setData( \$('#TADesc${uqid}').val());
       //CKEDITOR.instances['Desc${uqid}'].setData( \$('#TADesc${uqid}').val());
       \$('#Desc${uqid}').attr('contenteditable','true'); \$('#DescB${uqid}').show();
       //editor.on( 'change', function( evt ) {       console.log( 'Total bytes: ' + evt.editor.getData() );});
-    " >`+v+'</div>';
+    " >`+v+`</div>`;
   s += `<button id=DescB${uqid} style='display:none;' onclick=" 
     var data = CKEDITOR.instances['Desc${uqid}'].getData(); \$('#TADesc${uqid}').val(data);
     db.doc('${id}').update({'${key}':data}); 

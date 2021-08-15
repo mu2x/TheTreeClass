@@ -28,8 +28,19 @@ class Info {
 }
 
 
-function getAllInputValues(eid) { var d=[]; $(eid).each(function() {d.push($(this).val());}); return d; }
-function LoadAllInputValues(eid, d) { var k=0; $(eid).each(function() {$(this).val(d['inputs'][k]);++k;}); }
+function getAllInputValues(eid) { var d=[], v=''; 
+  $(eid).each(function() { var e=$(this); 
+    if(e.attr('type')=='checkbox') v = e.prop('checked'); else v=e.val(); 
+    d.push(v); //d.push($(this).val());
+  }); 
+  return d; 
+}
+function LoadAllInputValues(eid, d) { var k=0; 
+  $(eid).each(function() {var e=$(this), v=d[k]; 
+    if(e.attr('type')=='checkbox') e.prop('checked', v); else e.val(v); 
+    ++k;
+  }); 
+}
 
 class IO3 {
   constructor(O) {
