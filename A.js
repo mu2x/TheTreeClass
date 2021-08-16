@@ -107,7 +107,7 @@ class Assessment {
                });
               
                if(role=='instructor') {
-                s +=`<button data-col=${col} data-oid=Middle2 onclick=" A.New({col:'${col}'}); A.Setup(\$(this).data()); ">Add</button>`;
+                s +=`<p/><button data-col=${col} data-oid=Middle2 onclick=" A.New({col:'${col}'}); A.Setup(\$(this).data()); ">Add New</button>`;
                }
 
                var ss=`
@@ -133,8 +133,10 @@ class Assessment {
    }
 
    LoadOne(O){  
-     db.doc(O.id).get().then((doc) => {  var Desc=doc.data().Desc?doc.data().Desc:''; 
-     var s='', s2=`<div>${Desc}</div>`, iq=0, Qs=doc.data().Q, oid=O.oid2?O.oid2:'Middle12', Qstr=JSON.stringify(Qs), id=O.id;;
+     db.doc(O.id).get().then((doc) => {  var d=doc.data(), Desc=d.Desc?d.Desc:'', uqid=uniqid();
+     var s='', s2='', iq=0, Qs=doc.data().Q, oid=O.oid2?O.oid2:'Middle12', Qstr=JSON.stringify(Qs), id=O.id;
+     var k='Desc'; s2 += DisplayByKey(O.id, k, d[k], k+uqid, {tb:'ckbasic'}); 
+
      for (var qid of Qs) { 
       s2 += `<span id=${oid}-${iq}></span>`;  
       iq++; 
@@ -144,6 +146,10 @@ class Assessment {
      if(role=='instructor') {
        s +=`<button onclick=" EditRawByID('${id}', '${oid}');  ">Edit</button>`;
      }
+
+     s += `<button  onclick="new ListQ({col:'/public', oid:'${oid}'}).ListAllQ(); ">AddQ</button>`;
+     s += "<input id=ListQcol value='/COURSES/Math-9th/Q'/>"; 
+
 
       $('#'+O.oid).html(s);  //     $('#'+O.oid).html(this.Array2Qstr(doc.data().Q)); 
       $('#'+oid).html(s2); // create a place-holder for all Qs in O.oid2 

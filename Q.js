@@ -64,13 +64,11 @@ function LoadOneQ(O){ //Input: O=[id, oid]
        iv.select=getAllInputValues('#DescDesc${uqid} select'); 
        iv.input=getAllInputValues('#DescDesc${uqid} input'); 
        iv.Choices=getAllInputValues('.C${uqid}'); 
-       var writeid = (role=='instructor')?'${id}/user/submitted':'${sid}/user/submitted'; 
-       db.doc(writeid).set(iv);  if(debug) console.log(writeid, iv)
+       db.doc('${ioID}').set(iv);  if(debug) console.log(writeid, iv)
        ">Save</button>`; 
 
       s += `<button onclick=" var iv={};
-       var ioID = (role=='instructor')?'${id}/user/submitted':'${sid}/user/submitted'; 
-       db.doc(ioID).get().then(function(doc) { var d=doc.data(); 
+       db.doc('${ioID}').get().then(function(doc) { var d=doc.data(); 
         LoadAllInputValues('#DescDesc${uqid} select', d.select); LoadAllInputValues('#DescDesc${uqid} input', d.input);
         LoadAllInputValues('.C${uqid}', d.Choices);
        }); 
