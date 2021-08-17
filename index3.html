@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+  <!--
+
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script id=ck5 src="https://utep.zrenix.com/~nalandi/ckeditor/ckeditor5-inline/build/ckeditor.js"></script>
+    <link rel="stylesheet" href="../CSS/css.css">
+  -->
+
+
+  <link rel="stylesheet" href="index.css" />
+
+
+  <script src="functions.js"></script>
+  <script type="text/javascript">
+    var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
+    LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js", "A.js"]); //Load our style and JS files
+    firebase.initializeApp(firebaseConfig); 
+    var  debug=0, db = firebase.firestore(), A = new Assessment({col:'/COURSES/List'}); 
+    window.addEventListener('load', function() { 
+      initApp({}); 
+    });
+  </script>
+
+</head>
+
+<body>
+ <span id=Top11></span> 
+ <span id=Top12></span> 
+ <span style='float:right;' id=Login data-logged=0>Login</span>
+ <div id=Top21></div>
+ <hr/>
+ <span id=Middle1>
+   <span id=Middle11></span>   <span id=Middle12></span>   <span style='float:right;' id=Middle13></span>
+ </span>
+ <span id=Middle2></span>
+ <textarea rows=10 style="width: 100%; max-width: 100%; display:none;" id=TA></textarea>
+
+ <span id=ContentMiddle></span>
+
+ <hr/>
+ <span id=Bottom1 style='left: 0; position: fixed; text-align: left; bottom: 0; width: 100%;'>
+  <span id=Bottom11></span>   <span id=Bottom12></span> 
+  <button onclick="ListByCol($('#ListByCol').val(),'Middle2'); ">List</button> <input id=ListByCol value='/public'/> 
+  <button onclick="EditRawByID($('#EditRawByID').val(),'Middle2'); ">Edit</button> <input id=EditRawByID value='/public/test'/> 
+
+  <span style='float:right;' id=Bottom13><button onclick="$('#Bottom13').append(InitialUinfo());">More</button></span>
+ </span>
+
+
+</body>
+</html>
+
+    
+    <script>
+
+       //A.List({oid: 'classlist'}); 
+  function SelectedA(e) { var d=e.data(), mainid=d.mainid?d.mainid:'dropbtn1'; 
+    $('#'+mainid).html(e.html());
+    A.ListDropdown({col:d.id+'/A', oid: 'Top12', mainid:'btn2', name:'Assessment'});
+  }
+  db.doc('/COURSES/List').onSnapshot(function(doc) {  $('#Top11').html(dropdown({d:doc.data(), col:'/COURSES', mainid:'btn1'}));  });
+
+  function InitialUinfo() {
+    if(uinfo.email=='vkumar@utep.edu') {
+      s = '<input type=checkbox onclick="debug=$(this).prop(\'checked\')?1:0; ">debug</input>'; 
+    }
+    return s; 
+  }
+  
+  function dropdown(O) { var s='', mainid=O.mainid?O.mainid:'dropbtn1'; 
+    for (var k in O.d) { var id=O.col+'/'+k; //console.log(col);
+      s += `<a href="#" data-id=${id} data-mainid=${mainid} onclick=" SelectedA(\$(this));">${k}</a>`; 
+    }
+    return `
+      <div class="dropdown">
+        <button id=${mainid} class="dropbtn">COURSES</button><div class="dropdown-content"> ${s} </div>
+      </div>
+    `; 
+  
+
+  }
+
+    </script>
+
+
+
+
+</body>
+
+
+</html>

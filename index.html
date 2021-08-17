@@ -59,7 +59,7 @@
 
     <script>
 
-  function SelectedA(e) { var d=e.data(), mainid=d.mainid?d.mainid:'dropbtn1', ccol=d.id+'/Concepts', acol=d.id+'/A'; 
+  function SelectedA(e) { var d=e.data(), mainid=d.mainid?d.mainid:'dropbtn1', ccol=d.id+'/Concepts', acol=d.id+'/A', cid=d.id; 
     $('#'+mainid).html(e.html());
     var sa = `<a href=# data-col=${acol} data-oid=Middle2 onclick="A.Setup(\$(this).data());">Assessment</a>`; 
     var sc = `<a href=# data-col=${ccol} data-oid=Middle2 onclick="A.Setup(\$(this).data());">Concepts</a>`; 
@@ -85,7 +85,7 @@
    for (var kkk in O.d) { var sss=''; 
     for (var kk in O.d[kkk]) { var ss=''; 
       for (var k in O.d[kkk][kk]) { var id=O.d[kkk][kk][k]['col']; //console.log(col);
-        ss += `<a href="#" data-id=${id} data-mainid=${mainid} onclick=" SelectedA(\$(this)); ">${k}</a>`; 
+        ss += `<a href="#" data-id=${id} data-mainid=${mainid} onclick=" SelectedA(\$(this)); colhome='${id}'; ">${k}</a>`; 
       }
       sss += `<div class="column"><b>${kk}</b> ${ss}  </div> `;
     }
@@ -93,9 +93,9 @@
   }
 
     var ss =`
-    <div class="dropdown" onclick=" $('.dropdown-content').toggle();">
+    <div class="dropdown" onclick=" $('#dropdown-courses-content').toggle();">
       <button id=dropbtn1 class="dropbtn">COURSES</button>
-      <div class="dropdown-content" >  ${s}   </div>
+      <div id=dropdown-courses-content class="dropdown-content" >  ${s}   </div>
     </div>
     `;
     //console.log(ss);

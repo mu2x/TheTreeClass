@@ -31,7 +31,7 @@ MathJax.Hub.Config({
     }
   });
 
-var role='student', debug=0, admin=0, group='default', uhome='/users', permission='------rwx', groups=[], roles=[]; 
+var role='student', debug=0, admin=0, group='default', uhome='/users', permission='------rwx', groups=[], roles=[], colhome='/public'; 
 //-----------------------------
 var name, email, emailVerified, uid, uinfo={};
 var firebaseConfig = {

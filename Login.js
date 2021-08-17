@@ -41,5 +41,19 @@
           if(O.photo) n = '<img width=40px height=40px title=\''+user.displayName+'\' src=\''+user.photoURL+'\' /><br/>';
         } 
             //var uid = user.uid, phoneNumber = user.phoneNumber, providerData = user.providerData;
-       $('#'+id).html( n +  '<button onclick="SignOut({});">Logout</button> ');
+        var signout = '<button onclick="SignOut({});">Logout</button> '; 
+        var ss =`
+          <div class="dropdown" onclick=" $('#LogoutButton').toggle();">
+              <button id=dropbtn1 class="dropbtn">${n}</button>
+              <div id=LogoutButton class="dropdown-content" >  
+                <div class="row"> <div class="column">
+                  <a href=#  onclick="SignOut({});">Logout</a>   
+                </div>  </div>
+              </div>
+            </div>
+            `;
+
+            $('#'+id).html( ss);
+
+       //$('#'+id).html( n +  signout);
       } 

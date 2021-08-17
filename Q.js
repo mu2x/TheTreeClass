@@ -33,11 +33,13 @@ function EditQ(id){ var col = 'Q/'+id;
    });
 }
 
-function LoadQ(O){ var Q = O.id, oid=O.oid; 
-  for(var i=0; i<Q.length; i++) {
-    LoadOneQ({id:Q[i], oid:`${oid}-${i}` }); 
-    if(debug) console.log({id:Q[i], oid:`${oid}-${i}` });
-  }
+function LoadQ(O){ var Q = O.id, oid=O.oid, s=''; 
+  for(var i=0; i<Q.length; i++) {    s += `<span id='${oid}-${i}'> </span>`;    }
+  $('#'+oid).html(s); 
+  setTimeout(function() {  
+    for(var i=0; i<Q.length; i++) { LoadOneQ({id:Q[i], oid:`${oid}-${i}` });   }
+    }, 100);
+    
   if(debug) console.log('Q.js:LoadQ',O);
 }
 function LoadOneQ(O){ //Input: O=[id, oid]
@@ -60,20 +62,20 @@ function LoadOneQ(O){ //Input: O=[id, oid]
        s += DisplayByKey(id, 'Soln', d['Soln'], 'Soln'+uqid, {tb:'ckbasic'}); 
        s += `<button onclick="EditRawByID('${id}', '${oid}'); ">Raw</button>`; 
      }
-     s += `<button onclick=" var iv={};
+     s += `<button id=Save${uqid} onclick=" var iv={};
        iv.select=getAllInputValues('#DescDesc${uqid} select'); 
        iv.input=getAllInputValues('#DescDesc${uqid} input'); 
        iv.Choices=getAllInputValues('.C${uqid}'); 
        db.doc('${ioID}').set(iv);  if(debug) console.log(writeid, iv)
        ">Save</button>`; 
 
-      s += `<button onclick=" var iv={};
+      var sLoadA = `<button onclick=" var iv={};
        db.doc('${ioID}').get().then(function(doc) { var d=doc.data(); 
         LoadAllInputValues('#DescDesc${uqid} select', d.select); LoadAllInputValues('#DescDesc${uqid} input', d.input);
         LoadAllInputValues('.C${uqid}', d.Choices);
        }); 
        ">Load</button>`; 
-     
+     //s += sLoadA; 
     if(inst) s += RoleChooser(['student', 'instructor']); //`<select onclick="role=$(this).val(); ">${ss}</select>`; 
 
      s += `<div id=SaveMsg${uqid} class=SaveMsg></div><hr/>`;
@@ -85,8 +87,9 @@ function LoadOneQ(O){ //Input: O=[id, oid]
       LoadAllInputValues(`#DescDesc${uqid} select`, d.select); 
       LoadAllInputValues(`#DescDesc${uqid} input`, d.input);
       LoadAllInputValues(`.C${uqid}`, d.Choices);
+      if(!inst) $('#'+`Save${uqid}`).prop('disabled',true);
       })
-      }, 1000);
+      }, 100);
    } );
 }
 
@@ -249,7 +252,8 @@ class ListQ {
    });
   }
 
-  ListAllQ(O){ 
+  ListAllQ(O){  if(arguments.length<1) O={};
+   var oid=O.oid?O.oid:'ContentRight'; 
    LogUserInfo('ListQ: ListAllQ ' + this.col);
    var OBy = (O.hasOwnProperty('orderBy'))? O['orderBy']:firebase.firestore.FieldPath.documentId();
    db.collection(this.col).orderBy(OBy).get().then((qS) => { 
@@ -275,7 +279,7 @@ class ListQ {
              ">'+iq+'</button>' + createdAt + createdBy + modifiedBy + modifiedAt;
             s += b; 
           });
-          $('#ContentRight').html(s);
+          $('#'+oid).html(s);
    });
   }
   
