@@ -9,7 +9,7 @@ class getdb {
 }
 function ToggleText(O) {   var c = $(O).text(), oid = $(O).attr('mainid');   $('#'+oid).html(c); }
 function ToggleBold(O) {   var c = $(O).attr('class');    $('.'+c).css("font-weight","Normal");   $(O).css("font-weight","Bold"); }
-function ToggleColor(O) {  var c = $(O).attr('class');  $('.'+c).css("background-color", ""); $(O).css("background-color", "yellow"); }
+function ToggleColor(O) {  var d=$(O).data(), c = $(O).attr('class'); $('.'+c).css("background-color", ""); $(O).css("background-color", d.color?d.color:'yellow'); }
 class Assessment {
     constructor(O) { 
       for(var k of Object.keys(O)) {this[k] = O[k];} 

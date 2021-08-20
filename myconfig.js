@@ -15,21 +15,21 @@ var ckfull = [
     { name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },
     { name: 'colors', items: [ 'TextColor', 'BGColor' ] },
     { name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] },
-    { name: 'wiris', items : [ 'ckeditor_wiris_formulaEditor','ckeditor_wiris_formulaEditorChemistry']}
+    { name: 'wiris', items : [ 'ckeditor_wiris_formulaEditor','ckeditor_wiris_formulaEditorChemistry', 'Mathjax']}
 ];
 var tb=ckbasic;
 var ckconfig = {startupMode:'source'};
 CKEDITOR.plugins.addExternal('ckeditor_wiris', 'https://www.wiris.net/demo/plugins/ckeditor/', 'plugin.js');
+
+//CKEDITOR.plugins.addExternal('base64image', 'plugins/base64image-master/', 'plugin.js');
+
 CKEDITOR.config.allowedContent = true;
 CKEDITOR.disableAutoInline = true;
+
 CKEDITOR.config.extraPlugins = 'ckeditor_wiris,mathjax';
+
 CKEDITOR.config.mathJaxLib='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML';
-MathJax.Hub.Config({
-    tex2jax: {
-      inlineMath: [['$','$'], ['\\(','\\)']],
-      processEscapes: true
-    }
-  });
+MathJax.Hub.Config({    tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']], processEscapes: true    }  });
 
 var role='student', debug=0, admin=0, group='default', uhome='/users', permission='------rwx', groups=[], roles=[], colhome='/public'; 
 //-----------------------------

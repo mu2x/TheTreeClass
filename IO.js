@@ -2,6 +2,7 @@ class Info {
   constructor(O) { 
     if(arguments.length) { for(var k of Object.keys(O)) {this[k] = O[k];} 
     } else {this.col='public'; this.id='test1';}
+    if(O.col && O.id) O.id=O.col+'/'+O.id; 
     
   }; 
   List(O) {  var col=O.col, uqid=uniqid(); 
@@ -21,6 +22,27 @@ class Info {
 
       $('#'+O.oid).html(s);    
     }); 
+  }
+  data() {db.doc(this.id).get().then(doc=>{this.d = doc.data();}); }
+  All(O) { var O=(arguments.length)?O:{}; var id=O.id?O.id:this.id, d={}; 
+      if(!(this.d && O.d)) {this.data(); d=this.d; } else d=O.d; 
+      var s='';  console.log(this.d);
+      for(var k in d) { var ss='', dd = (typeof d[k] == 'object')?d[k]:{}; 
+      /*
+        for(var kk in dd) { var sss='', ddd = (typeof d[k][kk] == 'object')?d[k][kk]:{}; 
+          for (var kkk in ddd) { var ssss='', dddd = (typeof d[k][kk][kkk] == 'object')?d[k][kk][kkk]:{}; 
+            for (var kkkk in dddd) {
+              ssss += '----'+kkkk; 
+            }
+            sss += '<br/>----'+kkk+ ssss; 
+          }
+          ss += '<p/>----'+kk + sss; 
+        }
+        */
+        s += '<hr/>' + k+ss; 
+        console.log(k);
+      }
+      this.s=s; 
   }
   SaveRawTA(O) {  
     db.doc(O.id).set(JSON.parse($('#'+O.taid).val()) );  

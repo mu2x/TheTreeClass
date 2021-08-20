@@ -3,6 +3,8 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
+    <script src="https://www.youtube.com/iframe_api"></script>
+
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-app.js"></script>
@@ -10,10 +12,10 @@
   <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-firestore.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-  <script src="https://cdn.ckeditor.com/4.16.1/standard-all/ckeditor.js"></script>
+  <script src="https://cdn.ckeditor.com/4.16.2/full-all/ckeditor.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"></script>
   <!--
-
+  <script src="https://cdn.ckeditor.com/4.16.1/standard-all/ckeditor.js"></script>
   <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <script id=ck5 src="https://utep.zrenix.com/~nalandi/ckeditor/ckeditor5-inline/build/ckeditor.js"></script>
     <link rel="stylesheet" href="../CSS/css.css">
@@ -39,7 +41,8 @@
 
 <body>
   <div class="navbar">
-    <span id=Top11>COURSES</span>     <span id=Top12></span>     <span id=Top13></span>     <span id=Top14></span> 
+    <span  id=Top11 >COURSES</span>     
+    <span id=Top12></span>     <span id=Top13></span>     <span id=Top14></span> 
     <a style='float:right;' href="#"> <span id=Login data-logged=0>Login</span>   </a>
   </div>
   <p id=Top21></p>
@@ -61,8 +64,8 @@
 
   function SelectedA(e) { var d=e.data(), mainid=d.mainid?d.mainid:'dropbtn1', ccol=d.id+'/Concepts', acol=d.id+'/A', cid=d.id; 
     $('#'+mainid).html(e.html());
-    var sa = `<a href=# data-col=${acol} data-oid=Middle2 onclick="A.Setup(\$(this).data());">Assessment</a>`; 
-    var sc = `<a href=# data-col=${ccol} data-oid=Middle2 onclick="A.Setup(\$(this).data());">Concepts</a>`; 
+    var sa = `<a href=# class=topmenu data-col=${acol} data-oid=Middle2 data-color=blue onclick="A.Setup(\$(this).data()); ToggleColor($(this));">Assessment</a>`; 
+    var sc = `<a href=# class=topmenu data-col=${ccol} data-oid=Middle2 data-color=blue onclick="A.Setup(\$(this).data()); ToggleColor($(this)); ">Concepts</a>`; 
 
     $('#Top12').html(sc);     $('#Top13').html(sa); 
 

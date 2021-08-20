@@ -47,7 +47,7 @@ String.prototype.format = function() { var newStr = this, i = 0;
   
 function ListByCol(col, oid) {  var uqid=uniqid(); 
   db.collection(col).get().then((qS) => {  var iq=0, s='';  
-    qS.forEach((doc) => {  iq++; var id=col+'/'+doc.id, oid=uqid+doc.id;   
+    qS.forEach((doc) => {  iq++; var id=col+'/'+doc.id, oid=uqid+iq;   
       s += `<br/> ${iq} ${id}  
         <button class=uqid onclick="EditRawByID('${id}','${oid}'); \$('#${oid}').toggle(); ToggleBold($(this)); ">Raw</button>
         <div style='display:none;' id=${oid}></div>`; 
