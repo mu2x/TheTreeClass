@@ -81,6 +81,8 @@
       s += ` <button onclick="EditRawByID($('#EditRawByID').val(),'Middle2'); ">Edit</button> <input id=EditRawByID value='/public/test'/>`;
       s += ' | <input type=checkbox onclick="debug=$(this).prop(\'checked\')?1:0; ">debug</input>'; 
       s += RoleChooser(['student', 'instructor']);
+      s += ` | <input type=checkbox onclick="Lang=$(this).prop('checked')?'Hindi':'EN'; ">Hindi</input>`; 
+
     return `<span style='display:none;' role=${role} class=more>${s}</span>`; 
   }
   

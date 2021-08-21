@@ -23,6 +23,9 @@ class Assessment {
     EditRaw(O){ 
       var id = O.id?O.id:this.id, oid=O.oid?O.oid:this.oid, oid2=O.oid2?O.oid2:'Middle2', col=O.col?O.col:'/COURSES/Math-9th/Q';
       var s='', sq='Q2A <br/>', s2='', uqid=uniqid(); 
+      var sid=`/users/${email}/${id}`; sid = `${sid.replace(/\/\//g, '\/')}`;
+      var ioID = (role=='instructor')?`${id}/user/submitted`:`${sid}/user/submitted`; ioID = `${ioID.replace(/\/\//g, '\/')}`;
+
       db.doc(id).get().then((doc) => {  var d=doc.data(), iq=0; 
         //for (var qid of d.Q) { iq++; s += `<button data-id=${qid} data-oid=QuickQ onclick="LoadOneQ($(this).data());">${iq}</button>`; }
         var Qs=d.Q?d.Q:[], Qstr=JSON.stringify(Qs); 
@@ -46,14 +49,20 @@ class Assessment {
         s += '<div  id=ListAQ></div>'; 
         s += '<div  id=QuickQ></div><hr/>';
         s += '<div  id=ListQ></div>'; 
-       
+   
         
         var k='Desc'; s2 += DisplayByKey(id, k, d[k], k+uqid, {tb:'ckfull'}); 
 
         $('#'+oid).html(s);         $('#'+oid2).html(s2); 
         MathJax.Hub.Queue(["Typeset",MathJax.Hub, oid2 ]);
-
-        if(debug) console.log('A.js:EditRaw()',O); 
+        $(`#${oid2} :text`).on('input', function(){  var iv={}; 
+          iv.input= getAllInputValues(`#${oid2} input`);
+          db.doc(ioID).set(iv); //                console.log(iv, ioID); 
+        });
+        setTimeout(function() {  
+          db.doc(ioID).get().then(function(doc) { var d=doc.data();  LoadAllInputValues(`#${oid2} input`, d.input);           })
+          }, 100);
+        if(debug) console.log('A.js:EditRaw()',O, oid2); 
      })
       
     }

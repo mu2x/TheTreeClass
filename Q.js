@@ -44,8 +44,9 @@ function LoadQ(O){ var Q = O.id, oid=O.oid, s='';
 }
 function LoadOneQ(O){ //Input: O=[id, oid]
   var id = O.id, oid=O.oid, uqid=uniqid();
+  id = (Lang=='Hindi')?id+'/Langs/Hindi/':id; 
   var sid=`/users/${email}/${id}`; sid = `${sid.replace(/\/\//g, '\/')}`;
-  var ioID = (role=='instructor')?`${id}/user/submitted`:`${sid}/user/submitted`; 
+  var ioID = (role=='instructor')?`${id}/user/submitted`:`${sid}/user/submitted`; ioID = `${ioID.replace(/\/\//g, '\/')}`;
 
   LogUserInfo('LoadOneQ: %s '.format(O.id));
   db.doc(id).get().then(function(doc) {     
@@ -108,6 +109,11 @@ function AttrQ(id, key, attr, uqid, O) { var s='', uqid=uniqid();
  for(var k of Object.keys(attr)) { var val = $.isArray(attr[k])? JSON.stringify(attr[k]):attr[k]; 
   s += `${k}<input id=${uqid}a-${k} size=5 color="green" value='${val}' /> | `; 
  }
+  return s; 
+}
+function KeyRaw(id, k, d, O) { var s='', uqid=uniqid(); 
+  s += `<textarea id=${uqid}>`+ JSON.stringify(d) + `</textarea>`; 
+  s += `<button onclick="db.doc('${id}').update({'${k}':JSON.parse( \$('#${uqid}').val() )});">Save</button>`; 
   return s; 
 }
 function MultipleChoices(id, key, d, uqid, O) { var s='', tb=O.tb?O.tb:'ckfull'; 

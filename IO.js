@@ -2,8 +2,8 @@ class Info {
   constructor(O) { 
     if(arguments.length) { for(var k of Object.keys(O)) {this[k] = O[k];} 
     } else {this.col='public'; this.id='test1';}
-    if(O.col && O.id) O.id=O.col+'/'+O.id; 
-    
+    if(O.col && O.id) this.id=O.col+'/'+O.id; 
+    this.uqid = uniqid(); 
   }; 
   List(O) {  var col=O.col, uqid=uniqid(); 
     db.collection(O.col).get().then((qS) => {  var iq=0, s='';  
@@ -24,25 +24,36 @@ class Info {
     }); 
   }
   data() {db.doc(this.id).get().then(doc=>{this.d = doc.data();}); }
-  All(O) { var O=(arguments.length)?O:{}; var id=O.id?O.id:this.id, d={}; 
+  All(O) { 
+    var O=(arguments.length)?O:{}; var id=O.id?O.id:this.id, d={}, uqid=this.uqid, s='', i=0; 
       if(!(this.d && O.d)) {this.data(); d=this.d; } else d=O.d; 
-      var s='';  console.log(this.d);
-      for(var k in d) { var ss='', dd = (typeof d[k] == 'object')?d[k]:{}; 
-      /*
-        for(var kk in dd) { var sss='', ddd = (typeof d[k][kk] == 'object')?d[k][kk]:{}; 
-          for (var kkk in ddd) { var ssss='', dddd = (typeof d[k][kk][kkk] == 'object')?d[k][kk][kkk]:{}; 
-            for (var kkkk in dddd) {
-              ssss += '----'+kkkk; 
+      s += DisplayByKey(id, `v`, d.v?d.v:'v', 'v'+uqid, {tb:'ckfull'});
+      for(var k in d) { if(k=='a'||k=='v') continue; 
+        var a=d[k].a?d[k].a:{}, v=d[k].v?d[k].v:'', ss='', ii=0; i++; 
+        ss += DisplayByKey(id, `${k}.v`, d[k].v?d[k].v:'v', 'v'+k+uqid, {tb:'ckfull'});
+        var dd = (typeof d[k] == 'object' && k!='a')?d[k]:{}; 
+
+        for(var kk in dd) { if(kk=='a'||kk=='v') continue; ii++; 
+          var iii=0, sss='', ddd = (typeof d[k][kk] == 'object')?d[k][kk]:{}; 
+          sss += DisplayByKey(id, `${kk}.${k}.v`, d[k][kk].v?d[k][kk].v:'v', 'v'+k+kk+uqid, {tb:'ckfull'});
+
+          for (var kkk in ddd) { if(kkk=='a'||kkk=='v') continue; iii++; 
+            var iiii=0, ssss='', dddd = (typeof d[k][kk][kkk] == 'object')?d[k][kk][kkk]:{}; 
+            ssss += DisplayByKey(id, `${kkk}.${kk}.${k}.v`, d[k][kk][kkk].v?d[k][kk][kkk].v:'v', 'v'+k+kk+kkk+uqid, {tb:'ckfull'});
+
+            for (var kkkk in dddd) { if(kkkk=='a'||kkkk=='v') continue; iiii++; 
+              ssss += `<br/>${i}.${ii}.${iii}.${iiii}:` 
+              ssss += DisplayByKey(id, `${kkkk}.${kkk}.${kk}.${k}.v`, d[k][kk][kkk][kkkk].v?d[k][kk][kkk][kkkk].v:'v', 'v'+k+kk+kkk+kkkk+uqid, {tb:'ckfull'});
             }
-            sss += '<br/>----'+kkk+ ssss; 
+            sss += `<br/>${i}.${ii}.${iii}:` + ssss; 
           }
-          ss += '<p/>----'+kk + sss; 
+          ss += `<p/>${i}.${ii}:` + sss; 
         }
-        */
-        s += '<hr/>' + k+ss; 
-        console.log(k);
+
+        s += `<hr/>${i}:` + ss; 
       }
       this.s=s; 
+      $('#Middle2').html(s);
   }
   SaveRawTA(O) {  
     db.doc(O.id).set(JSON.parse($('#'+O.taid).val()) );  

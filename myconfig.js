@@ -31,7 +31,7 @@ CKEDITOR.config.extraPlugins = 'ckeditor_wiris,mathjax';
 CKEDITOR.config.mathJaxLib='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML';
 MathJax.Hub.Config({    tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']], processEscapes: true    }  });
 
-var role='student', debug=0, admin=0, group='default', uhome='/users', permission='------rwx', groups=[], roles=[], colhome='/public'; 
+var role='student', debug=0, admin=0, group='default', uhome='/users', permission='------rwx', groups=[], roles=[], colhome='/public', Lang='EN'; 
 //-----------------------------
 var name, email, emailVerified, uid, uinfo={};
 var firebaseConfig = {
