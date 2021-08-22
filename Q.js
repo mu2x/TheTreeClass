@@ -144,7 +144,8 @@ function UpdateChChecked(e) { var c=[], d=e.data(), kk=d.kk, uqid=d.uqid, i=0, k
 function DisplayByKey(id, key, v, uqid, O) { var s='', tb=O.tb?O.tb:'ckfull'; 
   s += ` <textarea style='display:none;' id=TADesc${uqid}> ` + v + `</textarea>`; 
   s += `
-    <div id=Desc${uqid} class=QEdit contenteditable="false" ondblclick="
+    <div id=Desc${uqid} class=QEdit contenteditable="false" ondblclick=" 
+      if(role != 'instructor') return; // disable the dbleclik for students
       var opened = CKEDITOR.instances.Desc${uqid}?1:0;   
       if(!opened) CKEDITOR.replace('Desc${uqid}', { toolbar:${tb}} ).setData( \$('#TADesc${uqid}').val());
       //CKEDITOR.instances['Desc${uqid}'].setData( \$('#TADesc${uqid}').val());

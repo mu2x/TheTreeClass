@@ -20,12 +20,41 @@ class Assessment {
       //console.log(this);
     }; 
     
+    Grade(O) { var s='', id1=O.id1+'/user/submitted', id2=O.id2+'/user/submitted'; 
+      db.doc(id1).get().then(doc1=>{var d1=doc1.data(); 
+        db.doc(id2).get().then(doc2=>{var d2=doc2.data();
+          s += this.CalculateScore(id2, d1, d2); 
+          //console.log(id2, d1,d2.input);
+          $('#'+O.oid).html(s);
+        })
+      })
+    }
+    CalculateScore(id, d1,d2) { var s='', Tscore=0, iq=0, isScored=d2.score?1:0, uqid=uniqid(); d2.score=[]; 
+      s += `<tr><td width=30%>Instructor</td><td width=30%>Student</td><td>Score</td></tr>`; 
+      for(var k in d1.input) { var v1=d1.input[k].toLowerCase(), v2=d2.input[k].toLowerCase(); 
+        var score=(v1==v2)?100:0; d2.score.push(score); 
+        var scoreS = (role=='instructor')?`<input value=${score} />`:score; 
+        s += `<tr><td>${v1}</td><td>${v2}</td><td>${scoreS}</td></tr>`; 
+        Tscore += score; iq++; 
+      }
+      Tscore = Tscore/(iq>0?iq:1); 
+      s += `<tr><td>Total (%) </td><td></td><td>${Tscore}</td></tr>`; 
+      if(!isScored) db.doc(id).update({score:d2.score});
+      var ss = `<table id=${uqid} width=100% border=1>`+s+'</table>';   
+      $(`#${uqid} :text`).on('input', function(){  db.doc(id).update({score:getAllInputValues(`#${uqid} input`)});    });
+       
+       console.log(ss);
+
+      return ss; 
+    }
     EditRaw(O){ 
       var id = O.id?O.id:this.id, oid=O.oid?O.oid:this.oid, oid2=O.oid2?O.oid2:'Middle2', col=O.col?O.col:'/COURSES/Math-9th/Q';
       var s='', sq='Q2A <br/>', s2='', uqid=uniqid(); 
-      var sid=`/users/${email}/${id}`; sid = `${sid.replace(/\/\//g, '\/')}`;
-      var ioID = (role=='instructor')?`${id}/user/submitted`:`${sid}/user/submitted`; ioID = `${ioID.replace(/\/\//g, '\/')}`;
+      var semail=(role=='instructor' || role=='student')?email:role; 
+      var sid=`/users/${semail}/${id}`; sid = `${sid.replace(/\/\//g, '\/')}`;
 
+      var ioID = (role=='instructor')?`${id}/user/submitted`:`${sid}/user/submitted`; ioID = `${ioID.replace(/\/\//g, '\/')}`;
+      if(debug) s += sid; 
       db.doc(id).get().then((doc) => {  var d=doc.data(), iq=0; 
         //for (var qid of d.Q) { iq++; s += `<button data-id=${qid} data-oid=QuickQ onclick="LoadOneQ($(this).data());">${iq}</button>`; }
         var Qs=d.Q?d.Q:[], Qstr=JSON.stringify(Qs); 
@@ -35,8 +64,9 @@ class Assessment {
 
         if(role=='instructor') {
 
-          s += '<p/><button onclick=" $('+"'#ARaw'"+').toggle();">Raw</button>'
           s += '<button data-id='+id+' data-inid=ARaw onclick="new Assessment({}).SaveRaw($(this).data());">Save</button>';
+          s += '<p/><button onclick=" $('+"'#ARaw'"+').toggle();">Raw</button>'
+
           //s += '<button  data-aidta=ARaw onclick="new Assessment({}).HighLightQ($(this).data());">Selected</button>';
           //s += '<button  data-msg="Q:" data-oid=ListAQ data-id='+id+' onclick="new Assessment({}).LoadOne($(this).data());">Load</button>';
           s += `<p/><button  data-oid=${oid2} data-aidta=ARaw onclick="var d=$(this).data(); d.col=$('#ListQcol').val(); new Assessment({}).ListQ(d); ">ListQ</button>`;
@@ -50,18 +80,15 @@ class Assessment {
         s += '<div  id=QuickQ></div><hr/>';
         s += '<div  id=ListQ></div>'; 
    
-        
+        s += `<button data-id1=${id} data-id2=${sid} data-oid=Middle12 onclick="A.Grade(\$(this).data())">Grade</button>`; 
         var k='Desc'; s2 += DisplayByKey(id, k, d[k], k+uqid, {tb:'ckfull'}); 
 
         $('#'+oid).html(s);         $('#'+oid2).html(s2); 
         MathJax.Hub.Queue(["Typeset",MathJax.Hub, oid2 ]);
-        $(`#${oid2} :text`).on('input', function(){  var iv={}; 
-          iv.input= getAllInputValues(`#${oid2} input`);
-          db.doc(ioID).set(iv); //                console.log(iv, ioID); 
-        });
-        setTimeout(function() {  
-          db.doc(ioID).get().then(function(doc) { var d=doc.data();  LoadAllInputValues(`#${oid2} input`, d.input);           })
-          }, 100);
+        $(`#${oid2} :text`).on('input', function(){  db.doc(ioID).set({input:getAllInputValues(`#${oid2} input`)});    });
+        setTimeout(function() {
+          db.doc(ioID).get().then(function(doc) {  LoadAllInputValues(`#${oid2} input`, doc.data().input);  })
+        }, 100);
         if(debug) console.log('A.js:EditRaw()',O, oid2); 
      })
       
