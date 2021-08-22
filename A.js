@@ -50,10 +50,7 @@ class Assessment {
     EditRaw(O){ 
       var id = O.id?O.id:this.id, oid=O.oid?O.oid:this.oid, oid2=O.oid2?O.oid2:'Middle2', col=O.col?O.col:'/COURSES/Math-9th/Q';
       var s='', sq='Q2A <br/>', s2='', uqid=uniqid(); 
-      s2 += `
-        Font <button onclick=" $('#${oid2} *').css('font-size','+=1'); ">+</button>
-        <button onclick=" $('#${oid2} *').css('font-size','-=1'); ">-</button>
-       `;
+      
       var semail=(role=='instructor' || role=='student')?email:role; 
       var sid=`/users/${semail}/${id}`; sid = `${sid.replace(/\/\//g, '\/')}`;
 

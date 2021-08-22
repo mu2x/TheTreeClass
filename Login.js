@@ -47,7 +47,11 @@
               <button id=dropbtn1 class="dropbtn">${n}</button>
               <div id=LogoutButton class="dropdown-content" >  
                 <div class="row"> <div class="column">
-                  <a href=#  onclick="SignOut({});">Logout</a>   
+                  <a href=#  onclick="SignOut({});">Logout</a>  
+                  <a a href=#> Font size 
+                    <button  onclick=" $('body *').css('font-size','+=1'); ">+</button>
+                    <button  onclick=" $('body *').css('font-size','-=1'); ">-</button>
+                  </a>
                 </div>  </div>
               </div>
             </div>
