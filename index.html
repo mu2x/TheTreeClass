@@ -72,7 +72,8 @@
     if(debug) console.log(s);
   }
   db.doc('/COURSES/COURSES').onSnapshot(function(doc) {      
-    $('#Top11').html(dropdown({d:doc.data()}));    
+    $('#Top11').html(dropdown({d:doc.data()}));  
+    //A.Setup({})  
   });
 
   function InitialUinfo() {
