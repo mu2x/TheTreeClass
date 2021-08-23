@@ -63,26 +63,39 @@
 
     <script>
 
-  function SelectedA(e) { var d=e.data(), mainid=d.mainid?d.mainid:'dropbtn1', ccol=d.id+'/Concepts', acol=d.id+'/A', cid=d.id; 
-    $('#'+mainid).html(e.html());
-    var sa = `<a href=# class=topmenu data-col=${acol} data-oid=Middle2 data-color=blue onclick="A.Setup(\$(this).data()); ToggleColor($(this));">Assessment</a>`; 
-    var sc = `<a href=# class=topmenu data-col=${ccol} data-oid=Middle2 data-color=blue onclick="A.Setup(\$(this).data()); ToggleColor($(this)); ">Concepts</a>`; 
-
+  function SelectedA(d) { var ccol=d.id+'/Concepts', acol=d.id+'/A', cid=d.id; 
+    db.doc('/users/'+email).update({'LastVisited.0':{id:d.id, name:d.name}}); 
+    var sa = `<a href=# class=topmenu data-col=${acol} data-oid=Middle2 data-color=blue onclick="
+                A.Setup(\$(this).data()); ToggleColor($(this)); db.doc('/users/'+email).update({'LastVisited.1':{id:'${acol}', textid:'Top13'}});
+                ">Assessment</a>`; 
+    var sc = `<a href=# class=topmenu data-col=${ccol} data-oid=Middle2 data-color=blue onclick="
+             A.Setup(\$(this).data()); ToggleColor($(this)); db.doc('/users/'+email).update({'LastVisited.1':{id:'${ccol}', textid:'Top12'}});
+            ">Concepts</a>`; 
     $('#Top12').html(sc);     $('#Top13').html(sa); 
-
     if(debug) console.log(s);
   }
   db.doc('/COURSES/COURSES').onSnapshot(function(doc) {      
     $('#Top11').html(dropdown({d:doc.data()}));  
-    //A.Setup({})  
   });
+
+  setTimeout(function() {
+    db.doc('/users/'+email).get().then(doc=>{ var d=doc.data();
+      var a1=d.LastVisited[0], a2=d.LastVisited[1]; 
+      SelectedA(a1);       $('#dropbtn1').html(a1.name); 
+      var textid = a2.textid?a2.textid:'Top12'; 
+      A.Setup({col:a2.id, oid:'Middle2'});  $(`#${textid} a`).css("background-color", "blue"); 
+      if(debug) console.log(d); 
+
+    })
+     
+        }, 1000);
 
   function InitialUinfo() {
      var s='';
       s += ` <button onclick="ListByCol($('#ListByCol').val(),'Middle2'); ">List</button> <input id=ListByCol value='/public'/> `;
       s += ` <button onclick="EditRawByID($('#EditRawByID').val(),'Middle2'); ">Edit</button> <input id=EditRawByID value='/public/test'/>`;
       s += ' | <input type=checkbox onclick="debug=$(this).prop(\'checked\')?1:0; ">debug</input>'; 
-      var Roster=[email, 'instructor', 'vyom.kumar.elpaso@gmail.com', 'nimit.kumar.elpaso@gmail.com']
+      var Roster=[email, 'instructor']
       s += RoleChooser(Roster);
       s += ` | <input type=checkbox onclick="Lang=$(this).prop('checked')?'Hindi':'EN'; ">Hindi</input>`; 
 
@@ -92,8 +105,8 @@
   function dropdown(O) { var s='', mainid=O.mainid?O.mainid:'dropbtn1'; 
    for (var kkk in O.d) { var sss=''; 
     for (var kk in O.d[kkk]) { var ss=''; 
-      for (var k in O.d[kkk][kk]) { var id=O.d[kkk][kk][k]['col']; //console.log(col);
-        ss += `<a href="#" data-id=${id} data-mainid=${mainid} onclick=" SelectedA(\$(this)); colhome='${id}'; ">${k}</a>`; 
+      for (var k in O.d[kkk][kk]) { var id=O.d[kkk][kk][k]['col'], n=O.d[kkk][kk][k]['name']?O.d[kkk][kk][k]['name']:k; //console.log(col);
+        ss += `<a href="#" data-id=${id} data-name='${n}' onclick=" SelectedA(\$(this).data()); colhome='${id}'; \$('#${mainid}').html('${k}');">${n}</a>`; 
       }
       sss += `<div class="column"><b>${kk}</b> ${ss}  </div> `;
     }

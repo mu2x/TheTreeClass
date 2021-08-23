@@ -21,7 +21,8 @@ class Assessment {
     }; 
     
     Grade(O) { var s='', id1=O.id1+'/user/submitted', id2=O.id2+'/user/submitted'; 
-      db.doc(id1).get().then(doc1=>{var d1=doc1.data(); 
+      db.doc(id1).get().then(doc1=>{ 
+        var d1=doc1.data(); 
         db.doc(id2).get().then(doc2=>{var d2=doc2.data();
           s += this.CalculateScore(id2, d1, d2); 
           //console.log(id2, d1,d2.input);
@@ -30,7 +31,7 @@ class Assessment {
       })
     }
     CalculateScore(id, d1,d2) { var s='', Tscore=0, iq=0, isScored=d2.score?1:0, uqid=uniqid(); d2.score=[]; 
-      s += `<tr><td width=30%>Instructor</td><td width=30%>Student</td><td>Score</td></tr>`; 
+      s += `<tr><th width=30%>Instructor</td><th width=30%>${email}</td><th>Score</td></tr>`; 
       for(var k in d1.input) { var v1=d1.input[k].toLowerCase(), v2=d2.input[k].toLowerCase(); 
         var score=(v1==v2)?100:0; d2.score.push(score); 
         var scoreS = (role=='instructor')?`<input value=${score} />`:score; 
@@ -43,7 +44,7 @@ class Assessment {
       var ss = `<table id=${uqid} width=100% border=1>`+s+'</table>';   
       $(`#${uqid} :text`).on('input', function(){  db.doc(id).update({score:getAllInputValues(`#${uqid} input`)});    });
        
-       console.log(ss);
+       if(debug) console.log(ss);
 
       return ss; 
     }
@@ -81,14 +82,22 @@ class Assessment {
         s += '<div  id=QuickQ></div><hr/>';
         s += '<div  id=ListQ></div>'; 
    
-        s += `<button data-id1=${id} data-id2=${sid} data-oid=Middle12 onclick="A.Grade(\$(this).data())">Grade</button>`; 
+        var postgrade = (d.a.postgrade)?0:1, color=''; 
+        if(d.a.postgrade) { color='lightgreen';
+          s += `<button data-id1=${id} data-id2=${sid} data-oid=Middle12 onclick="A.Grade(\$(this).data()); $('#Middle12').toggle(); ">Grade</button>`; 
+        }
+        if(role=='instructor') s += `<button style='background-color:${color}' onclick="db.doc('${id}').update({'a.postgrade':${postgrade}}); ">Post</button>`; 
+
         var k='Desc'; s2 += DisplayByKey(id, k, d[k], k+uqid, {tb:'ckfull'}); 
 
         $('#'+oid).html(s);         $('#'+oid2).html(s2); 
         MathJax.Hub.Queue(["Typeset",MathJax.Hub, oid2 ]);
         $(`#${oid2} :text`).on('input', function(){  db.doc(ioID).set({input:getAllInputValues(`#${oid2} input`)});    });
         setTimeout(function() {
-          db.doc(ioID).get().then(function(doc) {  LoadAllInputValues(`#${oid2} input`, doc.data().input);  })
+          db.doc(ioID).get().then(function(doc) {  
+            if(!doc.exists) return;
+            LoadAllInputValues(`#${oid2} input`, doc.data().input);  
+          })
         }, 100);
         if(debug) console.log('A.js:EditRaw()',O, oid2); 
      })
@@ -189,7 +198,7 @@ class Assessment {
                }
 
                var ss=`
-               <table border="1" width=100% CourseID=${col}>
+               <table border="1" width=100%  CourseID=${col}>
                <tr >
                <td width=10% id=AList${uqid} valign=top> ${s}</td> 
                <td id=QDisplay${uqid} valign=top> </td> 
