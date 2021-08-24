@@ -81,7 +81,7 @@
   setTimeout(function() {
     db.doc('/users/'+email).get().then(doc=>{ var d=doc.data();
       var a1=d.LastVisited[0], a2=d.LastVisited[1]; 
-      SelectedA(a1);       $('#dropbtn1').html(a1.name); 
+      SelectedA(a1);       $('#dropbtn1').html(a1.name); colhome=a1.id; 
       var textid = a2.textid?a2.textid:'Top12'; 
       A.Setup({col:a2.id, oid:'Middle2'});  $(`#${textid} a`).css("background-color", "blue"); 
       if(debug) console.log(d); 
@@ -97,7 +97,7 @@
       s += ' | <input type=checkbox onclick="debug=$(this).prop(\'checked\')?1:0; ">debug</input>'; 
       var Roster=[email, 'instructor']
       s += RoleChooser(Roster);
-      s += ` | <input type=checkbox onclick="Lang=$(this).prop('checked')?'Hindi':'EN'; ">Hindi</input>`; 
+      s += ` | <input type=checkbox onclick="Lang=$(this).prop('checked')?'Hindi':'EN'; ">Not EN</input>`; 
 
     return `<span style='display:none;' role=${role} class=more>${s}</span>`; 
   }

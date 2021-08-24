@@ -54,7 +54,7 @@ function LoadOneQ(O){ //Input: O=[id, oid]
      d=InitializeQ(d); 
      qdata=d; 
      if(role=='instructor') {
-       s += `<div>id: ${id}, <br/> SID:${sid}</div>`; 
+       if(debug) s += `<div>id: ${id}, <br/> SID:${sid}</div>`; 
        s += AttrQ(id,'a',d.a, uqid, {});
      }
      s += DisplayByKey(id, 'Desc', d['Desc'], 'Desc'+uqid, {}); 
@@ -63,7 +63,7 @@ function LoadOneQ(O){ //Input: O=[id, oid]
        s += DisplayByKey(id, 'Soln', d['Soln'], 'Soln'+uqid, {tb:'ckbasic'}); 
        s += `<button onclick="EditRawByID('${id}', '${oid}'); ">Raw</button>`; 
      }
-     s += `<button id=Save${uqid} onclick=" var iv={};
+     var sSave = `<button id=Save${uqid} onclick=" var iv={};
        iv.select=getAllInputValues('#DescDesc${uqid} select'); 
        iv.input=getAllInputValues('#DescDesc${uqid} input'); 
        iv.Choices=getAllInputValues('.C${uqid}'); 
@@ -76,8 +76,8 @@ function LoadOneQ(O){ //Input: O=[id, oid]
         LoadAllInputValues('.C${uqid}', d.Choices);
        }); 
        ">Load</button>`; 
-     //s += sLoadA; 
-    if(inst) s += RoleChooser(['student', 'instructor']); //`<select onclick="role=$(this).val(); ">${ss}</select>`; 
+     //s += sSave + sLoadA; 
+    //if(inst) s += RoleChooser(['student', 'instructor']); //`<select onclick="role=$(this).val(); ">${ss}</select>`; 
 
      s += `<div id=SaveMsg${uqid} class=SaveMsg></div><hr/>`;
      $('#'+O.oid).html(s); 

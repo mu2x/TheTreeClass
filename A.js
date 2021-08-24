@@ -75,6 +75,9 @@ class Assessment {
           s += `<button  data-oid=${oid2} data-aidta=ARaw onclick="var d=$(this).data(); d.col=$('#ListQcol').val(); new ListQ(d).NewQ(); ">NewQ</button>`;
 
           s += `<input id=ListQcol value='${colhome}/Q'/>`; 
+          s += `<input id=WhereKey size=3 value='group'/> = <input id=WhereValue size=3 value=''/>`; 
+
+
         }
 
         s += '<br/>';
@@ -84,9 +87,9 @@ class Assessment {
    
         var postgrade = (d.a.postgrade)?0:1, color=''; 
         if(d.a.postgrade) { color='lightgreen';
-          s += `<button data-id1=${id} data-id2=${sid} data-oid=Middle12 onclick="A.Grade(\$(this).data()); $('#Middle12').toggle(); ">Grade</button>`; 
+          s += `<button data-id1=${id} data-id2=${sid} data-oid=Middle12 onclick="A.Grade(\$(this).data()); $('#Middle12').toggle(); ">Graded</button>`; 
         }
-        if(role=='instructor') s += `<button style='background-color:${color}' onclick="db.doc('${id}').update({'a.postgrade':${postgrade}}); ">Post</button>`; 
+        if(role=='instructor') s += ` | Grade:<button style='background-color:${color}' onclick="db.doc('${id}').update({'a.postgrade':${postgrade}}); ">Post</button>`; 
 
         var k='Desc'; s2 += DisplayByKey(id, k, d[k], k+uqid, {tb:'ckfull'}); 
 
@@ -118,20 +121,25 @@ class Assessment {
       //console.log(d); 
     }
     ListQ(O) { var col=O.col;  //console.log(O); return;
-      db.collection(col).get().then((qS) => { var s=O.msg?O.msg:'', iq=0;
-        qS.forEach((doc) => { iq++; var qid = col+'/'+doc.id; 
-          //var d = ' data-qid='+qid+' data-aidta='+O.aidta;
-          var d = ` data-qid=${qid} data-aidta=${O.aidta} data-col=${col} `;
-
-          s +='<button class=QList '+ d + ' onclick=" \
-           var Anew=new Assessment({}); Anew.Q2TA($(this).data()); Anew.HighLightQ($(this).data()); ToggleBold($(this)); \
-           ">'+iq+'</button>';
-        });
-        $('#'+O.oid).html(s);
-        this.HighLightQ({aidta:O.aidta});
-      });
+      var WhereKey = $('#WhereKey').val(), WhereValue = $('#WhereValue').val();
+      if(WhereValue=='') {
+        db.collection(col).get().then((qS) => {  this.ListQFromData(qS,O); }); 
+      } else {
+        db.collection(col).where('a.'+WhereKey,'==',WhereValue).get().then((qS) => { this.ListQFromData(qS,O);       });
+      }
       if(debug) console.log('A.js:ListQ', O)
       return true;
+    }
+    ListQFromData(qS, O) { var col=O.col; 
+      var s=O.msg?O.msg:'', iq=0;
+      qS.forEach((doc) => { iq++; var qid = col+'/'+doc.id; 
+        var d = ` data-qid=${qid} data-aidta=${O.aidta} data-col=${col} `;
+        s +='<button class=QList '+ d + ' onclick=" \
+         var Anew=new Assessment({}); Anew.Q2TA($(this).data()); Anew.HighLightQ($(this).data()); ToggleBold($(this)); \
+         ">'+iq+'</button>';
+      });
+      $('#'+O.oid).html(s);
+      this.HighLightQ({aidta:O.aidta});
     }
     ListQ2(O) { var col=O.col;  //console.log(O); return;
       db.collection(col).get().then((qS) => { var s=O.msg?O.msg:'', iq=0;
