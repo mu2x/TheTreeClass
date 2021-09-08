@@ -30,7 +30,7 @@
     var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
     LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js", "A.js"]); //Load our style and JS files
     firebase.initializeApp(firebaseConfig); 
-    var  debug=0, role='student', admin=0, db = firebase.firestore(), A = new Assessment({}); 
+    var  debug=0, role='student', admin=0, db = firebase.firestore(), A = new Assessment({}), I=new Info(); 
     window.addEventListener('load', function() { 
       initApp({}); 
     });
@@ -42,13 +42,13 @@
 <body>
   <div class="navbar">
     <span  id=Top11 >COURSES</span>     
-    <span id=Top12></span>     <span id=Top13></span>     <span id=Top14></span> 
+    <span id=Top12></span>     <span id=Top13></span>     <span id=Top14></span> <span id=Top15></span> 
     <a style='float:right;' href="#"> <span id=Login data-logged=0>Login</span>   </a>
 
   </div>
   <p id=Top21></p>
   <hr/>
-  <span id=Middle1>    <span id=Middle11></span>   <span id=Middle12 align="center"></span>   <span style='float:right;' id=Middle13></span>  </span>
+  <span id=Middle1>    <span id=Middle11></span>   <span id=Middle12></span>   <span style='float:right;' id=Middle13></span>  </span>
   <span id=Middle2></span>
   <textarea rows=10 style="width: 100%; max-width: 100%; display:none;" id=TA></textarea>
  
@@ -60,6 +60,13 @@
    <span class=show style='float:right;' id=Bottom13><button onclick=" $('#Bottom11').html(InitialUinfo()); $('[role=instructor]').toggle(); ">More</button></span>
   </span>
 
+  <div id=Screen1>
+    <div>
+      <span class=L11>1</span><span class=L12>2</span> <span class=L13></span> <span class=L14></span>
+      <button class=CrossBig  onclick="$('#Screen1').hide();" >&times;</button>  
+    </div>
+    <div class=M1>List</div>
+  </div>
 
     <script>
 
@@ -71,12 +78,23 @@
     var sc = `<a href=# class=topmenu data-col=${ccol} data-oid=Middle2 data-color=blue onclick="
              A.Setup(\$(this).data()); ToggleColor($(this)); db.doc('/users/'+email).update({'LastVisited.1':{id:'${ccol}', textid:'Top12'}});
             ">Concepts</a>`; 
-    $('#Top12').html(sc);     $('#Top13').html(sa); 
+    $('#Top12').html(sc);  $('#Top13').html(sa); 
+
+    if(role != 'instructor') return;
+    
+    var s4 = `<a href=# class=topmenu onclick="    \$('#Top21').load('Info.html');  ">Load</a>`; 
+    $('#Top14').html(s4); 
+    
+    var CourseID = d.id?d.id:'/COURSES/EA2';
+    db.doc(CourseID).onSnapshot(function(doc) {  $('#Top15').html(I.dropdownOneRow({d:doc.data(), id:CourseID}));   });
+
     if(debug) console.log(s);
   }
   db.doc('/COURSES/COURSES').onSnapshot(function(doc) {      
     $('#Top11').html(dropdown({d:doc.data()}));  
   });
+
+ 
 
   setTimeout(function() {
     db.doc('/users/'+email).get().then(doc=>{ var d=doc.data();
@@ -97,7 +115,7 @@
       s += ' | <input type=checkbox onclick="debug=$(this).prop(\'checked\')?1:0; ">debug</input>'; 
       var Roster=[email, 'instructor']
       s += RoleChooser(Roster);
-      s += ` | <input type=checkbox onclick="Lang=$(this).prop('checked')?'Hindi':'EN'; ">Not EN</input>`; 
+      s += ` | <input type=checkbox onclick="Lang=$(this).prop('checked')?'Hindi':'EN'; ">Lang:H</input>`; 
 
     return `<span style='display:none;' role=${role} class=more>${s}</span>`; 
   }
@@ -106,7 +124,11 @@
    for (var kkk in O.d) { var sss=''; 
     for (var kk in O.d[kkk]) { var ss=''; 
       for (var k in O.d[kkk][kk]) { var id=O.d[kkk][kk][k]['col'], n=O.d[kkk][kk][k]['name']?O.d[kkk][kk][k]['name']:k; //console.log(col);
-        ss += `<a href="#" data-id=${id} data-name='${n}' onclick=" SelectedA(\$(this).data()); colhome='${id}'; \$('#${mainid}').html('${k}');">${n}</a>`; 
+        ss += `<a href="#" data-id=${id} data-name='${n}' onclick=" 
+          SelectedA(\$(this).data()); colhome='${id}'; \$('#${mainid}').html('${k}');
+          $('#Middle11').html('');        $('#Middle12').html('');  $('#Middle13').html(''); 
+
+          ">${n}</a>`; 
       }
       sss += `<div class="column"><b>${kk}</b> ${ss}  </div> `;
     }
@@ -124,7 +146,7 @@
   
 
   }
-
+  
     </script>
 
 

@@ -202,22 +202,23 @@ class Assessment {
                });
               
                if(role=='instructor') {
-                s +=`<p/><button data-col=${col} data-oid=Middle2 onclick=" A.New({col:'${col}'}); A.Setup(\$(this).data()); ">Add New</button>`;
+                s +=`<p/><button onclick=" A.List({col:'${col}',oid:'QDisplay${uqid}'});  ">List</button>`;
+                s +=`<p/><button data-col=${col} data-oid=Middle2 onclick=" A.New({col:'${col}'}); A.Setup(\$(this).data()); ">New</button>`;
                }
 
                var ss=`
                <table border="1" width=100%  CourseID=${col}>
                <tr >
-               <td width=10% id=AList${uqid} valign=top> ${s}</td> 
+               <td width=10% class=LeftColn id=AList${uqid} valign=top> ${s}</td> 
                <td id=QDisplay${uqid} valign=top> </td> 
-               <td width=10% id=QList${uqid} valign=top></td> 
+               <td width=10% class=RightColn id=QList${uqid} valign=top></td> 
                </tr>
                </table>
                `; 
 
                $('#'+oid).html(ss);
         });
-        if(debug) console.log('A.js: Setup', O);
+        if(debug) console.log('A.js: Setup', O, uqid);
   }  
    ListOne(O){  var id=O.id?O.id:this.id, oid=O.oid?O.oid:this.oid; 
     db.doc(id).get().then((doc) => {  

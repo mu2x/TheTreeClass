@@ -23,3 +23,7 @@ body {  margin: 0;}
 
 .hide {display: none; }
 .show {display:block;}
+[strikethrough="1"] {text-decoration:line-through;}
+
+#Screen1 {height: 100%;   width: 100%; position: fixed; z-index: 1; top: 0; left: 0; background-color: Gainsboro; display:none; overflow-x: hidden;}
+.CrossBig {float:right; padding: 14px 16px; font-size: 14px; }
