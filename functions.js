@@ -158,8 +158,30 @@ function stopInetvalIDs(IDs) { for(var i=0; i<IDs.length; i++) clearInterval(set
       const c = Date.now()/1000;
       let d = c.toString(16).split(".").join("");
       while(d.length < 14) d += "0";
-      let e = ""; if(b){ e = "."; e += Math.round(Math.random()*100000000); }
+      let e = ""; if(b){ e = "_"; e += Math.round(Math.random()*100000000); }
       return a + d + e;
+  }
+  function uniqid2(length){
+    var dec2hex = [];
+    for (var i=0; i<=15; i++) {
+      dec2hex[i] = i.toString(16);
+    }
+  
+    var uuid = '';
+    for (var i=1; i<=36; i++) {
+      if (i===9 || i===14 || i===19 || i===24) {
+        uuid += '-';
+      } else if (i===15) {
+        uuid += 4;
+      } else if (i===20) {
+        uuid += dec2hex[(Math.random()*4|0 + 8)];
+      } else {
+        uuid += dec2hex[(Math.random()*16|0)];
+      }
+    }
+  
+    if(length) uuid = uuid.substring(0,length);
+    return uuid;
   }
   function DisplayQ(Q, col,id) { $('#QD').html(s); }
   function Edit(O) {  var col='public', id='topmenu'; //db.collection(col).doc('q1').update({['Q.v']:e.val()});

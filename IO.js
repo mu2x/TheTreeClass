@@ -1,3 +1,4 @@
+var tr_down='&#x25BC', tr_up='&#x25B2'; 
 class Info { 
   constructor(O) { var O=(arguments.length)?O:{};
     if(arguments.length) { for(var k of Object.keys(O)) {this[k] = O[k];} 
@@ -5,16 +6,57 @@ class Info {
     if(O.col && O.id) this.id=O.col+'/'+O.id; 
     this.uqid = uniqid(); 
   }; 
-  List(O) {  var col=O.col, uqid=uniqid(); 
-    db.collection(O.col).get().then((qS) => {  var iq=0, s='';  
-      qS.forEach((doc) => {  iq++; var id=col+'/'+doc.id, oid=uqid+doc.id;   
-        s += `<br/> ${iq} ${id}  
-          <button onclick="new Info().EditRaw({id:'${id}',oid:'${oid}'}); \$('#${oid}').toggle();">Raw</button>
+  List(O) {  var id=O.id, col=O.col, uqid=uniqid(), s=''; 
+    var queryid = O.queryid?O.queryid:'#'+O.oid; 
+    db.collection(O.col).get().then((qS) => {  var iq=0;  
+      qS.forEach((doc) => {  iq++; var id=col+'/'+doc.id, d=doc.data(), a=d.a?d.a:{}, oid=uqid+doc.id, n=a.name?a.name:id;   
+        s += `<br/> ${iq} ${n}  
+          <button onclick="EditRawByID('${id}','${oid}'); \$('#${oid}').toggle();">Raw</button>
           <div style='display:none;' id=${oid}></div>`; 
       })   
-      $('#'+O.oid).html(s);  if(debug) console.log(s);  
+      if(debug) console.log(s);
+      $(queryid).html(s);     
     }); 
   }
+
+  UpdateArray(id,k,v) {
+    db.doc(id).get().then(doc=>{var d=doc.get(k)?doc.get(k):[]; 
+      d.push(v); 
+      db.doc(id).update({k:d}); 
+    })
+    console.log(id,k,v); 
+  }
+  ListAdd(O) {  var id2=O.id, col=O.col, uqid=uniqid(), s='', key=O.k; 
+  var queryid = O.queryid?O.queryid:'#'+O.oid; 
+  s += `From ${col} to ${id2}:${key}`; 
+   db.collection(O.col).get().then((qS) => {  var iq=0;  
+     qS.forEach((doc) => {  iq++; var id=col+'/'+doc.id, d=doc.data(), a=d.a?d.a:{}, oid=uqid+doc.id, n=a.name?a.name:id;  
+       //s += DisplayByKey(id, `${k}.v`, d[k].v?d[k].v:'v', 'v'+k+uqid, {tb:'ckfull'});
+       var sadd = `<button data-qid=${id} class=QList onclick="
+         db.doc('${id2}').get().then(doc=>{var d=doc.get('${key}')?doc.get('${key}'):[]; 
+           var index = d.indexOf('${id}');
+           index === -1 ?  d.push('${id}') : d.splice(index, 1);;
+           db.doc('${id2}').update({'${key}':d}); 
+           A.HighLightQ({Q:d}); 
+           if(debug) console.log(d);
+         }); 
+
+         //I.UpdateArray('${id2}', '${key}','${id}'); 
+         ">${iq}</button>`; 
+       s += `<br/> ${sadd} ${n}  
+        <button onclick="EditRawByID('${id}','${oid}'); \$('#${oid}').toggle();">Raw</button>
+        <div style='display:none;' id=${oid}></div>`; 
+     })   
+     if(debug) console.log(s);
+     $(queryid).html(s);  
+
+     setTimeout(function(){  db.doc(id2).get().then(doc=>{var d=doc.get(key)?doc.get(key):[];  A.HighLightQ({Q:d});  });   }, 100); // Initial Hightlight
+
+     
+  
+   }); 
+}
+
   EditRaw(O) {  var uqid=uniqid(), inid=O.id;
     db.doc(O.id).get().then((doc) => {  var d=doc.data(), iq=0, s='';  
       s += `<textarea rows=10 style="width: 100%; max-width: 100%;" id=${uqid} >`+JSON.stringify(d)+'</textarea>'; 
@@ -85,18 +127,33 @@ class Info {
     return stmp; 
   }
 
-  dropdownOneRow(O) { var s='', d=O.d, id=O.id, uqid=uniqid(), oid=O.oid?O.oid:'Middle2'; 
+  Load(id,k,oid) { var s=''; 
+    console.log(id,k,oid);
+    db.doc(id).get().then(doc=>{ var d=doc.get(k), C=d.C?d.C:[];
+      for(var i in C) {
+        db.doc(C[i]).get().then(doc2=>{var d2=doc2.data(); 
+          s += d2.Desc;
+          $('#'+oid).html(s);
+          //console.log(d2); 
+
+        });
+
+      }
+    });
+    //EditRaw(A.$(this).data());
+  }
+  dropdownOneRow(O) { var im1=0, s='', d=O.d, id=O.id, uqid=uniqid(), oid=O.oid?O.oid:'Middle2'; 
   var i=0, a=d.a?d.a:{}, v=d.v?d.v:'', n=a.n?a.n:k;
   admin = (role=='instructor')?1:0; 
   for (var k in d) { var ii=0, ss='',  dd= (typeof d[k] == 'object')?d[k]:{}, aa=dd.a?dd.a:{}, nn=aa.n?aa.n:k; 
-    if(k=='a'||k=='v' || aa.hide==1) continue;
-    i++; 
+    if(k=='a'||k=='v'  ||k=='C' ||k=='A' ||k=='Q'|| aa.hide==1) continue;
+    i++; im1=i-1;
     for (var kk in dd) { var ddd= (typeof dd[kk] == 'object')?dd[kk]:{}, aaa=ddd.a?ddd.a:{}, nnn=aaa.n?aaa.n:kk; 
-      if(kk=='a'||kk=='v' || aaa.hide==1) continue;
-      ii++; 
-      ss += `<a href="#">${i}.${ii} ${nnn}</a> `; 
+      if(kk=='a'||kk=='v'  ||kk=='C' ||kk=='A' ||kk=='Q'|| aaa.hide==1) continue;
+      ii++;  
+      ss += `<a href="#" onclick="I.Load('${id}','${k}.${kk}','Middle2');">${im1}.${ii} ${nnn}</a> `; 
     }
-    s += ` <div class="column"> <a href="#"><b>${i}:  ${nn} </b></a> ${ss} </div> `;
+    s += ` <div class="column"> <a href="#"><b>${im1}:  ${nn} </b></a> ${ss} </div> `;
   }
   var tid=`dropdown-courses-content${uqid}`; 
   if(admin) s += `<button  onclick="I.SectionEdit2('${id}','${oid}',{});">Edit</button>`; 
@@ -109,9 +166,17 @@ class Info {
     return stmp; 
   }
 
-  SectionEdit2(id,oid,O) {db.doc(id).onSnapshot(function(doc) { $('#'+oid).html(I.SectionEdit({d:doc.data(), id:id, oid:oid})); }); }
+  SectionEdit2(id,oid,O) {
+    if(O.realtime) db.doc(id).onSnapshot(function(doc) { $('#'+oid).html(I.SectionEdit({d:doc.data(), id:id, oid:oid})); }); 
+    else db.doc(id).get().then(function(doc) { $('#'+oid).html(I.SectionEdit({d:doc.data(), id:id, oid:oid})); }); 
+  }
   
-  hide(id,k,v) { var v=v==1?0:1;  return `<button  onclick=" db.doc('${id}').update({'${k}':${v} }); ">&times;</button>`; }
+  hide(id,k,v) { var v=(v==1)?0:1;  return `<button  onclick=" 
+   db.doc('${id}').get().then(doc=>{ var v=doc.get('${k}'); db.doc('${id}').update({'${k}':(v==1)?0:1 });  });
+   var e=\$(this.parentNode); 
+   if(e.attr('strikethrough')==1) {e.attr('strikethrough',0); } else e.attr('strikethrough',1); 
+
+  ">&times;</button>`; }
   KeyEdit(id, k, v) {
     return `
     <span class=Editable ondblclick="
@@ -123,20 +188,22 @@ class Info {
    ">${v}<span>
     `;
   }
-  SectionEdit(O) { var s='', mainid=O.mainid?O.mainid:'dropbtn2', d=O.d, id=O.id, oid=O.oid; 
+  SectionEdit(O) { var s='', mainid=O.mainid?O.mainid:'dropbtn2', d=O.d, id=O.id, oid=O.oid, uqid=uniqid(); 
   var i=0, a=d.a?d.a:{}, v=d.v?d.v:'', n=a.n?a.n:k;
   for (var k in d) { var ii=0, ss='',  dd= (typeof d[k] == 'object')?d[k]:{}; 
-    if(k=='a'||k=='v') continue;
+    if(k=='a'||k=='v' ||k=='C' ||k=='A' ||k=='Q') continue;
     var aa=dd.a?dd.a:{}, nn=aa.n?aa.n:k, hide=aa.hide?aa.hide:0; i++; 
     for (var kk in dd) { var ddd= (typeof dd[kk] == 'object')?dd[kk]:{}; 
-      if(kk=='a'||kk=='v') continue;
+      if(kk=='a'||kk=='v'  ||kk=='C' ||kk=='A' ||kk=='Q') continue;
       var aaa=ddd.a?ddd.a:{}, nnn=aaa.n?aaa.n:kk, hhide=aaa.hide?aaa.hide:0; ii++; 
       var key=this.KeyEdit(id,`${k}.${kk}.a.n`,nnn), strike=this.hide(id,`${k}.${kk}.a.hide`, hhide);
-      ss += `<a href="#" strikethrough=${hhide}>${i}.${ii} ${key} </a> ${strike} <br/>`; 
+      var List=this.ListB(id,`${k}.${kk}`,{});
+      ss += `<span strikethrough=${hhide}><a href="#">${i}.${ii} ${key} </a> ${strike} </span> ${List} <br/>`; 
     }
     if(admin) ss += `<button onclick="db.doc('${id}').update({'${k}.${ii}':{a:{n:'new'}, v:'v'} });" href="#">New Subsection</button> `; 
     
-    var key=this.KeyEdit(id,`${k}.a.n`,nn), strike=this.hide(id,`${k}.a.hide`, hide), List=this.ListB(`${id}/Concepts`);
+    var key=this.KeyEdit(id,`${k}.a.n`,nn), strike=this.hide(id,`${k}.a.hide`, hide); 
+    var List=this.ListB(id,k,{});
     s += `<div strikethrough=${hide}>  <b>${i}: ${key}</b>  ${strike} ${List}<div> ${ss} </div> </div> `;
   }
   s += `<p/><button onclick="db.doc('${id}').update({'${i}':{a:{n:'new'}, v:'v'} }); ">New Section</button>`; 
@@ -144,9 +211,22 @@ class Info {
 
   return s; 
   }
-  ListB(col){ var s='', uqid=uniqid(); 
-   s += `   Add <button onclick="var e=\$('#Screen1');  e.show();" >Concepts | Q | A</button>   `; 
-   return s; 
+
+  ToggleHighlight(O) { var qrid='#'+O.id;  
+    $(qrid).toggle(); 
+    if($(qrid).css('display') == 'none') {O.e.html(tr_down); O.e.css('background-color',''); } 
+    else {    O.e.html(tr_up); O.e.css('background-color','yellow'); }
+  }
+  ListB(id, k, O){ var s='', uqid=uniqid('',true); 
+      return `
+        <button onclick="I.ToggleHighlight({id:'${uqid}',e:\$(this) }); ">${tr_down}</button> 
+        <div id=${uqid} style='display:none;border-style: solid;'>
+          <button onclick="I.ListAdd({id:'${id}', k:'${k}.C', col:'${id}/Concepts',oid:'${uqid}M1'}) ; " >Concepts</button> 
+          <button onclick="I.ListAdd({id:'${id}', k:'${k}.Q', col:'${id}/Q',oid:'${uqid}M1'}) ; " >Q</button>
+          <button onclick="I.ListAdd({id:'${id}', k:'${k}.A', col:'${id}/A',oid:'${uqid}M1'}) ; " >Assessments</button>
+          <div id=${uqid}M1 class=M1></div>
+        </div>
+        `; 
   }
 }
 

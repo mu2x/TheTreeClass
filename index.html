@@ -62,10 +62,10 @@
 
   <div id=Screen1>
     <div>
-      <span class=L11>1</span><span class=L12>2</span> <span class=L13></span> <span class=L14></span>
+      <span id=Screen1T11 class=T11></span><span class=T12></span> <span class=T13></span> <span class=T14></span>
       <button class=CrossBig  onclick="$('#Screen1').hide();" >&times;</button>  
     </div>
-    <div class=M1>List</div>
+    <div id=Screen1M1 class=M1></div>
   </div>
 
     <script>
@@ -121,13 +121,13 @@
   }
   
   function dropdown(O) { var s='', mainid=O.mainid?O.mainid:'dropbtn1'; 
+   s += `<button class=CrossBig>&times;</button>`;
    for (var kkk in O.d) { var sss=''; 
     for (var kk in O.d[kkk]) { var ss=''; 
       for (var k in O.d[kkk][kk]) { var id=O.d[kkk][kk][k]['col'], n=O.d[kkk][kk][k]['name']?O.d[kkk][kk][k]['name']:k; //console.log(col);
         ss += `<a href="#" data-id=${id} data-name='${n}' onclick=" 
           SelectedA(\$(this).data()); colhome='${id}'; \$('#${mainid}').html('${k}');
           $('#Middle11').html('');        $('#Middle12').html('');  $('#Middle13').html(''); 
-
           ">${n}</a>`; 
       }
       sss += `<div class="column"><b>${kk}</b> ${ss}  </div> `;
