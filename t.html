@@ -1,0 +1,60 @@
+
+
+                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/sketchpad/0.1.0/scripts/sketchpad.min.js"></script>
+
+
+                <div style="text-align: center">
+                    <canvas class="sketchpad" id="sketchpad"><canvas>
+                  </div>
+                  
+              <div style="text-align: center">
+                <button onclick="undo()">undo</button>
+                <button onclick="redo()">redo</button>
+                <input id="color-picker" type="color">
+                <input id="size-picker" type="range" min="1" max="50">
+                <button onclick="animateSketchpad()">animate</button>
+              </div>
+
+<script>
+ var sketchpad;
+      $(document).ready(function() {
+        sketchpad = new Sketchpad({
+          element: '#sketchpad',
+          width: 400,
+          height: 400
+        });
+        $('#color-picker').change(color);
+        $('#color-picker').val('#000');
+        $('#size-picker').change(size);
+        $('#size-picker').val(1);
+      });
+
+function undo() {
+        sketchpad.undo();
+      }
+      function redo() {
+        sketchpad.redo();
+      }
+      function color(event) {
+        sketchpad.color = $(event.target).val();
+      }
+      function size(event) {
+        sketchpad.penSize = $(event.target).val();
+      }
+      function animateSketchpad() {
+        sketchpad.animate(10);
+      }
+
+      function recover(event) {
+        var settings = sketchpad.toObject();
+        settings.element = '#other-sketchpad';
+        var otherSketchpad = new Sketchpad(settings);
+        $('#recover-button').hide();
+      }
+</script>
+
+
+
+
+

@@ -1,0 +1,86 @@
+
+
+<a href=# class=topmenu onclick="  All({id:'/COURSES/EA2', oid:'test' });  ">Load</a>
+
+<div id=test></div>
+
+<script>
+
+function Editor_TA(id,key,v) {
+    var s='', uqid=uniqid(), dtype=typeof v, d=(dtype == 'object')?JSON.stringify(v, null, 2):v
+    s += ` <textarea style='display:block; width:100%; height:300' id=TA${uqid} data-dtype=${dtype} data-key=${key}> ` + d + `</textarea>`; 
+    s += `<button onclick=" var e=\$('#TA${uqid}'), d=e.data(), v=(d.dtype=='object')?JSON.parse(e.val()):e.val();  
+        if(debug) console.log({'${key}':v});
+        db.doc('${id}').update({'${key}':v});    
+        ">DONE</button>`; 
+    return s;   
+}
+function DisplayByKey2(id, key, v, uqid, O) { var s='', tb=O.tb?O.tb:'ckfull'; 
+  var etype=O.etype?O.etype:'ckeditor', dtype=typeof v; 
+  if(etype=='TA') {  s += key + ':'+ Editor_TA(id,key,v);  return s;   }
+  return s; 
+  s += ` <textarea style='display:none;' id=TADesc${uqid}> ` + v + `</textarea>`; 
+
+  s += `
+    <div id=Desc${uqid} class=QEdit contenteditable="false" ondblclick=" 
+      if(role != 'instructor') return; // disable the dbleclik for students
+      var opened = CKEDITOR.instances.Desc${uqid}?1:0;   
+      if(!opened) CKEDITOR.replace('Desc${uqid}', { toolbar:${tb}} ).setData( \$('#TADesc${uqid}').val());
+      //CKEDITOR.instances['Desc${uqid}'].setData( \$('#TADesc${uqid}').val());
+      \$('#Desc${uqid}').attr('contenteditable','true'); \$('#DescB${uqid}').show();
+      //editor.on( 'change', function( evt ) {       console.log( 'Total bytes: ' + evt.editor.getData() );});
+    " >`+v+`</div>`;
+  s += `<button id=DescB${uqid} style='display:none;' onclick=" 
+    var data = CKEDITOR.instances['Desc${uqid}'].getData(); \$('#TADesc${uqid}').val(data);
+    db.doc('${id}').update({'${key}':data}); 
+    CKEDITOR.instances['Desc${uqid}'].destroy();
+    \$('#Desc${uqid}').attr('contenteditable','false'); \$('#DescB${uqid}').hide();
+  ">Done</button>`;
+   return s; 
+}
+
+ function All(O) { 
+    var O=(arguments.length)?O:{}; var id=O.id?O.id:this.id, d={}, uqid=uniqid(), s='', i=0; 
+    var oid=O.oid?O.oid:'Middle2';
+    db.doc(id).get().then(doc=>{var d=doc.data(); 
+
+      s += Editor_TA(id,'a',d.a);
+
+      s += DisplayByKey2(id, `a`, d.a?d.a:{}, 'a'+uqid, {etype:'TA'});
+
+      s += `<button onclick="EditRawByID('${id}', '${oid}');">Raw</button>`; 
+      s += DisplayByKey(id, `v`, d.v?d.v:'v', 'v'+uqid, {});
+      s += DisplayByKey(id, `v`, d.v?d.v:'v', 'v'+uqid, {tb:'ckfull'});
+      for(var k in d) { if(k=='a'||k=='v') continue; 
+        var a=d[k].a?d[k].a:{}, v=d[k].v?d[k].v:'', ss='', ii=0; i++; 
+        ss += DisplayByKey(id, `${k}.v`, d[k].v?d[k].v:'v', 'v'+k+uqid, {tb:'ckfull'});
+        var dd = (typeof d[k] == 'object' && k!='a')?d[k]:{}; 
+
+        for(var kk in dd) { if(kk=='a'||kk=='v') continue; ii++; 
+          var iii=0, sss='', ddd = (typeof d[k][kk] == 'object')?d[k][kk]:{}; 
+          sss += DisplayByKey(id, `${kk}.${k}.v`, d[k][kk].v?d[k][kk].v:'v', 'v'+k+kk+uqid, {tb:'ckfull'});
+
+          for (var kkk in ddd) { if(kkk=='a'||kkk=='v') continue; iii++; 
+            var iiii=0, ssss='', dddd = (typeof d[k][kk][kkk] == 'object')?d[k][kk][kkk]:{}; 
+            ssss += DisplayByKey(id, `${kkk}.${kk}.${k}.v`, d[k][kk][kkk].v?d[k][kk][kkk].v:'v', 'v'+k+kk+kkk+uqid, {tb:'ckfull'});
+
+            for (var kkkk in dddd) { if(kkkk=='a'||kkkk=='v') continue; iiii++; 
+              ssss += `<br/>${i}.${ii}.${iii}.${iiii}:` 
+              ssss += DisplayByKey(id, `${kkkk}.${kkk}.${kk}.${k}.v`, d[k][kk][kkk][kkkk].v?d[k][kk][kkk][kkkk].v:'v', 'v'+k+kk+kkk+kkkk+uqid, {tb:'ckfull'});
+            }
+            sss += `<br/>${i}.${ii}.${iii}:` + ssss; 
+          }
+          ss += `<p/>${i}.${ii}:` + sss; 
+        }
+
+        s += `<hr/>${i}:` + ss; 
+      }
+      this.s=s; 
+      $('#Middle2').html(s);
+    })
+
+  }
+  
+</script>
+
+

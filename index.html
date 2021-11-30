@@ -42,7 +42,7 @@
 <body>
   <div class="navbar">
     <span  id=Top11 >COURSES</span>     
-    <span id=Top12></span>     <span id=Top13></span>     <span id=Top14></span> <span id=Top15></span> 
+    <span id=Top12></span>     <span id=Top13></span>     <span id=Top14></span> <span id=Top15></span> <span id=Top16></span> 
     <a style='float:right;' href="#"> <span id=Login data-logged=0>Login</span>   </a>
 
   </div>
@@ -70,7 +70,64 @@
 
     <script>
 
-  function SelectedA(d) { var ccol=d.id+'/Concepts', acol=d.id+'/A', cid=d.id; 
+  function Grade(O) {
+    var g = {
+       row0:{0:{n:'2021-01-01'},1:{}},
+      'vkumar1@utep.edu':{0:1}
+    }; 
+    //db.doc(O.col+'/Grade').set(g); 
+    var docid=O.col+'/Grade', sdocid='/users/'+email+docid; 
+    db.doc(docid).onSnapshot(function(doc) {
+      GradeDisplay({d:doc.data(), oid:O.oid, id:O.col+'/Grade', flag:admin, msg:'Score assigned by the instructor'}); 
+      console.log(doc.data().row0, sdocid);
+      var initdata = {row0:doc.data().row0}; initdata[escape_email(email)]={total:0}; 
+      db.doc(sdocid).set(initdata, {merge:true}); 
+    });
+    db.doc(sdocid).onSnapshot(function(doc) {
+      GradeDisplay({d:doc.data(), oid:'Middle2', id:sdocid, flag:1, msg:'<hr/>Score assigned by '+email}); 
+    });
+    //console.log(O);
+
+  }
+  function updateByKeyB(id,k,v,flag) { var uqid=uniqid();
+    return `<span id=${uqid} ondblclick=" if(!${flag}) return; 
+       if($(this).attr('contenteditable') == 'true') {
+        $(this).attr('contenteditable',false);
+        db.doc('${id}').update({${k}:$(this).text()});
+        console.log({${k}:$(this).text()});
+       } else $(this).attr('contenteditable',true);
+
+      ">${v}</span> `; 
+  }
+  function GradeDisplay(O) {var g=O.d, oid=O.oid, id=O.id, msg=O.msg?O.msg:'';
+    var iq=0; s='',sh='<th>row0</th>'; st=''; 
+    for (var i in g['row0']) { var n=g['row0'][i].n?g['row0'][i].n:i; iq++;
+      sh += '<th>'+updateByKeyB(id,`'row0.${i}.n'`, n, admin)+'</th>'; 
+    }
+    if(admin) sh += `<th><button onclick="db.doc('${id}').update({'row0.${iq}.n':${iq}});">Add</button></th>`; 
+    
+    for (var eid in g) { iq++; if(eid=='row0') continue; 
+      if(!admin && eid != escape_email(email)) continue;
+
+      var eid2=eid.replace(/\./g, '&46'), stt='<td>'+eid2.replace(/&46/g, '.')+'</td>';
+      for (var i in g['row0']) { var n=g[eid][i]?g[eid][i].n:0;
+        stt += '<td>'+updateByKeyB(id,`'${eid2}.${i}.n'`, n, O.flag)+'</td>'; 
+      }
+      st += `<tr>${stt}</tr>`;
+    }
+    s = `<table align=center border=1><tr>${sh}</tr>${st}</table>`;
+    if(admin) s += `<input id=adduser />
+          <button onclick="
+            var obj={}; obj[escape_email($('#adduser').val())]={0:{n:0}}; 
+            db.doc('${id}').update(obj);
+          ">+</button>
+          `; 
+
+    $('#'+oid).html('<center>'+msg + s +'</center>');
+    //console.log(O);
+  }
+  function escape_email(e) {return e.replace(/\./g, '&46'); }
+  function SelectedA(d) { var ccol=d.id+'/Concepts', sem=d.id+'/Fall2021', acol=d.id+'/A', cid=d.id; 
     db.doc('/users/'+email).update({'LastVisited.0':{id:d.id, name:d.name}}); 
     var sa = `<a href=# class=topmenu data-col=${acol} data-oid=Middle2 data-color=blue onclick="
                 A.Setup(\$(this).data()); ToggleColor($(this)); db.doc('/users/'+email).update({'LastVisited.1':{id:'${acol}', textid:'Top13'}});
@@ -78,7 +135,12 @@
     var sc = `<a href=# class=topmenu data-col=${ccol} data-oid=Middle2 data-color=blue onclick="
              A.Setup(\$(this).data()); ToggleColor($(this)); db.doc('/users/'+email).update({'LastVisited.1':{id:'${ccol}', textid:'Top12'}});
             ">Concepts</a>`; 
-    $('#Top12').html(sc);  $('#Top13').html(sa); 
+    var Grade = `<a href=# class=topmenu onclick="
+             Grade({col:'${sem}',uhome:'/users/${email}', oid:'Middle1'}); 
+            ">Grade</a>`; 
+    $('#Top12').html(sc);  
+    $('#Top13').html(sa); 
+    $('#Top16').html(Grade); 
 
     if(role != 'instructor') return;
     

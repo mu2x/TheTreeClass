@@ -134,8 +134,6 @@ class Info {
         db.doc(C[i]).get().then(doc2=>{var d2=doc2.data(); 
           s += d2.Desc;
           $('#'+oid).html(s);
-          //console.log(d2); 
-
         });
 
       }

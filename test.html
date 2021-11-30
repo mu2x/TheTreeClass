@@ -1,20 +1,68 @@
 <!DOCTYPE html>
-<!-- KaTeX requires the use of the HTML5 doctype. Without it, KaTeX may not render properly -->
-<html>
-  <head>
-<script defer src="https://unpkg.com/mathlive/dist/mathlive.min.mjs"></script>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+        <head>
+                <meta charset="utf-8">
+                <title>CKEditor</title>
+                <script src="https://cdn.ckeditor.com/4.16.1/standard-all/ckeditor.js"></script>
 
-    
-  </head>
-  <body>
-    
-<math-field>
-    x=\frac{-b\pm \sqrt{b^2-4ac}}{2a}
-</math-field>
-    
- 
-  </body>
-  
+                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+                <script src="functions.js"></script>
+   
+                <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=MML_HTMLorMML"></script>
+
+        </head>
+        <body>
+          
+                <textarea name="editor1">
+
+                </textarea>
+ <div id=editor2 name="editor2" ondblclick="CKEDITOR.replace( 'editor2', { toolbar:tb, extraPlugins: 'ckeditor_wiris'} );">
+  <math xmlns="http://www.w3.org/1998/Math/MathML">
+    <mrow><msup><mfenced><mrow> <mi>a</mi> <mo>+</mo><mi>b</mi></mrow> </mfenced> <mn>2</mn> </msup></mrow> 
+   </math>
+  </div>
+
+  <div id=id1>
+    <div id="editor3" contenteditable="true">
+      <h1>Inline Editing in Action!</h1>
+      <p>The "div" element that contains this text is now editable.</p>
+  </div>
+          
+  </div>
 
 
+  <textarea cols="10" id="editor10" name="editor1" rows="10" data-sample-short>&lt;p&gt;This is some &lt;strong&gt;sample text&lt;/strong&gt;. You are using &lt;a href=&quot;https://ckeditor.com/&quot;&gt;CKEditor&lt;/a&gt;.&lt;/p&gt;</textarea>
+  <script>
+    CKEDITOR.replace('editor10', {
+      extraPlugins: 'mathjax',
+      mathJaxLib: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
+      height: 320
+    });
+
+  </script>
+
+        
+        <script>
+          var tb=[
+	{ name: 'document', groups: [ 'mode', 'document', 'doctools' ], items: [ 'Source', '-', 'Save', 'NewPage', 'ExportPdf', 'Preview', 'Print', '-', 'Templates' ] },
+	{ name: 'clipboard', groups: [ 'clipboard', 'undo' ], items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },
+	{ name: 'editing', groups: [ 'find', 'selection', 'spellchecker' ], items: [ 'Find', 'Replace', '-', 'SelectAll', '-', 'Scayt' ] },
+	{ name: 'forms', items: [ 'Form', 'Checkbox', 'Radio', 'TextField', 'Textarea', 'Select', 'Button', 'ImageButton', 'HiddenField' ] },
+  { name: 'wiris', items : [ 'ckeditor_wiris_formulaEditor','ckeditor_wiris_formulaEditorChemistry']}
+];
+var tbnone=[]; 
+CKEDITOR.plugins.addExternal('ckeditor_wiris', 'https://www.wiris.net/demo/plugins/ckeditor/', 'plugin.js');
+
+var editor1 = CKEDITOR.replace( 'editor1', { toolbar:tb, extraPlugins: 'ckeditor_wiris'} );
+editor1.on( 'change', function( evt ) {       console.log( 'Total bytes: ' + evt.editor.getData() );});
+
+//CKEDITOR.replace( 'editor1', { toolbar:tbnone, extraPlugins: 'ckeditor_wiris'} );    
+
+CKEDITOR.disableAutoInline = true;
+    var editor=CKEDITOR.inline( 'editor3', { toolbar:tb, extraPlugins: 'ckeditor_wiris'}  );
+    $('.cke_inner .cke_top .cke_toolbox').show();
+        </script>
+
+        <div id=out></div>
+        </body>
 </html>
