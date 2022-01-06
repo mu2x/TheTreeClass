@@ -22,8 +22,7 @@
 <script src="functions.js"></script>
   <script type="text/javascript">
     var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
-    var dbid='/I/A_YT'; 
-
+    var dbid=getURLVars().id?'I/'+getURLVars().id:'/I/A_YT'; 
     LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js", "A.js"]); //Load our style and JS files
     firebase.initializeApp(firebaseConfig); 
     var  debug=0, role='student', admin=0, db = firebase.firestore(), A = new Assessment({}), I=new Info(); 
