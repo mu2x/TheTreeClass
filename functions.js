@@ -311,3 +311,5 @@ function stopInetvalIDs(IDs) { for(var i=0; i<IDs.length; i++) clearInterval(set
         $('#'+oid).html(doc.data().v);
     });
   }
+
+ 

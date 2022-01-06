@@ -44,3 +44,32 @@ var firebaseConfig = {
     appId: "1:1095365181062:web:db9b34e80b0572fc",
     measurementId: "G-GR8YWKSF7F"
 };
+
+ // Youtube .............
+ var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/player_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+ var player;
+ var playerConfig = {
+   height: '360',
+   width: '640',
+   //videoId: videoId,
+   playerVars: {
+     autoplay: 1, // Auto-play the video on load
+     controls: 0, // Show pause/play buttons in player
+     showinfo: 1, // Hide the video title
+     modestbranding: 1, // Hide the Youtube Logo
+     fs: 0, // Hide the full screen button
+     cc_load_policy: 0, // Hide closed captions
+     iv_load_policy: 3, // Hide the Video Annotations
+     //start: startSeconds,     end: endSeconds,
+     autohide: 1, // Hide video controls when playing
+   },
+   events: { 'onStateChange': onStateChange //,     'onReady': onPlayerReady
+   }
+ };
+ function onYouTubePlayerAPIReady() {  player = new YT.Player('player', playerConfig);}
+ function onStateChange(state) {    if(state.data===0) $('#player').hide(); else $('#player').show();    }
+ //var player = new YT.Player('Layer3', playerConfig);

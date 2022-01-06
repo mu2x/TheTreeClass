@@ -94,7 +94,10 @@ class Assessment {
         var k='Desc'; s2 += DisplayByKey(id, k, d[k], k+uqid, {tb:'ckfull'}); 
 
         $('#'+oid).html(s);         $('#'+oid2).html(s2); 
-        MathJax.Hub.Queue(["Typeset",MathJax.Hub, oid2 ]);
+        MathJax.Hub.Config({ TeX: { equationNumbers: { autoNumber: "AMS" } }    });
+        //MathJax.Hub.Queue(["Typeset",MathJax.Hub, oid2 ]);
+        MathJax.Hub.Queue( ["resetEquationNumbers", MathJax.InputJax.TeX],  ["PreProcess", MathJax.Hub, oid2],   ["Reprocess", MathJax.Hub]      );
+
         $(`#${oid2} :text`).on('input', function(){  db.doc(ioID).set({input:getAllInputValues(`#${oid2} input`)});    });
         setTimeout(function() {
           db.doc(ioID).get().then(function(doc) {  

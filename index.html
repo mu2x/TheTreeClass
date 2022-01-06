@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
-    <script src="https://www.youtube.com/iframe_api"></script>
+    <!-- <script src="https://www.youtube.com/iframe_api"></script> -->
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
@@ -48,7 +48,20 @@
   </div>
   <p id=Top21></p>
   <hr/>
-  <span id=Middle1>    <span id=Middle11></span>   <span id=Middle12></span>   <span style='float:right;' id=Middle13></span>  </span>
+  <div id=Layer3 style="display: none;"> 
+    <div id=player></div><div id=Questions></div> 
+    <input id=VideoID value=cpaigEYuNEw />
+    <input size=1 id=StartTime value=5 />
+    <input size=1 id=EndTime value=20 />
+
+    <button onclick="player.loadVideoById({ videoId: $('#VideoID').val(), startSeconds: $('#StartTime').val(), endSeconds: $('#EndTime').val() });">Start</button>
+     
+  </div>
+
+  <span id=Middle1>    
+    <span id=Middle11></span>   
+    <span id=Middle12></span>   
+    <span style='float:right;' id=Middle13></span>  </span>
   <span id=Middle2></span>
   <textarea rows=10 style="width: 100%; max-width: 100%; display:none;" id=TA></textarea>
  
@@ -67,7 +80,6 @@
     </div>
     <div id=Screen1M1 class=M1></div>
   </div>
-
     <script>
 
   function Grade(O) {
@@ -90,7 +102,7 @@
 
   }
   function updateByKeyB(id,k,v,flag) { var uqid=uniqid();
-    return `<span id=${uqid} ondblclick=" if(!${flag}) return; 
+    return `<span id=${uqid} class=InstScore ondblclick=" if(!${flag}) return; 
        if($(this).attr('contenteditable') == 'true') {
         $(this).attr('contenteditable',false);
         db.doc('${id}').update({${k}:$(this).text()});
@@ -99,9 +111,22 @@
 
       ">${v}</span> `; 
   }
+  function replaceSScore(eid,id,iq, row0) {
+    db.doc('/users/'+eid.replace(/&46/g, '.')+id).get().then((doc)=>{
+        if(!doc.exists) { $(`#eid${iq}`).css('background-color', 'yellow'); return;}
+        var sdata=doc.data()[eid]; 
+        //console.log(eid,sdata);
+        for (var i in row0) { var n = sdata[i]?sdata[i].n:'';
+         $(`#SScore-${iq}-${i}`).text(n);
+        }
+      })
+  }
+  function GetStudentScore(id) {  iq=0; 
+    db.doc(id).get().then((doc0)=>{ for (var eid in doc0.data()) { iq++;  replaceSScore(eid,id,iq,doc0.data().row0);   }    })  
+  }
   function GradeDisplay(O) {var g=O.d, oid=O.oid, id=O.id, msg=O.msg?O.msg:'';
     var iq=0; s='',sh='<th>row0</th>'; st=''; 
-    for (var i in g['row0']) { var n=g['row0'][i].n?g['row0'][i].n:i; iq++;
+    for (var i in g['row0']) { var n=g['row0'][i].n?g['row0'][i].n:i; 
       sh += '<th>'+updateByKeyB(id,`'row0.${i}.n'`, n, admin)+'</th>'; 
     }
     if(admin) sh += `<th><button onclick="db.doc('${id}').update({'row0.${iq}.n':${iq}});">Add</button></th>`; 
@@ -109,9 +134,11 @@
     for (var eid in g) { iq++; if(eid=='row0') continue; 
       if(!admin && eid != escape_email(email)) continue;
 
-      var eid2=eid.replace(/\./g, '&46'), stt='<td>'+eid2.replace(/&46/g, '.')+'</td>';
+      var eid2=eid.replace(/\./g, '&46'), stt=`<td id=eid${iq}>`+eid2.replace(/&46/g, '.')+'</td>';
+      
       for (var i in g['row0']) { var n=g[eid][i]?g[eid][i].n:0;
-        stt += '<td>'+updateByKeyB(id,`'${eid2}.${i}.n'`, n, O.flag)+'</td>'; 
+        var sscore = `<span id=SScore-${iq}-${i} class=SScore></span>`;
+        stt += '<td>'+updateByKeyB(id,`'${eid2}.${i}.n'`, n, O.flag)+sscore+'</td>'; 
       }
       st += `<tr>${stt}</tr>`;
     }
@@ -121,6 +148,11 @@
             var obj={}; obj[escape_email($('#adduser').val())]={0:{n:0}}; 
             db.doc('${id}').update(obj);
           ">+</button>
+          <button onclick=" $('.InstScore').toggle(); ">Inst</button>
+          <button onclick=" $('.SScore').toggle(); ">Student</button>
+          <button onclick=" GetStudentScore('${id}');  ">Load SScore</button>
+
+
           `; 
 
     $('#'+oid).html('<center>'+msg + s +'</center>');
