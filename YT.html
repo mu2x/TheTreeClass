@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<style>
+[admin="1"] {
+  color: rgb(12, 12, 12);
+  background: rgb(0, 255, 34);
+ }
+ .QDisplay {  padding: 10px 20px; font-size: 16px;  }
+
+</style>
+<head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-firestore.js"></script>
+<script src="https://cdn.ckeditor.com/4.16.2/full-all/ckeditor.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+<link rel="stylesheet" href="index.css" />
+<script src="functions.js"></script>
+  <script type="text/javascript">
+    var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
+    var dbid='/I/A_YT'; 
+
+    LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js", "A.js"]); //Load our style and JS files
+    firebase.initializeApp(firebaseConfig); 
+    var  debug=0, role='student', admin=0, db = firebase.firestore(), A = new Assessment({}), I=new Info(); 
+    window.addEventListener('load', function() {       initApp({});      });
+    
+</script>
+</head>
+
+<html>
+  <body>
+
+    <div id=TopMenu></div>
+    <div class=student id=nAllQS></div>
+    <div id="player" style='display:none;'></div> <div id=Assessment class=QDisplay style='display:none;'></div>
+    <div class=student id=AllQS></div>
+
+  <div class=admin style='display:none;'>
+  <div id=AllQ></div>
+  <span id=TARaw  style='display:none;'>
+    <br/><textarea  id=TA  cols="100" rows="20"></textarea>
+    <br/> <button onclick="db.doc(dbid).set(JSON.parse($('#TA').val())); ">Save</button>  
+  </span>
+ </div>
+
+<script>
+
+window.addEventListener('load', function() {       
+ db.doc(dbid).onSnapshot(function(doc) { var d=doc.data()?doc.data():{};
+  if( !($('#TARaw').css('display') == 'none') )   {$('#TA').val(JSON.stringify(d, null, 1));  }
+  if(priv.admin) { QYT(d); $('#TopMenu').html(adminB()); }
+  //db.doc(dbid+'/users/'+email).get().then( (docs)=>{ var dS=docs.data()?docs.data():{};
+  db.doc(dbid+'/users/'+email).onSnapshot(function(docs) { var dS=docs.data()?docs.data():{};
+    QYT_S(d, dS); 
+  } )
+ });
+
+});
+
+
+function adminB(){
+  return `
+  <button admin=0 onclick=" 
+      e=$(this); admin= (e.attr('admin')=='1')?1:0; 
+      if(e.attr('admin')=='1') {
+        e.attr('admin',0); $('.admin').hide(); $('.student').show(); } 
+      else { e.attr('admin',1); $('.admin').show(); $('.student').hide();  }
+      ">Admin</button><br/>
+  `; 
+}
+function QYT_S(O, OS) { var dbid='/I/A_YT', oid='AllQS', iq=0; $('#'+oid).html(''), $('#nAllQS').html('');
+  var videoId = (O.a && O.a.videoId)?O.a.videoId:'cpaigEYuNEw'; 
+  for (var i in O.Q) { var Q=O.Q[i], t1=Q.t1?Q.t1:0, t2=Q.t2?Q.t2:0, Desc=Q.Desc?Q.Desc:'Desc';
+    var QS = (OS.Q && OS.Q[i])?OS.Q[i]:{};
+    var choices='', desc='', play=''; 
+    choices = Q_Choices_S({id:dbid, i:i, Q:Q}, {Q:QS}); 
+    var nch = Q.Choices?Object.keys(Q.Choices).length:0;
+    desc=`
+       <div id=Desc${i}  ondblclick=" var e=$(this); 
+        if(e.attr('contenteditable')) {  e.attr('contenteditable', false);          
+          db.doc('${dbid}').update({'Q.${i}.Desc': $(this).html() }); 
+        } else e.attr('contenteditable', true); 
+       ">${Desc}</div>
+    `; 
+    if(nch>0) play=`
+       <button style='padding: 10px;' onclick="
+        onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  });
+        $('#Assessment').html( $('#disp${i}').html() ); 
+      ">Q${i}</button> 
+    `;
+    else play=`<button style='padding: 10px;' onclick=" $('#Assessment').show(); $('#Assessment').html( $('#disp${i}').html() ); ">${i}</button> `;
+
+    $('#nAllQS').append(`${play}`); 
+
+    $('#'+oid).append(`<div align=left class=QDisplay>
+      <span style='display:none;' id=disp${i}> ${desc} ${choices}</span> 
+    </div>    `); 
+  }
+  
+}
+
+function QYT(O) { var dbid='/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html('');
+  var videoId = (O.a && O.a.videoId)?O.a.videoId:'cpaigEYuNEw'; 
+  $('#'+oid).append(`
+  VideoId: <input size=5 onchange=" db.doc('${dbid}').update({'a.videoId': $(this).val() }); " value=${videoId} />
+  <button onclick="player.loadVideoById({ videoId: '${videoId}'});">Play</button>
+  `); 
+  for (var i in O.Q) { var Q=O.Q[i], t1=Q.t1?Q.t1:0, t2=Q.t2?Q.t2:0,  Desc=Q.Desc?Q.Desc:'Desc', MChoice='', MMChoice='', TA='';
+    var a=Q.a?Q.a:{}; 
+    if(a.Type=="radio")  MChoice="checked"; else if (a.Type=="textarea") TA='checked'; else MMChoice="checked";
+    var nTrial = a.nTrial?a.nTrial:0; 
+    var choices = Q_Choices({id:dbid, i:i, Q:Q}); 
+    $('#'+oid).append(`<div>
+      Q${i}) 
+      t1: <input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.t1': $(this).val() }); " value=${t1} />
+      t2: <input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.t2': $(this).val() }); " value=${t2} />
+      nTrial: <input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.a.nTrial': $(this).val() }); " value=${nTrial} />
+
+      <button onclick="
+        onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  });
+        $('#Assessment').html( $('#Desc${i}').html() ); 
+      ">Play</button>
+      <button onclick="db.doc('${dbid}').update({'Q.${i}': firebase.firestore.FieldValue.delete() });">&cross;</button>
+      <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'radio' }); " ${MChoice} />radio
+      <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'checkbox' }); " ${MMChoice} />checkbox
+      <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'textarea' }); " ${TA} />textarea
+
+      <p/>Desc: <div id=Desc${i} ondblclick=" var e=$(this); 
+        if(e.attr('contenteditable')) {  e.attr('contenteditable', false);          
+          db.doc('${dbid}').update({'Q.${i}.Desc': $(this).html() }); 
+        } else e.attr('contenteditable', true); 
+       ">${Desc}</div>
+        Choices: ${choices}
+       </div><hr/>
+      
+      `); 
+    iq++; 
+  }
+  $('#'+oid).append(`
+      <button onclick="db.doc('${dbid}').update({'Q.${iq}':{} }); ">Add</button>
+      <p/><button onclick="$('#TARaw').toggle(); ">Raw</button>    
+  `); 
+}
+
+function Q_Choices(O) { var iq=0, i=O.i, id=O.id, oid=`Choices${i}`; 
+   var type=(O.Q.a && O.Q.a.Type)?O.Q.a.Type:'checkbox';
+   var s='';
+       for (var ii in O.Q.Choices) { var C=O.Q.Choices[ii], desc=C.Desc?C.Desc:'C1', a=C.a?C.a:{}; 
+         var checked=a.checked?'checked':''; 
+         if(type=='textarea') {
+          s += `<br/>
+         <textarea onchange="db.doc('${id}').update({'Q.${i}.Choices.${iq}.Desc': $(this).val() }); ">
+           ${desc} </textarea>
+         `; 
+         } else {
+          s += `<br/>
+         <input name=SelectChoices${i} type=${type} onclick="db.doc('${id}').update({'Q.${i}.Choices.${iq}.a.checked': $(this).prop('checked') }); " ${checked} />
+         <span ondblclick=" var e=$(this); 
+        if(e.attr('contenteditable')) {e.attr('contenteditable', false); 
+          db.doc('${id}').update({'Q.${i}.Choices.${iq}.Desc': $(this).html() }); 
+        } else e.attr('contenteditable', true); 
+       ">${desc}</span>
+
+         `; 
+         }
+       
+         iq++; 
+       }
+      s +=`
+       <br/><button onclick="db.doc('${id}').update({'Q.${i}.Choices.${iq}':{} }); ">+</button>
+       `;
+  return s; 
+
+}
+function Q_Choices_S(O, OS) { var iq=0, i=O.i, id=O.id+'/users/'+email, oid=`Choices${i}`; 
+   var aaS=OS.Q.a?OS.Q.a:{}, type=(O.Q.a && O.Q.a.Type)?O.Q.a.Type:'checkbox';
+   var nTrial = (O.Q.a && O.Q.a.nTrial)?O.Q.a.nTrial:1;
+   var submitted= (aaS.submitted && !(nTrial>1) )?'disabled=disabled':'';
+  //db.doc(id).get().then((doc)=>{ console.log(id,doc.data()); })
+  //console.log(OS);
+   var s='';
+       for (var ii in O.Q.Choices) { 
+         var C=O.Q.Choices[ii], desc=C.Desc?C.Desc:'C1', a=C.a?C.a:{}; 
+         var CS=(OS.Q && OS.Q.Choices && OS.Q.Choices[ii])?OS.Q.Choices[ii]:{}, descS=CS.Desc?CS.Desc:'C1', aS=CS.a?CS.a:{}; 
+         var checked=aS.checked?'checked':''; 
+         if(type=='textarea') {
+          s += `<br/>
+         <textarea onchange="db.doc('${id}').update({'Q.${i}.Choices.${ii}.Desc': $(this).val() });" ${submitted} >
+           ${descS} </textarea>
+         `; 
+         } else {
+          s += `<br/>
+         <input name=SelectChoices${i} type=${type} onclick="
+           db.doc('${id}').update({'Q.${i}.Choices.${ii}.a.checked': $(this).prop('checked') }); 
+          " ${submitted} ${checked} />
+         <span>${desc}</span>
+         `; 
+         }
+         
+         iq++; 
+       }
+       if(Q.Choices && Object.keys(Q.Choices).length>0) s += `<br/><button  onclick=" db.doc('${id}').update({'Q.${i}.a.submitted': 1 });" ${submitted}>Submit</button>`; 
+  return s; 
+
+}
+function Q_Desc(e) {
+ console.log(e.val());
+}
+
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/player_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+var videoId = 'M7lc1UVf-VE';
+var startSeconds = 36, dt=10;
+var endSeconds = startSeconds+dt;
+
+
+var player;
+
+var playerConfig = {
+  height: '360',
+  width: '640',
+  //videoId: videoId,
+  playerVars: {
+    autoplay: 0, // Auto-play the video on load
+    controls: 1, // Show pause/play buttons in player
+    showinfo: 1, // Hide the video title
+    modestbranding: 1, // Hide the Youtube Logo
+    fs: 0, // Hide the full screen button
+    cc_load_policy: 0, // Hide closed captions
+    iv_load_policy: 3, // Hide the Video Annotations
+    //start: startSeconds,     end: endSeconds,
+    autohide: 0, // Hide video controls when playing
+  },
+  events: {     'onStateChange': onStateChange //,     'onReady': onPlayerReady
+  }
+};
+
+function onYouTubePlayerAPIReady() {  player = new YT.Player('player', playerConfig);}
+
+var i=0, done=false; 
+
+function onPlayerReady(O) {
+  player.loadVideoById({ videoId: O.videoId,    startSeconds: O.t1,     endSeconds: O.t2    });
+}
+function onStateChange(state) {
+  if(state.data===0) {$('#player').hide(); $('#Assessment').show(); } else 
+  { $('#player').show();  $('#Assessment').hide(); }
+}
+    </script>
+  </body>
+</html>
