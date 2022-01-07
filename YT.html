@@ -189,6 +189,7 @@ function Q_Choices_S(O, OS) {
           s += `<br/>
          <input name=SelectChoices${i} type=${type} onclick="
            db.doc('${id}').update({'Q.${i}.Choices.${ii}.a.checked': $(this).prop('checked') }); 
+           if(debug) console.log('${id}', {'Q.${i}.Choices.${ii}.a.checked': $(this).prop('checked') }); 
           " ${submitted} ${checked} />
          <span>${desc}</span>
          `; 
