@@ -22,7 +22,7 @@
 <script src="functions.js"></script>
   <script type="text/javascript">
     var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
-    var dbid=getURLVars().id?'I/'+getURLVars().id:'/I/A_YT'; 
+    var dbid=getURLVars().id?'/I/'+getURLVars().id:'/I/A_YT'; 
     LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js", "A.js"]); //Load our style and JS files
     firebase.initializeApp(firebaseConfig); 
     var  debug=0, role='student', admin=0, db = firebase.firestore(), A = new Assessment({}), I=new Info(); 
@@ -50,11 +50,12 @@
 <script>
 
 window.addEventListener('load', function() {       
- db.doc(dbid).onSnapshot(function(doc) { var d=doc.data()?doc.data():{};
+ db.doc(dbid).onSnapshot(function(doc) { var d=doc.data()?doc.data():{}; d.dbid=dbid, sdbid=dbid+'/users/'+email; 
   if( !($('#TARaw').css('display') == 'none') )   {$('#TA').val(JSON.stringify(d, null, 1));  }
   if(priv.admin) { QYT(d); $('#TopMenu').html(adminB()); }
   //db.doc(dbid+'/users/'+email).get().then( (docs)=>{ var dS=docs.data()?docs.data():{};
-  db.doc(dbid+'/users/'+email).onSnapshot(function(docs) { var dS=docs.data()?docs.data():{};
+  db.doc(sdbid).onSnapshot(function(docs) { var dS=docs.data()?docs.data():{}; dS.dbid=sdbid;
+    if(!docs.exists) db.doc(sdbid).set({}); 
     QYT_S(d, dS); 
   } )
  });
@@ -72,13 +73,12 @@ function adminB(){
       ">Admin</button><br/>
   `; 
 }
-function QYT_S(O, OS) { var dbid='/I/A_YT', oid='AllQS', iq=0; $('#'+oid).html(''), $('#nAllQS').html('');
+function QYT_S(O, OS) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQS', iq=0; $('#'+oid).html(''), $('#nAllQS').html('');
   var videoId = (O.a && O.a.videoId)?O.a.videoId:'cpaigEYuNEw'; 
   for (var i in O.Q) { var Q=O.Q[i], t1=Q.t1?Q.t1:0, t2=Q.t2?Q.t2:0, Desc=Q.Desc?Q.Desc:'Desc';
     var QS = (OS.Q && OS.Q[i])?OS.Q[i]:{};
     var choices='', desc='', play=''; 
     choices = Q_Choices_S({id:dbid, i:i, Q:Q}, {Q:QS}); 
-    var nch = Q.Choices?Object.keys(Q.Choices).length:0;
     desc=`
        <div id=Desc${i}  ondblclick=" var e=$(this); 
         if(e.attr('contenteditable')) {  e.attr('contenteditable', false);          
@@ -86,7 +86,7 @@ function QYT_S(O, OS) { var dbid='/I/A_YT', oid='AllQS', iq=0; $('#'+oid).html('
         } else e.attr('contenteditable', true); 
        ">${Desc}</div>
     `; 
-    if(nch>0) play=`
+    if(Q.Choices && Object.keys(Q.Choices).length>0) play=`
        <button style='padding: 10px;' onclick="
         onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  });
         $('#Assessment').html( $('#disp${i}').html() ); 
@@ -103,7 +103,7 @@ function QYT_S(O, OS) { var dbid='/I/A_YT', oid='AllQS', iq=0; $('#'+oid).html('
   
 }
 
-function QYT(O) { var dbid='/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html('');
+function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html('');
   var videoId = (O.a && O.a.videoId)?O.a.videoId:'cpaigEYuNEw'; 
   $('#'+oid).append(`
   VideoId: <input size=5 onchange=" db.doc('${dbid}').update({'a.videoId': $(this).val() }); " value=${videoId} />
@@ -129,12 +129,12 @@ function QYT(O) { var dbid='/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html('');
       <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'checkbox' }); " ${MMChoice} />checkbox
       <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'textarea' }); " ${TA} />textarea
 
-      <p/>Desc: <div id=Desc${i} ondblclick=" var e=$(this); 
+      <p/><u>Desc</u>: <div id=Desc${i} ondblclick=" var e=$(this); 
         if(e.attr('contenteditable')) {  e.attr('contenteditable', false);          
           db.doc('${dbid}').update({'Q.${i}.Desc': $(this).html() }); 
         } else e.attr('contenteditable', true); 
        ">${Desc}</div>
-        Choices: ${choices}
+       <u>Choices</u>: ${choices}
        </div><hr/>
       
       `); 
@@ -151,37 +151,30 @@ function Q_Choices(O) { var iq=0, i=O.i, id=O.id, oid=`Choices${i}`;
    var s='';
        for (var ii in O.Q.Choices) { var C=O.Q.Choices[ii], desc=C.Desc?C.Desc:'C1', a=C.a?C.a:{}; 
          var checked=a.checked?'checked':''; 
-         if(type=='textarea') {
-          s += `<br/>
-         <textarea onchange="db.doc('${id}').update({'Q.${i}.Choices.${iq}.Desc': $(this).val() }); ">
-           ${desc} </textarea>
-         `; 
+         var del= `<button onclick="db.doc('${id}').update({'Q.${i}.Choices.${ii}': firebase.firestore.FieldValue.delete() });">&cross;</button>`; 
+
+         if(type=='textarea') {s += `<br/> <textarea onchange="db.doc('${id}').update({'Q.${i}.Choices.${ii}.Desc': $(this).val() }); ">${desc}</textarea>`; 
          } else {
           s += `<br/>
-         <input name=SelectChoices${i} type=${type} onclick="db.doc('${id}').update({'Q.${i}.Choices.${iq}.a.checked': $(this).prop('checked') }); " ${checked} />
-         <span ondblclick=" var e=$(this); 
-        if(e.attr('contenteditable')) {e.attr('contenteditable', false); 
-          db.doc('${id}').update({'Q.${i}.Choices.${iq}.Desc': $(this).html() }); 
-        } else e.attr('contenteditable', true); 
-       ">${desc}</span>
-
-         `; 
-         }
-       
+           ${del}<input name=SelectChoices${i} type=${type} onclick="db.doc('${id}').update({'Q.${i}.Choices.${ii}.a.checked': $(this).prop('checked') }); " ${checked} />
+           <span ondblclick=" var e=$(this); 
+              if(e.attr('contenteditable')) {e.attr('contenteditable', false); 
+               db.doc('${id}').update({'Q.${i}.Choices.${iq}.Desc': $(this).html() }); 
+              } else e.attr('contenteditable', true); 
+            ">${desc}</span>
+          `; 
+         }      
          iq++; 
        }
-      s +=`
-       <br/><button onclick="db.doc('${id}').update({'Q.${i}.Choices.${iq}':{} }); ">+</button>
-       `;
+      s +=`<br/><button onclick="db.doc('${id}').update({'Q.${i}.Choices.${iq}':{} }); ">+</button> `;
   return s; 
 
 }
-function Q_Choices_S(O, OS) { var iq=0, i=O.i, id=O.id+'/users/'+email, oid=`Choices${i}`; 
+function Q_Choices_S(O, OS) { 
+   var iq=0, i=O.i, id=O.id+'/users/'+email, oid=`Choices${i}`; 
    var aaS=OS.Q.a?OS.Q.a:{}, type=(O.Q.a && O.Q.a.Type)?O.Q.a.Type:'checkbox';
    var nTrial = (O.Q.a && O.Q.a.nTrial)?O.Q.a.nTrial:1;
    var submitted= (aaS.submitted && !(nTrial>1) )?'disabled=disabled':'';
-  //db.doc(id).get().then((doc)=>{ console.log(id,doc.data()); })
-  //console.log(OS);
    var s='';
        for (var ii in O.Q.Choices) { 
          var C=O.Q.Choices[ii], desc=C.Desc?C.Desc:'C1', a=C.a?C.a:{}; 
@@ -199,8 +192,7 @@ function Q_Choices_S(O, OS) { var iq=0, i=O.i, id=O.id+'/users/'+email, oid=`Cho
           " ${submitted} ${checked} />
          <span>${desc}</span>
          `; 
-         }
-         
+         }  
          iq++; 
        }
        if(Q.Choices && Object.keys(Q.Choices).length>0) s += `<br/><button  onclick=" db.doc('${id}').update({'Q.${i}.a.submitted': 1 });" ${submitted}>Submit</button>`; 
