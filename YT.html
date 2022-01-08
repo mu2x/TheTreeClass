@@ -44,7 +44,8 @@
 
     <div id=TopMenu></div>
     <div class=student id=nAllQS></div>
-    <div id="player" style='display:none;'></div> <div id=Assessment class=QDisplay style='display:none;'></div>
+    <div id="player" style='display:none;'></div> 
+    <div id=Assessment class=QDisplay style='display:none;'></div>
     <div class=student id=AllQS></div>
 
   <div class=admin style='display:none;'>
@@ -60,8 +61,8 @@
 window.addEventListener('load', function() {       
  db.doc(dbid).onSnapshot(function(doc) { var d=doc.data()?doc.data():{}; d.dbid=dbid, sdbid=dbid+'/users/'+email; 
   if( !($('#TARaw').css('display') == 'none') )   {$('#TA').val(JSON.stringify(d, null, 1));  }
+  priv.admin=1;
   if(priv.admin) { QYT(d); $('#TopMenu').html(adminB()); }
-  //db.doc(dbid+'/users/'+email).get().then( (docs)=>{ var dS=docs.data()?docs.data():{};
   db.doc(sdbid).onSnapshot(function(docs) { var dS=docs.data()?docs.data():{}; dS.dbid=sdbid;
     if(!docs.exists) db.doc(sdbid).set({}); 
     QYT_S(d, dS); 
@@ -99,8 +100,10 @@ function QYT_S(O, OS) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQS', iq=0; $(
 
     $('#nAllQS').append(`${play}`); 
 
-    $('#'+oid).append(`<div align=left class=QDisplay>
-      <span style='display:none;' id=disp${i}> ${desc} ${choices}</span> 
+    $('#'+oid).append(`
+    <button style='padding: 10px;' onclick=" onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  }); ">${i}</button>
+    <div align=left class=QDisplay>
+      <span style='display:inline;' id=disp${i}> ${desc} ${choices}</span> 
     </div>    `); 
   }
   
