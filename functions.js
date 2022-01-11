@@ -191,7 +191,7 @@ function stopInetvalIDs(IDs) { for(var i=0; i<IDs.length; i++) clearInterval(set
   }
   function json2str(O) {return JSON.stringify(O, null,1);}
   function str2json(O) {return JSON.parse(O);}
-  function a(O) {alert(json2str(O));}
+  function alrt(O) {alert(json2str(O));}
   
   
   String.prototype.toHtmlEntities = function() { // Convert a string to HTML entities
