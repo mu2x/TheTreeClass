@@ -5,7 +5,7 @@
   background: rgb(0, 255, 34);
   
  }
- .QDisplay {  padding: 10px 20px; font-size: 16px;  }
+ .QDisplay {  padding: 1px 2px 1px 2px; font-size: 16px; border:2px solid #555; }
  .largeinput {width:30px;height:30px;background:white;border-radius:5px;border:2px solid #555;}
  
 </style>
@@ -132,8 +132,8 @@ function QYT_S(O, OS) {
     
     if(aa.display !="Youtube") {play=''; disQ='inline'; }
 
-    $('#'+oid).append(` <br/> (Q${i})
-    <div align=left class=QDisplay1>
+    $('#'+oid).append(` 
+    <div align=left  class=QDisplay> (Q${i})
       <span id=${uqid}${i} style='display:${disAQ};' id=disp${i}> 
         <span id=${uqid}${i}Q style='display:${disQ};'> ${desc} ${choices}</span> ${play}
       </span> 
@@ -189,7 +189,7 @@ function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid
     var displayYT = (a.display=='Youtube')?'checked':'', displayOnebyOne = (a.display=='OnebyOne')?'checked':''; 
 
     //var desc = IO_Desc(dbid, `Q.${i}.Desc`, Desc, {eid:`Desc${i}`, editable:1}); 
-    var desc = IO_DescCKEditor(dbid, `Q.${i}.Desc`, Desc, uqid,{}); 
+    var desc = IO_DescCKEditor(dbid, `Q.${i}.Desc`, Desc, `${uqid}${i}`,{}); 
 
     var choices = Q_Choices({id:dbid, i:i, Q:Q}); 
     var del = ` <button onclick="db.doc('${dbid}').update({'Q.${i}': firebase.firestore.FieldValue.delete() });">&cross;</button>`; 
