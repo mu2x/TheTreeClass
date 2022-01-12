@@ -8,9 +8,7 @@ class getdb {
   constructor(id) {  db.doc(id).get().then((doc) => {  this.data =doc.data(); })  };
 }
 function ToggleText(O) {   var c = $(O).text(), oid = $(O).attr('mainid');   $('#'+oid).html(c); }
-function TogglePM(O) {   
-  var c = $(O).text(), oid = $(O).attr('mainid');   $('#'+oid).html(c); 
-}
+function TogglePM(e,tid) { var t = e.text(); if(t=='+') {e.text('-'); $(tid).show(); } else {e.text('+'); $(tid).hide();} }
 function ToggleBold(O) {   var c = $(O).attr('class');    $('.'+c).css("font-weight","Normal");   $(O).css("font-weight","Bold"); }
 function ToggleColor(O) {  var d=$(O).data(), c = $(O).attr('class'); $('.'+c).css("background-color", ""); $(O).css("background-color", d.color?d.color:'yellow'); }
 class Assessment {
