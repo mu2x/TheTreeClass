@@ -11,11 +11,11 @@
  
 .dpdown {position: relative; display: inline-block; background-color: rgb(186, 212, 195); }
 .dpdown-content {
-  display: none;   position: absolute;   background-color: #f9f9f9;   min-width: 260px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);   padding: 12px 16px;   z-index: 1;
+  display: none;   position: absolute;   background-color: #f9f9f9;   min-width: 360px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);   padding: 6px 8px;   z-index: 1;
 }
 .dpdown:hover .dpdown-content {display: block;}
-.SketchpadContainer {display: flex;  justify-content: center;}
+.SketchpadContainer {display: flex;  justify-content: center; border:4px solid #555; }
 </style>
 <head>
 
@@ -61,14 +61,14 @@
     <br/> <button onclick="db.doc(dbid).set(JSON.parse($('#TA').val())); ">Save</button>  
   </span>
  </div>
- <div class=SketchpadContainer> <canvas class="sketchpad" id="sketchpad"><canvas></div> 
+ <!-- <div class=SketchpadContainer> <canvas class="sketchpad" id="sketchpad"><canvas></div> -->
 
 <script>
 //var sketchpad = new Sketchpad({element: '#sketchpad', width: 700,  height: 600 });
 
 window.addEventListener('load', function() {       
  db.doc(dbid).onSnapshot(function(doc) { var d=doc.data()?doc.data():{}; d.dbid=dbid, sdbid=dbid+'/users/'+email; 
-  if(!doc.exists) db.doc(dbid).set({}); 
+  if(!doc.exists) db.doc(dbid).set({creator:{email:email}}); 
 
   if( !($('#TARaw').css('display') == 'none') )   {$('#TA').val(JSON.stringify(d, null, 1));  }
   if(priv.admin) { QYT(d); $('#TopMenu').html(adminB()); }
@@ -125,7 +125,7 @@ function QYT_S(O, OS) {
   var  dbid=O.dbid?O.dbid:'/I/A_YT', a=O.a?O.a:{}, uqid=uniqid(), oid='AllQS', iq=0; $('#'+oid).html(''), $('#nAllQS').html(''), disAQ='none';
   var videoId = a.videoId?a.videoId:'cpaigEYuNEw'; 
   if(a.display =="AllQ") { disAQ='inline'; }
-
+  $('#'+oid).append(O.Desc?O.Desc:''); 
   for (var i in O.Q) { var Q=O.Q[i], t1=Q.t1?Q.t1:0, t2=Q.t2?Q.t2:0, Desc=Q.Desc?Q.Desc:'Desc';
     var QS = (OS.Q && OS.Q[i])?OS.Q[i]:{}, aaS=QS.a?QS.a:{}, aa=Q.a?Q.a:{}, name=aa.name?aa.name:i;
     if(aa.hide) continue;
@@ -136,23 +136,27 @@ function QYT_S(O, OS) {
     
     if(Q.Choices && Object.keys(Q.Choices).length>0) play=`
        <button class=Ch${i} style='padding: 10px;' onclick="
-       var p = $('#player').data(); p.showid = '${uqid}${i}Q'; 
+       var p = $('#player').data(); p.showid = '${uqid}${i}Q'; $(this).prop('disabled',true);
         onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  });
         " ${submitted}>Play</button> 
     `; else disQ='inline';
     
-    $('#nAllQS').append(`<button class=${uqid} style='padding: 10px;' onclick=" var e=$('#${uqid}${i}');  e.toggle(); 
-        if(e.css('display')=='none') $(this).css('background-color',''); else $(this).css('background-color','yellow');
+    $('#nAllQS').append(`<button class=${uqid} style='padding: 10px;' onclick=" 
+        var e=$('#disp${i}');  
+        if(e.css('display')=='none') { 
+          $(this).css('background-color','yellow');  e.show();
+        } else { $(this).css('background-color','');  e.hide(); }
     ">${name}</button>`);  
     
     if(aa.display !="Youtube") {play=''; disQ='inline'; }
 
     $('#'+oid).append(` 
-    <br/><div align=left  id=${uqid}${i}  class=QDisplay> (Q${i})
-        <span id=disp${i} style='display:${disAQ};'>
+    <br/><span id=disp${i} style='display:${disAQ};'>
+       <div align=left  id=${uqid}${i}  class=QDisplay> (Q${i})
            <span id=${uqid}${i}Q style='display:${disQ};'> ${desc} ${choices}</span> ${play}
-        </span>
-    </div>    `); 
+       </div>  
+    </span>
+  `); 
     MathJax.Hub.Queue(["Typeset",MathJax.Hub, `${uqid}${i}Q` ]);
 
   }
@@ -184,39 +188,57 @@ function IO_DescCKEditor(id, key, v, uqid, O) { var s='', tb=O.tb?O.tb:'ckfull';
   ">Done</button>`;
    return s; 
 }
-    
+function db_delPKey(id,k,delk, flag='') { var key=`${k}.${delk}`, iq=0; // Delete: id=id, parent key=k, key=delk, flag=flag
+  db.doc(id).update({[key]: firebase.firestore.FieldValue.delete() });
+  if(flag=='renumber') db.doc(id).get().then(doc=>{ iq=0, q=doc.get(k), qRenum={}; for(i in q) {qRenum[iq]=q[i]; iq++;} db.doc(id).update({[k]:qRenum});   })
+}
 function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html(''), a0=O.a?O.a:{}, uqid=uniqid();
-  var videoId = (a0.videoId)?a0.videoId:'cpaigEYuNEw';
   var displayAllQ = (a0.display=='AllQ')?'checked':''; 
- 
-  $('#'+oid).append(`
-  VideoId: <input size=5 onchange=" db.doc('${dbid}').update({'a.videoId': $(this).val() }); " value=${videoId} />
-  <button onclick="player.loadVideoById({ videoId: '${videoId}'});">Play</button>
-  DIsplay AllQ   :<input type=checkbox name=grading${i} onclick=" db.doc('${dbid}').update({'a.display': $(this).prop('checked')?'AllQ':0 }); " ${displayAllQ}/>
-  `); 
-  for (var i in O.Q) { var Q=O.Q[i], t1=Q.t1?Q.t1:0, t2=Q.t2?Q.t2:0,  Desc=Q.Desc?Q.Desc:'Desc', MChoice='', MMChoice='', TA='', YT='';
-    var a=Q.a?Q.a:{}; 
-    if(a.Type=="radio")  MChoice="checked"; else if (a.Type=="textarea") TA='checked'; else MMChoice="checked";
-    var ChoiceEditor=a.ChoiceEditor?'checked':''; 
-    var nTrial = a.nTrial?a.nTrial:0;
-    var showsoln = a.showsoln?'checked':'', retry = a.retry?'checked':''; 
-    var manualgrade = (a.grading=='manual')?'checked':'', autograde = (a.grading=='auto')?'checked':'', selfgrade = (a.grading=='self')?'checked':''; 
-    var displayYT = (a.display=='Youtube')?'checked':'', hide = a.hide?'checked':''; 
+  $('#'+oid).append(`AllQ   :<input type=checkbox name=grading${i} onclick=" db.doc('${dbid}').update({'a.display': $(this).prop('checked')?'AllQ':0 }); " ${displayAllQ}/>  `); 
+  $('#'+oid).append( IO_DescCKEditor(dbid, `Desc`, O.Desc?O.Desc:'Desc', `${uqid}Desc0`,{})    ); 
 
-    //var desc = IO_Desc(dbid, `Q.${i}.Desc`, Desc, {eid:`Desc${i}`, editable:1}); 
-    var desc = IO_DescCKEditor(dbid, `Q.${i}.Desc`, Desc, `${uqid}${i}`,{}); 
+  
+  for (var i in O.Q) { var Q=O.Q[i],  Desc=Q.Desc?Q.Desc:'Desc', MChoice='', MMChoice='', TA='', YT='';
+    var a=Q.a?Q.a:{}; 
+    var videoId=a.videoId?a.videoId:'cpaigEYuNEw', t1=a.t1?a.t1:0, t2=a.t2?a.t2:0; 
+    if(a.Type=="radio")  MChoice="checked"; else if (a.Type=="textarea") TA='checked'; else MMChoice="checked";
+    var CEInput=(a.ChoiceEditor=='input')?'checked':'', CETA=(a.ChoiceEditor=='textarea')?'checked':'', CECK=(a.ChoiceEditor=='CKEditor')?'checked':'', CESim=(a.ChoiceEditor=='simple')?'checked':''; 
+    var nTrial = a.nTrial?a.nTrial:0;
+    var showans = a.showans?'checked':'', showsoln = a.showsoln?'checked':'', retry = a.retry?'checked':''; 
+    var manualgrade = (a.grading=='manual')?'checked':'', autograde = (a.grading=='auto')?'checked':'', selfgrade = (a.grading=='self')?'checked':''; 
+    var Youtube = a.Youtube?'checked':'', hide = a.hide?'checked':''; 
+    var Sketchpad = a.Sketchpad?'checked':''; 
+
+    if(a.DescEditor=='CKEditor') var desc = IO_DescCKEditor(dbid, `Q.${i}.Desc`, Desc, `${uqid}${i}`,{}); 
+    else if(a.DescEditor=='textarea')  var desc = IO_TA({id:dbid, k:`Q.${i}.Desc`, v:Desc });
+    else var desc = IO_Desc(dbid, `Q.${i}.Desc`, Desc, {eid:`Desc${i}`, editable:1}); 
 
     var choices = Q_Choices({id:dbid, i:i, Q:Q}); 
-    var del = ` <button onclick="db.doc('${dbid}').update({'Q.${i}': firebase.firestore.FieldValue.delete() });">&cross;</button>`; 
+    var del = ` <button onclick="db_delPKey('${dbid}', 'Q', '${i}', 'renumber'); ">&cross;</button>`; 
 //      nTrial:<input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.a.nTrial': $(this).val() }); " value=${nTrial} />
     var ChoicesOptions = `
-            <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'radio' }); " ${MChoice} />radio
-        <p/><input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'checkbox' }); " ${MMChoice} />checkbox
-        <p/><input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'textarea' }); " ${TA} />textarea
-        <p/><input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.ChoiceEditor': $(this).prop('checked')?'input':0 }); " ${ChoiceEditor} />Input
+        User IO: 
+          <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'radio' }); " ${MChoice} />radio
+        | <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'checkbox' }); " ${MMChoice} />checkbox
+        | <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'textarea' }); " ${TA} />TA
+        <p/>Editor:
+        | <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.ChoiceEditor': $(this).prop('checked')?'input':0 }); " ${CEInput} />Input
+        | <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.ChoiceEditor': $(this).prop('checked')?'textarea':0 }); " ${CETA} />TA
+        | <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.ChoiceEditor': $(this).prop('checked')?'CKEditor':0 }); " ${CECK} />CKEditor
+        <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.ChoiceEditor': $(this).prop('checked')?'simple':0 }); " ${CESim} />Simple
+
       `;
-    var Display = `
-        Youtube <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.display': $(this).prop('checked')?'Youtube':0 }); " ${displayYT}/>
+
+    var CKEditor=(a.DescEditor=='CKEditor')?'checked':'', DescEditorTA=(a.DescEditor=='Textarea')?'checked':'', DescEditor=(a.DescEditor=='Simple')?'checked':''; 
+    var DescOptions = `
+        Editor:  <input type=radio name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.DescEditor': 'CKEditor' }); " ${CKEditor} />CKEditor
+        | <input type=radio name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.DescEditor': 'textarea' }); " ${DescEditorTA} />TA
+        | <input type=radio name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.DescEditor': 'simple' }); " ${DescEditor} />Simple
+        <br/> <input type=checkbox name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Sketchpad': $(this).prop('checked') }); " ${Sketchpad} />Drawing
+      `;
+
+  var Display = `
+        Youtube <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.Youtube': $(this).prop('checked') }); " ${Youtube}/>
         <p/>Hide <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.hide': $(this).prop('checked')?1:0 }); " ${hide}/>
   `;
   var Content = `
@@ -226,33 +248,31 @@ function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid
   `;
     var Allow = `
       Retry:<input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.retry': $(this).prop('checked') }); " ${retry}/>
-      <p/> ShowSoln:<input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.showsoln': $(this).prop('checked') }); " ${showsoln}/>
+      <br/> Show (Ans <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.showans': $(this).prop('checked') }); " ${showans}/>
+       |Soln <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.showsoln': $(this).prop('checked') }); " ${showsoln}/>
+       )
     `;
     var Grade = `
-        Manual   :<input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'manual':0 }); " ${manualgrade}/>
-        <p/> Auto   :<input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'auto':0 }); " ${autograde}/>
-        <p/> Self   :<input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'self':0 }); " ${selfgrade}/>
+        Manual <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'manual':0 }); " ${manualgrade}/>
+        | Auto <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'auto':0 }); " ${autograde}/>
+        | Self <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'self':0 }); " ${selfgrade}/>
      `;
-     if(a.display=='Youtube') {
+     if(a.Youtube) {
        var YT = `
-       t1: <input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.t1': $(this).val() }); " value=${t1} />
-       t2: <input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.t2': $(this).val() }); " value=${t2} />
+       VideoId: <input size=5 onchange=" db.doc('${dbid}').update({'Q.${i}.a.videoId': $(this).val() }); " value=${videoId} />
+       t1: <input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.a.t1': $(this).val() }); " value=${t1} />
+       t2: <input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.a.t2': $(this).val() }); " value=${t2} />
        <button onclick=" onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  });    $('#Assessment').html( $('#Desc${i}').html() );  ">Play</button>
        `;
      }
-    $('#'+oid).append(`<div>
-      ${del} Q${i}) 
-      ${YT}
-      <div class="dpdown">  <span >Contents</span><div class="dpdown-content"> ${Content} </div></div>
-      <div class="dpdown">  <span >Display</span><div class="dpdown-content"> ${Display} </div></div>
-      <div class="dpdown">  <span >Allow</span><div class="dpdown-content"> ${Allow} </div></div>
-      <div class="dpdown">  <span >Choices</span><div class="dpdown-content"> ${ChoicesOptions} </div></div>
-      <div class="dpdown">  <span >Grading</span><div class="dpdown-content"> ${Grade} </div></div>
 
-      <br/><u>Desc</u>: ${desc}
-      <br/><u>Choices</u>: ${choices}
-       </div><hr/>
-      `); 
+     var qattr = YT + DropDown(Content,'Content') + DropDown(Display,'Display') + DropDown(Allow,'Allow') + DropDown(Grade,'Grading') + del; 
+     var qdes = DropDown(DescOptions,'Desc') + desc, qchoice = DropDown(ChoicesOptions,'Choices') + choices; 
+     if(a.Sketchpad) qdes += IO_Sketchpad(dbid, ["A","B","C"]);
+
+    $('#'+oid).append(`<hr/><div class=QDisplay1> Q${i}) ${qattr} <p/> ${qdes} <br/> ${qchoice} </div>`); 
+
+
     iq++; 
   }
   MathJax.Hub.Queue(["Typeset",MathJax.Hub, 'Desc${uqid}' ]);
@@ -261,6 +281,41 @@ function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid
       <button onclick="db.doc('${dbid}').update({'Q.${iq}':{} }); ">Add NewQ</button>
       <p/><button onclick="$('#TARaw').toggle(); ">Raw</button>    
   `); 
+}
+var sketchpads={};
+function IO_Sketchpad(col,ids) { var dbid=col+'/drawing/0', uqid=uniqid2(), s='', iq=0; 
+ //db.doc(dbid).get().then(doc=>{ var d=doc.data()?doc.data():{}; 
+  // if(!doc.exists) db.doc(dbid).set({}); 
+ //})
+ for (var i in ids) { var id=col+'/drawing/'+ids[i]; iq++; 
+  s +=`<button onclick="
+    db.doc('${id}').get().then(doc=>{var d=doc.data(); d.element='#sketchpad${uqid}'; sketchpads['${uqid}']=new Sketchpad(d);});
+    ">${iq}</button>
+    <button onclick="db.doc('${id}').set(sketchpads['${uqid}'].toObject());">Save</button> 
+    `;
+ }
+
+ s += `
+    <br/>Drawing <button onclick=" $('#C${uqid}').toggle(); 
+     sketchpads['${uqid}'] = new Sketchpad({element: '#sketchpad${uqid}', width: 700,  height: 600 });
+    ">Open</button> 
+    <button onclick="db.doc('${dbid}').set(sketchpads['${uqid}'].toObject());">Save</button> 
+    <button onclick=" db.doc('${dbid}').get().then(doc=>{
+      var d = doc.data(); d.element = '#sketchpad${uqid}'; 
+      sketchpads['${uqid}'] = new Sketchpad(d); 
+    }); ">Load</button> 
+
+
+    <div id=C${uqid} class=SketchpadContainer style='display:none; width: 700,  height: 600'> 
+      <div><button onclick=" sketchpads['${uqid}'].clear(); ">Clear</button> </div>
+
+      <canvas class="sketchpad" id="sketchpad${uqid}"></canvas></div>
+
+  `; 
+  return s;
+}
+function DropDown(s,k,O={}) { var uqid=uniqid(); 
+  return ` <div class="dpdown"><span onclick="$('#${uqid}').toggle();">${k}</span><div id=${uqid} class="dpdown-content"> ${s} </div></div>`; 
 }
 
 function IO_Desc(id,k,v, O={}) { var eid=O.eid?O.eid:uniqid(); 
@@ -276,17 +331,21 @@ function IO_Desc(id,k,v, O={}) { var eid=O.eid?O.eid:uniqid();
 
 
 
-function Q_Choices(O) { var iq=0, i=O.i, id=O.id, oid=`Choices${i}`, a0=O.Q.a?O.Q.a:{}; 
+function Q_Choices(O) { var iq=0, i=O.i, id=O.id, oid=`Choices${i}`, a0=O.Q.a?O.Q.a:{}, uqid=uniqid(); 
    var type=a0.Type?a0.Type:'checkbox';
    var s='';
-       for (var ii in O.Q.Choices) { var C=O.Q.Choices[ii], desc=C.Desc?C.Desc:'C1', a=C.a?C.a:{}; 
-         var del= `<button onclick="db.doc('${id}').update({'Q.${i}.Choices.${ii}': firebase.firestore.FieldValue.delete() });">&cross;</button>`; 
+       for (var ii in O.Q.Choices) { var C=O.Q.Choices[ii], desc=C.Desc?C.Desc:'Change me', a=C.a?C.a:{}; 
+         var del= `<button onclick=" db_delPKey('${id}', 'Q.${i}.Choices', '${ii}', 'renumber'); 
+         ">&cross;</button>`; 
          s += '<br/>'+del;
-         if(type=='textarea') {s += IO_TA({id:id, k:`Q.${i}.Choices.${ii}.Desc`, v:desc });
+         if(type=='textarea') {
+           s += IO_TA({id:id, k:`Q.${i}.Choices.${ii}.Desc`, v:desc });
          } else {
           if(type=='radio') s += IO_radio({id:id,k0:`Q.${i}`,k:`Q.${i}.Choices.${ii}`,v:desc, name:`AdminSelectChoices${i}`, ii:ii, checked:(a0.checked===ii)?'checked':''});
           else s += IO_checkbox({id:id,k:`Q.${i}.Choices.${ii}`,v:desc, checked:a.checked?'checked':''}); 
           if(a0.ChoiceEditor=='input') s += IO_Input({id:id,k:`Q.${i}.Choices.${ii}.Desc`,v:desc});
+          else if(a0.ChoiceEditor=='textarea') s += IO_TA({id:id,k:`Q.${i}.Choices.${ii}.Desc`,v:desc});
+          else if(a0.ChoiceEditor=='CKEditor') s += IO_DescCKEditor(id, `Q.${i}.Choices.${ii}.Desc`, desc, `${uqid}${ii}`,{}); 
           else  s += IO_Desc(id,`Q.${i}.Choices.${ii}.Desc`,desc, {editable:1}); 
 
          }      
@@ -303,20 +362,20 @@ function Q_Choices_S(O, OS) {
    var retry = (aaS.submitted && aa.retry)?`<button  style='padding: 10px;' onclick=" 
      db.doc('${id}').update({'Q.${i}.a.submitted': 0 }); $('.Ch${i}').prop('disabled', false); $(this).prop('disabled', true);
      ">Retry</button>`:'';
-   var showsoln = submitted && aa.showsoln?aa.showsoln:0; 
+   var showans = submitted && aa.showans?aa.showans:0; 
    var s='';
        for (var ii in O.Q.Choices) { 
          var C=O.Q.Choices[ii], desc=C.Desc?C.Desc:'', a=C.a?C.a:{}; 
          var CS=(OS.Q && OS.Q.Choices && OS.Q.Choices[ii])?OS.Q.Choices[ii]:{}, descS=CS.Desc?CS.Desc:'your input', aS=CS.a?CS.a:{}; 
-         if(type=='radio') { var checked=(aaS.checked==ii)?'checked':'', color=(aa.checked==ii && showsoln)?'lightgreen':''; }
+         if(type=='radio') { var checked=(aaS.checked==ii)?'checked':'', color=(aa.checked==ii && showans)?'lightgreen':''; }
          else var checked=aS.checked?'checked':''; 
          s += '<br/>';
          if(type=='textarea') {
            s += IO_TA({id:id, k:`Q.${i}.Choices.${ii}.Desc`, class:`Ch${i}`, v:descS, disabled:submitted});
-           if(showsoln) s += `<textarea rows=6 style='width: 100%; max-width: 100%; background-color: lightgreen;' disabled>`+desc+'</textarea>';
+           if(showans) s += `<textarea rows=6 style='width: 100%; max-width: 100%; background-color: lightgreen;' disabled>`+desc+'</textarea>';
          } else {
           if(type=='radio') s += IO_radio({id:id,k0:`Q.${i}`,k:`Q.${i}.Choices.${ii}`,v:desc, class:`Ch${i}`, name:`usersSelectChoices${i}`, ii:ii, checked:checked, disabled:submitted, color:color});
-          else { color=(submitted && a.checked && showsoln)?'lightgreen':'';
+          else { color=(submitted && a.checked && showans)?'lightgreen':'';
             s += IO_checkbox({id:id,k:`Q.${i}.Choices.${ii}`,v:desc, checked:checked, class:`Ch${i}`, disabled:submitted}); 
           }
           s += `<span style='background-color: ${color};'>`+IO_Desc(id,`Q.${i}.Choices.${ii}.Desc`,desc)+'</span>'; 
@@ -379,13 +438,10 @@ var playerConfig = {
   }
 };
 
-function onYouTubePlayerAPIReady() {  player = new YT.Player('player', playerConfig);}
 
 var i=0, done=false; 
-
-function onPlayerReady(O) {
-  player.loadVideoById({ videoId: O.videoId,    startSeconds: O.t1,     endSeconds: O.t2    });
-}
+function onYouTubePlayerAPIReady() {  player = new YT.Player('player', playerConfig);}
+function onPlayerReady(O) {player.loadVideoById({videoId: O.videoId, startSeconds: O.t1, endSeconds: O.t2});}
 function onStateChange(state) {
   if(state.data===0) {$('#player').hide(); var d=$('#player').data(); $('#'+d.showid).show(); } else 
   { $('#player').show();   }
