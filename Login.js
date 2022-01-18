@@ -36,12 +36,18 @@
       } 
       function LoggedOutDisplay(O,user) { 
         var id= O.hasOwnProperty('id')? O.id : 'Login';
+        var d=$('#'+id).data(); 
         var n = '<span title='+user.email+'>'+user.displayName+'</span>'; 
+        var signout = '<button onclick="SignOut({});">Logout</button> '; 
+
+        if(d.display=='simple') {
+          $('#'+id).html(n+signout); return;
+        }
+        console.log(d);
         if(user.photoURL != null) {
           if(O.photo) n = '<img width=40px height=40px title=\''+user.displayName+'\' src=\''+user.photoURL+'\' /><br/>';
         } 
             //var uid = user.uid, phoneNumber = user.phoneNumber, providerData = user.providerData;
-        var signout = '<button onclick="SignOut({});">Logout</button> '; 
         var ss =`
           <div class="dropdown" onclick=" $('#LogoutButton').toggle();">
               <button id=dropbtn1 class="dropbtn">${n}</button>
