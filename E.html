@@ -107,7 +107,7 @@ function ListI(O) { var time=firebase.firestore.Timestamp.now().toMillis(), uqid
   var name=O.name?O.name:'name', group=O.group?O.group:'group', id='/I/'+email; 
   db.doc(id).onSnapshot(function(doc) { var s='', d=doc.data()?doc.data():{};
       for(var i in d) { var n=d[i].name?d[i].name:i; 
-          s += `<button onclick="LoadInfoDocs('${id}');" ondblclick=" dblclickEdit('${id}','${i}.name', $(this)); " >${n}</button>`;
+          s += `<button onclick="LoadInfoDocs('/I/${i}');" ondblclick=" dblclickEdit('${id}','${i}.name', $(this)); " >${n}</button>`;        
       }
       $('#'+O.oid).html( DropDown(s,'Engagement')); 
   })
@@ -143,6 +143,7 @@ function LoadOneQ(O) { ///---------------not working
   }) 
   })
 }
+function db2con(id) { db.doc(id).get().then(doc=>{console.log(doc.data());})}
 function QYT_S(O, OS) { 
   var  iq=0, dbid=O.dbid?O.dbid:'/I/A_YT', a=O.a?O.a:{}, uqid=uniqid(), oid='AllQS', iq=0; $('#'+oid).html(''), $('#nAllQS').html(''), disAQ='none';
   if(a.display =="AllQ") { disAQ='inline'; }
@@ -167,7 +168,7 @@ function QYT_S(O, OS) {
         " ${submitted}>Play</button> 
     `; else disQ='inline';
     
-    $('#nAllQS').append(`<button class=${uqid} style='padding: 10px;' onclick=" 
+    if(a.display !="AllQ") $('#nAllQS').append(`<button class=${uqid} style='padding: 10px;' onclick=" 
         var e=$('#disp${i}');  
         if(e.css('display')=='none') { 
           $(this).css('background-color','yellow');  e.show();
