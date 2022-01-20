@@ -138,9 +138,11 @@ function dblclickEdit(id,k, e) {
           db.doc(id).update({[k]: e.html() }); 
         } else e.attr('contenteditable', true); 
 }
-function LoadOneQ(O) {   var id=O.id, k=O.k, oid=O.oid, uqid=uniqid2(); 
-  db.doc(id).get().then(doc=>{ var Q=doc.get(`Q.${k}`); console.log(Q); 
-    db.doc(id+'/users/'+email).get().then(docs=>{ var QS=docs.get(`Q.${k}`);
+function LoadOneQ(O) {   var id=O.id, idS=id+'/users/'+email, k=O.k, oid=O.oid, uqid=uniqid2(); 
+  db.doc(id).get().then(doc=>{ var Q=doc.get(`Q.${k}`); 
+    db.doc(idS).get().then(docs=>{ 
+     if(!docs.exists) {db.doc(idS).set({}); QS={}; } 
+     if(docs.get(`Q.${k}`)) var QS=docs.get(`Q.${k}`); else var QS={}; 
 
     var t1=Q.t1?Q.t1:0, t2=Q.t2?Q.t2:0, Desc=Q.Desc?Q.Desc:'Desc';
     var aaS=QS.a?QS.a:{}, aa=Q.a?Q.a:{};
@@ -196,17 +198,16 @@ function QYT_S(O, OS) {
     `; else disQ='inline';
     
     if(a.display !="AllQ") $('#nAllQS').append(`<button class=${uqid} style='padding: 10px;' onclick=" 
-        var e=$('#disp${i}');  
-        if(e.css('display')=='none') { 
-          $(this).css('background-color','yellow');  e.show();
-        } else { $(this).css('background-color','');  e.hide(); }
+        var e=$('#disp${i}');  $('.dispAllQ').hide(); e.show(); ToggleColor($(this));
+        //if(e.css('display')=='none') {  $(this).css('background-color','yellow');  e.show();
+       // } else { $(this).css('background-color','');  e.hide(); }
     ">${name}</button>`);  
  
     if(aaS.score) score='Score='+QS.a.score; else if(aaS.score===0) score='Score='+QS.a.score; else score=''; 
     
     if(!aa.Youtube) {play=''; disQ='inline'; }
     $('#'+oid).append(` 
-    <br/><span id=disp${i} style='display:${disAQ};'>
+    <br/><span class=dispAllQ id=disp${i} style='display:${disAQ};'>
        <div align=left  id=${uqid}${i}  class=QDisplay>
            <span id=${uqid}${i}Q style='display:${disQ};'> ${desc} ${choices}</span> ${score} ${play}
        </div>  
