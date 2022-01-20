@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<style>
+[admin="1"] {
+  color: rgb(12, 12, 12);
+  background: rgb(0, 255, 34);
+  
+ }
+ .sketchpad {  padding: 1px 2px 1px 2px; font-size: large; border:4px solid #555; }
+ .QDisplay {  padding: 1px 2px 1px 2px; font-size: large; border:4px solid #555; }
+ .largeinput {width:3px;height:10px;background:white;border-radius:5px;border:2px solid #555;}
+ 
+.dpdown {position: relative; display: inline-block; background-color: rgb(186, 212, 195); }
+.dpdown-content {
+  display: none;   position: absolute;   background-color: #f9f9f9;   min-width: 360px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);   padding: 6px 8px;   z-index: 1;
+}
+.dpdown:hover .dpdown-content {display: block;}
+.SketchpadContainer {display: flex;  justify-content: center; border:4px solid #555; }
+</style>
+<head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-firestore.js"></script>
+<script src="https://cdn.ckeditor.com/4.16.2/full-all/ckeditor.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sketchpad/0.1.0/scripts/sketchpad.min.js"></script>
+
+
+
+
+<link rel="stylesheet" href="index.css" />
+<script src="functions.js"></script>
+  <script type="text/javascript">
+    var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
+    var dbid=getURLVars().id?'/I/'+getURLVars().id:'/I/ayushi'; 
+    LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js", "A.js"]); //Load our style and JS files
+    firebase.initializeApp(firebaseConfig); 
+    var  debug=0, role='student', admin=0, db = firebase.firestore(), A = new Assessment({}), I=new Info(); 
+    window.addEventListener('load', function() {       
+      initApp({});      
+    });
+    
+</script>
+</head>
+
+<html>
+  <body>
+    <table width=100%><tr>
+      <td id=main> Engagement </td>
+      <td align="right"><span id=TopMenu><span id=TopMenu2></span></td>
+      <td align=right width=20%><span id=Login data-display=simple data-logged=0>Login</span> </td>
+    </tr></table>
+      
+    <div class=student id=nAllQS></div>
+    <div id="player" style='display:none;'></div> 
+    <div id=Assessment class=QDisplay style='display:none;'></div>
+    <div class=student id=AllQS></div>
+
+  <div class=admin style='display:none;'>
+  <div id=AllQ></div>
+  <span id=TARaw  style='display:none;'>
+    <br/><textarea  id=TA  cols="100" rows="20"></textarea>
+    <br/> <button onclick="db.doc(dbid).set(JSON.parse($('#TA').val())); ">Save</button>  
+  </span>
+ </div>
+ <span id=msg></span>
+<script>
+  
+window.addEventListener('load', function() { 
+    LoadInfoDocs(dbid); 
+    ListI({oid:'main'}); 
+});
+
+function LoadInfoDocs(dbid) {
+ db.doc(dbid).onSnapshot(function(doc) { var d=doc.data()?doc.data():{}; d.dbid=dbid, sdbid=dbid+'/users/'+email; 
+  if(!doc.exists) db.doc(dbid).set({creator:{email:email}}); 
+
+  if( !($('#TARaw').css('display') == 'none') )   {$('#TA').val(JSON.stringify(d, null, 1));  }
+  if(priv.admin) { QYT(d); $('#TopMenu').html(adminB()); }
+  //db.doc(sdbid).onSnapshot(function(docs) { var dS=docs.data()?docs.data():{}; dS.dbid=sdbid;
+   // if(!docs.exists) db.doc(sdbid).set({}); 
+   // QYT_S(d, dS); 
+  //} )
+  db.doc(sdbid).get().then(function(docs) { var dS=docs.data()?docs.data():{}; dS.dbid=sdbid;
+    if(!docs.exists) db.doc(sdbid).set({}); 
+    QYT_S(d, dS); 
+  } )
+ });
+}
+var adminChecked=''; 
+function adminB(){ 
+  
+  return `
+    <button onclick="db.doc('/I/${email}').set({[firebase.firestore.Timestamp.now().toMillis()]:{}}, {merge:true}); ">New</button>
+    | <input type=checkbox admin=0 onclick=" 
+      if($(this).prop('checked')) { adminChecked='checked';
+        admin=1; $(this).attr('admin',1); $('.admin').show(); $('.student').hide(); 
+      } else {admin=0; $(this).attr('admin',0); $('.admin').hide(); $('.student').show(); adminChecked='';}     
+    " ${adminChecked}>Admin</input>
+  `; 
+}
+function ListI(O) { var time=firebase.firestore.Timestamp.now().toMillis(), uqid=uniqid2(); 
+  var name=O.name?O.name:'name', group=O.group?O.group:'group', id='/I/'+email; 
+  db.doc(id).onSnapshot(function(doc) { var s='', d=doc.data()?doc.data():{};
+      for(var i in d) { var n=d[i].name?d[i].name:i; 
+          s += `<button onclick="LoadInfoDocs('/I/${i}');" ondblclick=" dblclickEdit('${id}','${i}.name', $(this)); " >${n}</button>`;        
+      }
+      $('#'+O.oid).html( DropDown(s,'Engagement')); 
+  })
+}
+function dblclickEdit(id,k, e) {
+        if(e.attr('contenteditable')) {  e.attr('contenteditable', false);          
+          db.doc(id).update({[k]: e.html() }); 
+        } else e.attr('contenteditable', true); 
+}
+function LoadOneQ(O) { ///---------------not working
+  var id=O.id, k=O.k, oid=O.oid, uqid=uniqid(); 
+  db.doc(id).get().then(doc=>{ var Q=doc.get(k);
+    db.doc(id+'/users/'+email).get().then(docs=>{ var QS=docs.get(k);
+
+    var t1=Q.t1?Q.t1:0, t2=Q.t2?Q.t2:0, Desc=Q.Desc?Q.Desc:'Desc';
+    var aaS=QS.a?QS.a:{}, aa=Q.a?Q.a:{};
+    var play=''; 
+    var submitted= (aaS.submitted )?'disabled=disabled':'', disQ=(aaS.submitted )?'inline':'none';
+    var choices = Q_Choices_S({id:dbid, i:i, Q:Q}, {Q:QS}); 
+    var desc = IO_Desc(dbid, `Q.${i}.Desc`, Q.Desc?Q.Desc:'Desc', {editable:0}); 
+    
+    if(Q.Choices && Object.keys(Q.Choices).length>0) play=`
+       <button style='padding: 10px;' onclick="
+       var p = $('#player').data(); p.showid = '${uqid}Q'; 
+        onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  });
+        " ${submitted}>Play</button> 
+    `; else disQ='inline';
+    
+
+    $('#'+oid).html(`
+        <span id=${uqid}Q style='display:${disQ};'> ${desc} ${choices}</span> ${play}
+      `); 
+  }) 
+  })
+}
+function db2con(id) { db.doc(id).get().then(doc=>{console.log(doc.data());})}
+function QYT_S(O, OS) { 
+  var  iq=0, dbid=O.dbid?O.dbid:'/I/A_YT', a=O.a?O.a:{}, uqid=uniqid(), oid='AllQS', iq=0; $('#'+oid).html(''), $('#nAllQS').html(''), disAQ='none';
+  if(a.display =="AllQ") { disAQ='inline'; }
+  $('#'+oid).append(O.Desc?O.Desc:''); 
+  for (var i in O.Q) { var Q=O.Q[i], Desc=Q.Desc?Q.Desc:'Desc'; iq++; 
+    var QS = (OS.Q && OS.Q[i])?OS.Q[i]:{}, aaS=QS.a?QS.a:{}, aa=Q.a?Q.a:{}, name=aa.name?aa.name:i;
+    var t1=aa.t1?aa.t1:0, t2=aa.t2?aa.t2:0;
+    if(aa.hide) continue;
+    var play=''; 
+    var submitted= (aaS.submitted )?'disabled=disabled':'', disQ=(aaS.submitted )?'inline':'none';
+    var choices = Q_Choices_S({id:dbid, i:i, Q:Q}, {Q:QS}); 
+    var desc = IO_Desc(dbid, `Q.${i}.Desc`, Q.Desc?Q.Desc:'Desc', {editable:0}); 
+    if(aa.Sketchpad) desc += Sketchpad_Placeholder({uqid:`StudentDesc${i}`, editable:0});
+
+    
+    var videoId = aa.videoId?aa.videoId:'cpaigEYuNEw'; 
+
+    if(Q.Choices && Object.keys(Q.Choices).length>0) play=`
+       <button class=Ch${i} style='padding: 10px;' onclick="
+       var p = $('#player').data(); p.showid = '${uqid}${i}Q'; $(this).prop('disabled',true);
+        onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  });
+        " ${submitted}>Play</button> 
+    `; else disQ='inline';
+    
+    if(a.display !="AllQ") $('#nAllQS').append(`<button class=${uqid} style='padding: 10px;' onclick=" 
+        var e=$('#disp${i}');  
+        if(e.css('display')=='none') { 
+          $(this).css('background-color','yellow');  e.show();
+        } else { $(this).css('background-color','');  e.hide(); }
+    ">${name}</button>`);  
+ 
+    if(!aa.Youtube) {play=''; disQ='inline'; }
+    $('#'+oid).append(` 
+    <br/><span id=disp${i} style='display:${disAQ};'>
+       <div align=left  id=${uqid}${i}  class=QDisplay> (${iq})
+           <span id=${uqid}${i}Q style='display:${disQ};'> ${desc} ${choices}</span> ${play}
+       </div>  
+    </span>
+  `); 
+    if(aa.Sketchpad) IO_drawingsList({id:dbid, List:`Desc${i}`, uqid:`StudentDesc${i}`, editable:0}); 
+
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub, `${uqid}${i}Q` ]);
+
+  }
+  
+}
+
+function IO_checkboxes(id,A,k){ var uqid=uniqid(), s=''; 
+  for (i in A) { var checked=(A[i])?A[i]:''; 
+    s += `<input class=${uqid} type=checkbox onclick="db.doc('${id}').update({'${k}.a.checked': $(this).prop('checked') });" ${checked} />`;
+  }
+  return  s; 
+}
+
+function IO_DescCKEditor(id, key, v, uqid, O) { var s='', tb=O.tb?O.tb:'ckfull'; 
+  s += `
+    <div id=Desc${uqid} class=QEdit contenteditable="false" ondblclick=" 
+      var opened = CKEDITOR.instances.Desc${uqid}?1:0;   
+      db.doc('${id}').get().then(doc=>{ 
+        if(!opened) CKEDITOR.replace('Desc${uqid}', { toolbar:${tb}} ).setData( doc.get('${key}'));
+      });
+      $('#Desc${uqid}').attr('contenteditable','true'); $('#DescB${uqid}').show();
+    " >`+v+`</div>
+    `;
+  s += `<button id=DescB${uqid} style='display:none;' onclick=" 
+    var data = CKEDITOR.instances['Desc${uqid}'].getData(); $('#TADesc${uqid}').val(data);
+    db.doc('${id}').update({'${key}':data}); 
+    CKEDITOR.instances['Desc${uqid}'].destroy();
+    $('#Desc${uqid}').attr('contenteditable','false'); $('#DescB${uqid}').hide();
+  ">Done</button>`;
+   return s; 
+}
+function db_delPKey(id,k,delk, flag='') { var key=`${k}.${delk}`, iq=0; // Delete: id=id, parent key=k, key=delk, flag=flag
+  db.doc(id).update({[key]: firebase.firestore.FieldValue.delete() });
+  if(flag=='renumber') db.doc(id).get().then(doc=>{ iq=0, q=doc.get(k), qRenum={}; for(i in q) {qRenum[iq]=q[i]; iq++;} db.doc(id).update({[k]:qRenum});   })
+}
+function db_duplicatePKey(id,k,i, flag='') { var key=`${k}.${i}`, iq=0; 
+  db.doc(id).get().then(doc=>{ var n=Object.keys(doc.data().Q).length; 
+    db.doc(id).update({[`${k}.${n}`]:doc.get(`${k}.${i}`)}); 
+  })
+}
+function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html(''), a0=O.a?O.a:{}, uqid=uniqid();
+  var displayAllQ = (a0.display=='AllQ')?'checked':''; 
+  $('#'+oid).append(`AllQ   :<input type=checkbox name=grading${i} onclick=" db.doc('${dbid}').update({'a.display': $(this).prop('checked')?'AllQ':0 }); " ${displayAllQ}/>  `); 
+  $('#'+oid).append( IO_DescCKEditor(dbid, `Desc`, O.Desc?O.Desc:'Desc', `${uqid}Desc0`,{})    ); 
+
+  
+  for (var i in O.Q) { var Q=O.Q[i],  Desc=Q.Desc?Q.Desc:'Desc', MChoice='', MMChoice='', TA='', YT='';
+    var a=Q.a?Q.a:{}; 
+    var videoId=a.videoId?a.videoId:'cpaigEYuNEw', t1=a.t1?a.t1:0, t2=a.t2?a.t2:0; 
+    if(a.Type=="radio")  MChoice="checked"; else if (a.Type=="textarea") TA='checked'; else MMChoice="checked";
+    var CEInput=(a.ChoiceEditor=='input')?'checked':'', CETA=(a.ChoiceEditor=='textarea')?'checked':'', CECK=(a.ChoiceEditor=='CKEditor')?'checked':'', CESim=(a.ChoiceEditor=='simple')?'checked':''; 
+    var nTrial = a.nTrial?a.nTrial:0;
+    var showans = a.showans?'checked':'', showsoln = a.showsoln?'checked':'', retry = a.retry?'checked':''; 
+    var manualgrade = (a.grading=='manual')?'checked':'', autograde = (a.grading=='auto')?'checked':'', selfgrade = (a.grading=='self')?'checked':''; 
+    var Youtube = a.Youtube?'checked':'', hide = a.hide?'checked':''; 
+    var Sketchpad = a.Sketchpad?'checked':''; 
+
+    if(a.DescEditor=='CKEditor') var desc = IO_DescCKEditor(dbid, `Q.${i}.Desc`, Desc, `${uqid}${i}`,{}); 
+    else if(a.DescEditor=='textarea')  var desc = IO_TA({id:dbid, k:`Q.${i}.Desc`, v:Desc });
+    else var desc = IO_Desc(dbid, `Q.${i}.Desc`, Desc, {eid:`Desc${i}`, editable:1}); 
+
+    var choices = Q_Choices({id:dbid, i:i, Q:Q}); 
+    var del = ` <button onclick="db_delPKey('${dbid}', 'Q', '${i}', 'renumber'); ">&cross;</button>`; 
+    var duplicate = ` <button onclick="db_duplicatePKey('${dbid}', 'Q', '${i}'); ">Duplicate;</button>`; 
+
+//      nTrial:<input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.a.nTrial': $(this).val() }); " value=${nTrial} />
+    var ChoicesOptions = `
+        User IO: 
+          <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'radio' }); " ${MChoice} />radio
+        | <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'checkbox' }); " ${MMChoice} />checkbox
+        | <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'textarea' }); " ${TA} />TA
+        <p/>Editor:
+        | <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.ChoiceEditor': $(this).prop('checked')?'input':0 }); " ${CEInput} />Input
+        | <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.ChoiceEditor': $(this).prop('checked')?'textarea':0 }); " ${CETA} />TA
+        | <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.ChoiceEditor': $(this).prop('checked')?'CKEditor':0 }); " ${CECK} />CKEditor
+        <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.ChoiceEditor': $(this).prop('checked')?'simple':0 }); " ${CESim} />Simple
+
+      `;
+
+    var CKEditor=(a.DescEditor=='CKEditor')?'checked':'', DescEditorTA=(a.DescEditor=='Textarea')?'checked':'', DescEditor=(a.DescEditor=='Simple')?'checked':''; 
+    var DescOptions = `
+        Editor:  <input type=radio name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.DescEditor': 'CKEditor' }); " ${CKEditor} />CKEditor
+        | <input type=radio name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.DescEditor': 'textarea' }); " ${DescEditorTA} />TA
+        | <input type=radio name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.DescEditor': 'simple' }); " ${DescEditor} />Simple
+        <br/> <input type=checkbox name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Sketchpad': $(this).prop('checked') }); " ${Sketchpad} />Drawing
+      `;
+
+  var Display = `
+        Youtube <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.Youtube': $(this).prop('checked') }); " ${Youtube}/>
+        <p/>Hide <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.hide': $(this).prop('checked')?1:0 }); " ${hide}/>
+  `;
+  var Content = `
+        Editor: CK | Textarea | DoubleClick
+        <p/> Upload 
+        <p/> Sketchpad 
+  `;
+    var Allow = `
+      Retry:<input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.retry': $(this).prop('checked') }); " ${retry}/>
+      <br/> Show (Ans <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.showans': $(this).prop('checked') }); " ${showans}/>
+       |Soln <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.showsoln': $(this).prop('checked') }); " ${showsoln}/>
+       )
+    `;
+    var Grade = `
+        Manual <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'manual':0 }); " ${manualgrade}/>
+        | Auto <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'auto':0 }); " ${autograde}/>
+        | Self <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'self':0 }); " ${selfgrade}/>
+     `;
+     if(a.Youtube) {
+       var YT = `
+       VideoId: <input size=5 onchange=" db.doc('${dbid}').update({'Q.${i}.a.videoId': $(this).val() }); " value=${videoId} />
+       t1: <input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.a.t1': $(this).val() }); " value=${t1} />
+       t2: <input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.a.t2': $(this).val() }); " value=${t2} />
+       <button onclick=" onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  });    $('#Assessment').html( $('#Desc${i}').html() );  ">Play</button>
+       `;
+     }
+
+     var qattr = YT + DropDown(Content,'Content') + DropDown(Display,'Display'); 
+         qattr += DropDown(Allow,'Allow') + DropDown(Grade,'Grading') + del + duplicate; 
+     var qdes = DropDown(DescOptions,'Desc') + desc, qchoice = DropDown(ChoicesOptions,'Choices') + choices; 
+
+    if(a.Sketchpad) qdes += Sketchpad_Placeholder({uqid:`Desc${i}`, editable:1}); // Place holder for Sketpad
+    
+    $('#'+oid).append(`<hr/>Q${i})<div class=QDisplay1>${qattr} <p/>${qdes} <br/>${qchoice} </div>`); 
+
+    if(a.Sketchpad) IO_drawingsList({id:dbid, List:`Desc${i}`, uqid:`Desc${i}`}); 
+
+
+    iq++; 
+  }
+  MathJax.Hub.Queue(["Typeset",MathJax.Hub, 'Desc${uqid}' ]);
+
+  $('#'+oid).append(`
+      <hr/><button onclick="db.doc('${dbid}').update({'Q.${iq}':{} }); ">Add NewQ</button>
+      <button onclick="$('#TARaw').toggle(); ">Raw</button>    
+  `); 
+}
+
+var sketchpads={};
+
+function IO_SketchpadMenu(O) {     
+  var dbid=O.id, ids=O.ids, uqid=O.uqid, d=O.d, ids=d.ids?d.ids:[]; 
+  var ListID=dbid+'/drawing/'+(O.ListFile?O.ListFile:'List'); 
+  var s='', iq=0, newid = firebase.firestore.Timestamp.now().toMillis(); 
+  var w=d.w?d.w:800, h=d.h?d.h:600; 
+  for (var i in ids) { var id=dbid+'/drawing/'+ids[i]; iq++; 
+   s +=`<button class=B${uqid} onclick=" 
+     $('#C${uqid}').show(); $('#Options${uqid}').show(); ToggleColor($(this));
+     var data =$('#sketchpad${uqid}').data(); data.dbid = '${id}'; 
+     db.doc('${id}').get().then(doc=>{
+      if(doc.data()) {var d=doc.data(); d.element='#sketchpad${uqid}'; sketchpads['${uqid}']=new Sketchpad(d); }
+      else sketchpads['${uqid}']= new Sketchpad({element: '#sketchpad${uqid}', width: ${w},   height: ${h}, });
+      var CLIPBOARD = new CLIPBOARD_CLASS('sketchpad${uqid}', true);
+
+     }); 
+    ">${iq}</button>
+    `;
+  }
+  var addB = `
+   <p/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:400, h:400}, {merge:true});">Small (400x400)</button>
+   <p/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:800, h:600}, {merge:true});">Normal (800x600)</button>
+   <p/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:1400, h:600}, {merge:true});">Large (1400x600)</button>
+`; 
+  if(O.editable) s += DropDown(addB,'Add'); 
+  if(O.editable) s += `
+   <button onclick="
+     db.doc('${dbid}/drawing/${newid}').set(sketchpads['${uqid}'].toObject()).then(()=>{
+      db.doc('${ListID}').update({['ids.${iq}']:'${newid}'});
+     });
+    ">Duplicate</button>
+
+   <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">Save</button>
+   <button onclick=" sketchpads['${uqid}'].redo(); ">&circlearrowright;</button>
+   <button onclick=" sketchpads['${uqid}'].undo(); ">&circlearrowleft;</button>
+   <button onclick=" sketchpads['${uqid}'].clear(); ">Clear</button>
+   <input type=color onchange="  sketchpads['${uqid}'].color = $(this).val(); " />
+   <input type=range value=3 min=1 max=20 onchange="  sketchpads['${uqid}'].penSize = $(this).val(); ">
+`;
+  return s;
+}
+
+function IO_drawingsList(O) {  var id=O.id, oid='menu'+O.uqid, List=O.List; 
+  var ListFile=O.id+'/drawing/'+List; if(debug)  console.log(id,ListFile);
+  
+  db.doc(ListFile).onSnapshot(function(doc) {//db.doc(ListFile).get().then(doc=>{ 
+    var d={}; if(doc.data()) d=doc.data(); else db.doc(ListFile).set({}); 
+    $('#'+oid).html(IO_SketchpadMenu({id:O.id, ListFile:List, uqid:O.uqid, d:d, editable:(O.editable != null)?O.editable:1})); 
+ })
+}
+
+function Sketchpad_Placeholder(O) { var uqid=O.uqid, menu=O.menu?O.menu:'', editable=O.editable?O.editable:0; 
+if(editable) {var cursor='allowed', pointerevents="auto";} else {var cursor='not-allowed', pointerevents="none"; }
+  return   ` 
+  <table border=0><tr><td align=left>Sketches: <span id=menu${uqid}>${menu}</span></td></tr><tr>
+    <td>
+      <div id=C${uqid} class=SketchpadContainer style='cursor:${cursor}; pointer-events:${pointerevents}; display:none; width: 700,  height: 600'> 
+       <canvas class="sketchpad" id="sketchpad${uqid}"></canvas>
+      </div>
+    </td>
+  </tr></table>`;
+}
+function DropDown(s,k,O={}) { var uqid=uniqid(); 
+  return ` <div class="dpdown"><span onclick="$('#${uqid}').toggle();">${k}</span><div id=${uqid} class="dpdown-content"> ${s} </div></div>`; 
+}
+
+function IO_Desc(id,k,v, O={}) { var eid=O.eid?O.eid:uniqid(); 
+  if(O.editable) var s= `<span id=${eid} ondblclick=" var e=$(this); 
+        if(e.attr('contenteditable')) {  e.attr('contenteditable', false);          
+          db.doc('${id}').update({'${k}': $(this).html() }); 
+        } else e.attr('contenteditable', true); 
+       ">${v}</span>
+       `;
+  else var s= `<span id=${eid}>${v}</span>`;
+  return s;
+}
+
+
+
+function Q_Choices(O) { var iq=0, i=O.i, id=O.id, oid=`Choices${i}`, a0=O.Q.a?O.Q.a:{}, uqid=uniqid(); 
+   var type=a0.Type?a0.Type:'checkbox';
+   var s='';
+       for (var ii in O.Q.Choices) { var C=O.Q.Choices[ii], desc=C.Desc?C.Desc:'Change me', a=C.a?C.a:{}; 
+         var del= `<button onclick=" db_delPKey('${id}', 'Q.${i}.Choices', '${ii}', 'renumber'); 
+         ">&cross;</button>`; 
+         s += '<br/>'+del;
+         if(type=='textarea') {
+           s += IO_TA({id:id, k:`Q.${i}.Choices.${ii}.Desc`, v:desc });
+         } else {
+          if(type=='radio') s += IO_radio({id:id,k0:`Q.${i}`,k:`Q.${i}.Choices.${ii}`,v:desc, name:`AdminSelectChoices${i}`, ii:ii, checked:(a0.checked===ii)?'checked':''});
+          else s += IO_checkbox({id:id,k:`Q.${i}.Choices.${ii}`,v:desc, checked:a.checked?'checked':''}); 
+          if(a0.ChoiceEditor=='input') s += IO_Input({id:id,k:`Q.${i}.Choices.${ii}.Desc`,v:desc});
+          else if(a0.ChoiceEditor=='textarea') s += IO_TA({id:id,k:`Q.${i}.Choices.${ii}.Desc`,v:desc});
+          else if(a0.ChoiceEditor=='CKEditor') s += IO_DescCKEditor(id, `Q.${i}.Choices.${ii}.Desc`, desc, `${uqid}${ii}`,{}); 
+          else  s += IO_Desc(id,`Q.${i}.Choices.${ii}.Desc`,desc, {editable:1}); 
+
+         }      
+         iq++; 
+       }
+      s +=`<br/><button onclick="db.doc('${id}').update({'Q.${i}.Choices.${iq}':{} }); ">+</button> `;
+  return s; 
+}
+function Q_Choices_S(O, OS) { 
+   var iq=0, i=O.i, id=O.id+'/users/'+email, oid=`Choices${i}`; 
+   var aa=O.Q.a?O.Q.a:{}, aaS=OS.Q.a?OS.Q.a:{}, type=(O.Q.a && O.Q.a.Type)?O.Q.a.Type:'checkbox';
+   var nTrial = (O.Q.a && O.Q.a.nTrial)?O.Q.a.nTrial:1;
+   var submitted= (aaS.submitted )?'disabled=disabled':'';
+   var retry = (aaS.submitted && aa.retry)?`<button  style='padding: 10px;' onclick=" 
+     db.doc('${id}').update({'Q.${i}.a.submitted': 0 }); $('.Ch${i}').prop('disabled', false); $(this).prop('disabled', true);
+     ">Retry</button>`:'';
+   var showans = submitted && aa.showans?aa.showans:0; 
+   var s='';
+       for (var ii in O.Q.Choices) { 
+         var C=O.Q.Choices[ii], desc=C.Desc?C.Desc:'', a=C.a?C.a:{}; 
+         var CS=(OS.Q && OS.Q.Choices && OS.Q.Choices[ii])?OS.Q.Choices[ii]:{}, descS=CS.Desc?CS.Desc:'your input', aS=CS.a?CS.a:{}; 
+         if(type=='radio') { var checked=(aaS.checked==ii)?'checked':'', color=(aa.checked==ii && showans)?'lightgreen':''; }
+         else var checked=aS.checked?'checked':''; 
+         s += '<br/>';
+         if(type=='textarea') {
+           s += IO_TA({id:id, k:`Q.${i}.Choices.${ii}.Desc`, class:`Ch${i}`, v:descS, disabled:submitted});
+           if(showans) s += `<textarea rows=6 style='width: 100%; max-width: 100%; background-color: lightgreen;' disabled>`+desc+'</textarea>';
+         } else {
+          if(type=='radio') s += IO_radio({id:id,k0:`Q.${i}`,k:`Q.${i}.Choices.${ii}`,v:desc, class:`Ch${i}`, name:`usersSelectChoices${i}`, ii:ii, checked:checked, disabled:submitted, color:color});
+          else { color=(submitted && a.checked && showans)?'lightgreen':'';
+            s += IO_checkbox({id:id,k:`Q.${i}.Choices.${ii}`,v:desc, checked:checked, class:`Ch${i}`, disabled:submitted}); 
+          }
+          s += `<span style='background-color: ${color};'>`+IO_Desc(id,`Q.${i}.Choices.${ii}.Desc`,desc)+'</span>'; 
+         }  
+         iq++; 
+       }
+       if(O.Q.Choices && Object.keys(O.Q.Choices).length>0) {
+         s += `<br/><button  class=Ch${i} style='padding: 10px;' onclick=" $('.Ch${i}').prop('disabled', true);
+            db.doc('${id}').update({'Q.${i}.a.submitted': 1 });
+          " ${submitted}>Submit</button>`+retry; 
+       }
+  return s; 
+
+}
+
+function IO_radio(O){ var c=O.class?O.class:'sdisabled', id=O.id, k=O.k, checked=O.checked, name=O.name, k0=O.k0, desc=O.v, ii=O.ii, disabled=O.disabled?O.disabled:'', color=O.color?O.color:'', uqid=uniqid(); 
+  return  ` <input  class=${c} name=${name} value=${ii} type=radio onclick=" db.doc('${id}').update({'${k0}.a.checked': $(this).val() });  " ${disabled} ${checked} /> `; 
+}
+function IO_checkbox(O){ var c=O.class?O.class:'sdisabled', id=O.id, k=O.k, checked=O.checked, desc=O.v, disabled=O.disabled?O.disabled:'', color=O.color?O.color:'', uqid=uniqid(); 
+  return  `<input class=${c} type=checkbox onclick="db.doc('${id}').update({'${k}.a.checked': $(this).prop('checked') });" ${disabled} ${checked} />` ; 
+}
+function IO_TA(O){ var c=O.class?O.class:'sdisabled', id=O.id, k=O.k, v=O.v, disabled=O.disabled?O.disabled:'', uqid=uniqid(); 
+  return `<textarea class=${c} style="width: 100%; max-width: 100%;" rows=6 onchange="$('#msg${uqid}').html('Saved'); db.doc('${id}').update({'${k}': $(this).val() });  " ${disabled}>${v}</textarea><div id=msg${uqid}></div>`; 
+}
+function IO_Input(O){ var id=O.id, k=O.k, v=O.v; 
+  return `<input onchange="db.doc('${id}').update({'${k}': $(this).val() }); " value="${v}""></input>`; 
+}
+
+
+
+
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/player_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+var videoId = 'M7lc1UVf-VE';
+var startSeconds = 36, dt=10;
+var endSeconds = startSeconds+dt;
+
+
+var player;
+
+var playerConfig = {
+  height: '360',
+  width: '640',
+  //videoId: videoId,
+  playerVars: {
+    autoplay: 0, // Auto-play the video on load
+    controls: 1, // Show pause/play buttons in player
+    showinfo: 1, // Hide the video title
+    modestbranding: 1, // Hide the Youtube Logo
+    fs: 0, // Hide the full screen button
+    cc_load_policy: 0, // Hide closed captions
+    iv_load_policy: 3, // Hide the Video Annotations
+    //start: startSeconds,     end: endSeconds,
+    autohide: 0, // Hide video controls when playing
+  },
+  events: {     'onStateChange': onStateChange //,     'onReady': onPlayerReady
+  }
+};
+
+
+var i=0, done=false; 
+function onYouTubePlayerAPIReady() {  player = new YT.Player('player', playerConfig);}
+function onPlayerReady(O) {player.loadVideoById({videoId: O.videoId, startSeconds: O.t1, endSeconds: O.t2});}
+function onStateChange(state) {
+  if(state.data===0) {$('#player').hide(); var d=$('#player').data(); $('#'+d.showid).show(); } else 
+  { $('#player').show();   }
+}
+    </script>
+  </body>
+</html>
