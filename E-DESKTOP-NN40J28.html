@@ -43,7 +43,7 @@
 <script src="functions.js"></script>
   <script type="text/javascript">
     var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
-    var dbid=getURLVars().id?'/I/'+getURLVars().id:'/I/1642521925052'; 
+    var dbid=getURLVars().id?'/I/'+getURLVars().id:'/I/A_YT'; 
     LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js", "A.js"]); //Load our style and JS files
     firebase.initializeApp(firebaseConfig); 
     var  debug=0, role='student', admin=0, db = firebase.firestore(), A = new Assessment({}), I=new Info(); 
@@ -65,7 +65,7 @@
     </table>
 
     <table width=100%><tr>
-      <td id=main><span id=main1></span><span id=main2></span>  </td>
+      <td id=main> Engagement </td>
       <td align="right"><span id=TopMenu><span id=TopMenu2></span></td>
       <td align=right width=20%><span id=Login data-display=simple data-logged=0>Login</span> </td>
     </tr></table>
@@ -88,11 +88,7 @@
   
 window.addEventListener('load', function() { 
     LoadInfoDocs(dbid); 
-    setTimeout(function() {
-      ListI({oid:'main1', id:`/users/${email}/I/Activities`, name:'Activites'}); 
-      if(priv.admin) ListI({oid:'main2', id:`/I/${email}`, new:1, name:'My Activites'}); 
-   }, 1000);
-    
+    ListI({oid:'main'}); 
 });
 
 function LoadInfoDocs(dbid) {
@@ -115,6 +111,7 @@ var adminChecked='';
 function adminB(){ 
   
   return `
+    <button onclick="db.doc('/I/${email}').set({[firebase.firestore.Timestamp.now().toMillis()]:{}}, {merge:true}); ">New</button>
     | <input type=checkbox admin=0 onclick=" 
       if($(this).prop('checked')) { adminChecked='checked';
         admin=1; $(this).attr('admin',1); $('.admin').show(); $('.student').hide(); 
@@ -122,15 +119,13 @@ function adminB(){
     " ${adminChecked}>Admin</input>
   `; 
 }
-function ListI(O) { var time=firebase.firestore.Timestamp.now().toMillis(), uqid=uniqid2(), name=O.name?O.name:'Activities'; 
-  var name=O.name?O.name:'name', group=O.group?O.group:'group', id=O.id?O.id:'/I/'+email; 
+function ListI(O) { var time=firebase.firestore.Timestamp.now().toMillis(), uqid=uniqid2(); 
+  var name=O.name?O.name:'name', group=O.group?O.group:'group', id='/I/'+email; 
   db.doc(id).onSnapshot(function(doc) { var s='', d=doc.data()?doc.data():{};
       for(var i in d) { var n=d[i].name?d[i].name:i; 
           s += `<button onclick="LoadInfoDocs('/I/${i}');" ondblclick=" dblclickEdit('${id}','${i}.name', $(this)); " >${n}</button>`;        
       }
-      if(O.new) s += `<button onclick="db.doc('${id}').set({[firebase.firestore.Timestamp.now().toMillis()]:{}}, {merge:true}); ">New</button>`; 
-
-      $('#'+O.oid).html( DropDown(s,name)); 
+      $('#'+O.oid).html( DropDown(s,'Engagement')); 
   })
 }
 function dblclickEdit(id,k, e) {
@@ -202,13 +197,11 @@ function QYT_S(O, OS) {
         } else { $(this).css('background-color','');  e.hide(); }
     ">${name}</button>`);  
  
-    if(aaS.score) score='Score='+QS.a.score; else if(aaS.score===0) score='Score='+QS.a.score; else score=''; 
-    
     if(!aa.Youtube) {play=''; disQ='inline'; }
     $('#'+oid).append(` 
     <br/><span id=disp${i} style='display:${disAQ};'>
        <div align=left  id=${uqid}${i}  class=QDisplay>
-           <span id=${uqid}${i}Q style='display:${disQ};'> ${desc} ${choices}</span> ${score} ${play}
+           <span id=${uqid}${i}Q style='display:${disQ};'> ${desc} ${choices}</span> ${play}
        </div>  
     </span>
   `); 
@@ -255,64 +248,10 @@ function db_duplicatePKey(id,k,i, flag='') { var key=`${k}.${i}`, iq=0;
     db.doc(id).update({[`${k}.${n}`]:doc.get(`${k}.${i}`)}); 
   })
 }
-function AssignActivity(O) {var id=O.id, fn=O.fn, name=O.name, s='', uqid=uniqid2(); 
-  var emails = (O.assigned.email?O.assigned.email:[]).join(';');
-  s = `
-  Roster: 
-  <br/>EA2
-   <button onclick="db.doc('/COURSES/EA2/Fall2022/Roster').get().then(doc=>{ $('#${uqid}TA').val(doc.data().raw); });">Load</button>
-   <button onclick="db.doc('/COURSES/EA2/Fall2022/Roster').set({raw:$('#${uqid}TA').val()});">Save</button>
-
-  <br/> Advanced Math 
-   <button onclick="db.doc('/COURSES/AdvMath/Fall2022/Roster').get().then(doc=>{ $('#${uqid}TA').val(doc.data().raw); });">Load</button>
-   <button onclick="db.doc('/COURSES/AdvMath/Fall2022/Roster').set({raw:$('#${uqid}TA').val()});">Save</button>
-  
-  <br/> CEMaterials
-  <br/><textarea id=${uqid}TA>${emails}</textarea>
-  <br/><button onclick="
-    var emails = removewhitespace($('#${uqid}TA').val()).split(';'); 
-    for(var i in emails) {
-      console.log('adding', i, emails[i]);
-      db.doc('${id}').update({['assigned.email']:firebase.firestore.FieldValue.arrayUnion(emails[i])});
-      db.doc('/users/'+emails[i]+'/I/Activities').set({'${fn}': {name:'${name}'} }, {merge:true});
-    }
-  ">Add</button>
-  <button onclick="
-    var emails = removewhitespace($('#${uqid}TA').val()).split(';'); 
-    for(var i in emails) {
-      db.doc('${id}').update({['assigned.email']:firebase.firestore.FieldValue.arrayRemove(emails[i])});
-      db_delKey('/users/'+emails[i]+'/I/Activities', '${fn}'); 
-    }
-  ">Remove</button>
-
-  `;
-  return DropDown(s,'Assign');
-
-}
-function removewhitespace(s) {return s.replace(/\r?\n|\r/g, '').replace(/ /g,''); }
-function AssignGrade(O) { var i=O.i; //{Q:Q,i:i,users:O.assigned.email}
-  var Q=O.Q, a=Q.a; 
-  for (var j in O.users) { var user = O.users[j];
-    db.doc(O.id+'/users/'+user).get().then(doc=>{ var QS = doc.get('Q.'+O.i),  aS=QS.a, score=0; 
-      if(a.Type==='radio') {
-        if(a.checked==aS.checked) score=1; 
-      } else { score=1; 
-        for(var k in Q.Choices) { var ai = Q.Choices[k].a, aiS = QS.Choices[k].a; 
-          if( !(ai.checked===aiS.checked)) score=0; 
-        }
-      }
-      db.doc(O.id+'/users/'+user).update({[`Q.${i}.a.score`]:score})
-    });
-  }
-}
 function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html(''), a0=O.a?O.a:{}, uqid=uniqid();
-  var displayAllQ = (a0.display=='AllQ')?'checked':'', fn=dbid.split(/[\\\/]/).pop(), name=a0.name?a0.name:fn; 
-  var Top = `
-   Name <span ondblclick=" dblclickEdit('${dbid}','a.name', $(this) );  ">${name}</span> 
-   | AllQ <input type=checkbox name=grading${i} onclick=" db.doc('${dbid}').update({'a.display': $(this).prop('checked')?'AllQ':0 }); " ${displayAllQ}/>  
-   `;
-   Top += AssignActivity({id:dbid, fn:fn,name:name, assigned:O.assigned?O.assigned:[]}); 
-  $('#'+oid).append(Top+IO_DescCKEditor(dbid, `Desc`, O.Desc?O.Desc:'Desc', `${uqid}Desc0`,{})    ); 
+  var displayAllQ = (a0.display=='AllQ')?'checked':''; 
+  $('#'+oid).append(`AllQ   :<input type=checkbox name=grading${i} onclick=" db.doc('${dbid}').update({'a.display': $(this).prop('checked')?'AllQ':0 }); " ${displayAllQ}/>  `); 
+  $('#'+oid).append( IO_DescCKEditor(dbid, `Desc`, O.Desc?O.Desc:'Desc', `${uqid}Desc0`,{})    ); 
 
   
   for (var i in O.Q) { var Q=O.Q[i],  Desc=Q.Desc?Q.Desc:'Desc', MChoice='', MMChoice='', TA='', YT='';
@@ -327,16 +266,14 @@ function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid
     var Sketchpad = a.Sketchpad?'checked':''; 
     var Launched = (a0.Launch===i)?'checked':''; 
 
-    if(a.grading=='auto' && O.assigned) AssignGrade({id:dbid, Q:Q,i:i,users: (O.assigned.email)?O.assigned.email:[]});
-
     if(a.DescEditor=='CKEditor') var desc = IO_DescCKEditor(dbid, `Q.${i}.Desc`, Desc, `${uqid}${i}`,{}); 
     else if(a.DescEditor=='textarea')  var desc = IO_TA({id:dbid, k:`Q.${i}.Desc`, v:Desc });
     else var desc = IO_Desc(dbid, `Q.${i}.Desc`, Desc, {eid:`Desc${i}`, editable:1}); 
 
     var choices = Q_Choices({id:dbid, i:i, Q:Q}); 
     var del = ` <button onclick="db_delPKey('${dbid}', 'Q', '${i}', 'renumber'); ">&cross;</button>`; 
-    var duplicate = ` <button onclick="db_duplicatePKey('${dbid}', 'Q', '${i}'); ">Duplicate</button>`; 
-    var Launch = ` <input type=checkbox onclick="db.doc('${dbid}').update({'a.Launch': $(this).prop('checked')?'${i}':-1 }); "  ${Launched}>Launch</input>`; 
+    var duplicate = ` <button onclick="db_duplicatePKey('${dbid}', 'Q', '${i}'); ">Duplicate;</button>`; 
+    var Launch = ` <input type=checkbox onclick="db.doc('${dbid}').update({'a.Launch': $(this).prop('checked')?'${i}':-1 }); "  ${Launched}>Launch;</input>`; 
 
 //      nTrial:<input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.a.nTrial': $(this).val() }); " value=${nTrial} />
     var ChoicesOptions = `
@@ -395,8 +332,8 @@ function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid
 
     if(a.Sketchpad) qdes += Sketchpad_Placeholder({uqid:`Desc${i}`, editable:1}); // Place holder for Sketpad
     
-    var Grade = `<div id=Grade${i}></div>`; 
-    $('#'+oid).append(`<hr/>Q${i})<div class=QDisplay1>${qattr} <p/>${qdes} <br/>${qchoice} </div> ${Grade}`); 
+
+    $('#'+oid).append(`<hr/>Q${i})<div class=QDisplay1>${qattr} <p/>${qdes} <br/>${qchoice} </div>`); 
 
     if(a.Sketchpad) IO_drawingsList({id:dbid, List:`Desc${i}`, uqid:`Desc${i}`}); 
 
