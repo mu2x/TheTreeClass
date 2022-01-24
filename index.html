@@ -42,7 +42,8 @@
 <body>
   <div class="navbar">
     <span  id=Top11 >COURSES</span>     
-    <span id=Top12></span>     <span id=Top13></span>     <span id=Top14></span> <span id=Top15></span> <span id=Top16></span> 
+    <span id=Top12></span>     <span id=Top13></span>     <span id=Top14></span> 
+    <span id=Top15></span> <span id=Top16></span> <a href=/TheTreeClass/E.html>Activites</a>
     <a style='float:right;' href="#"> <span id=Login data-logged=0>Login</span>   </a>
 
   </div>
@@ -158,7 +159,6 @@
     $('#'+oid).html('<center>'+msg + s +'</center>');
     //console.log(O);
   }
-  function escape_email(e) {return e.replace(/\./g, '&46'); }
   function SelectedA(d) { var ccol=d.id+'/Concepts', sem=d.id+'/Fall2021', acol=d.id+'/A', cid=d.id; 
     db.doc('/users/'+email).update({'LastVisited.0':{id:d.id, name:d.name}}); 
     var sa = `<a href=# class=topmenu data-col=${acol} data-oid=Middle2 data-color=blue onclick="

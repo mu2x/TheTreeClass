@@ -53,13 +53,13 @@
     window.addEventListener('load', function() {       
       initApp({});      
     });
-    
+    //    <span style='font-size:48px; padding: 2px 2px;'>&equiv;</span>&equiv;
+
 </script>
 </head>
 
 <html>
   <body>
-
     <table width=100% height=90% class=Screen5>
       <tr><td valign=top class=L></td>
          <td id=Screen5M valign=top width=100% class=M></td>
@@ -68,8 +68,8 @@
     </table>
 
     <table width=100%><tr>
-      <td id=main><span id=main1></span><span id=main2></span>  </td>
-      <td align="right"><span id=TopMenu><span id=TopMenu2></span></td>
+      <td id=main width=50%><span id=main1></span><span id=main2></span>  </td>
+      <td align="left"><span id=TopMenu><span id=TopMenu2></span></td>
       <td align=right width=20%><span id=Login data-display=simple data-logged=0>Login</span> </td>
     </tr></table>
     <hr/>
@@ -88,48 +88,73 @@
  </div>
  <span id=msg></span>
 <script>
-  
+
+var LastVisitedID; 
 window.addEventListener('load', function() { 
+ db.doc('/users/'+email).get().then( doc=>{ 
+       if(doc.data()) var d=doc.data(); else var d={}; 
+       dbid = (d.LastVisited && d.LastVisited[2] && d.LastVisited[2].id)?d.LastVisited[2].id:dbid; 
+       LastVisitedID = dbid; 
     LoadInfoDocs(dbid); 
     setTimeout(function() {
       ListI({oid:'main1', id:`/users/${email}/I/Activities`, name:'Activites'}); 
       if(priv.admin) ListI({oid:'main2', id:`/I/${email}`, new:1, name:'My Activites'}); 
    }, 1000);
-    
+ })
+
 });
 
-function LoadInfoDocs(dbid) {
- db.doc(dbid).onSnapshot(function(doc) { var d=doc.data()?doc.data():{}; d.dbid=dbid, sdbid=dbid+'/users/'+email; 
+function SelectAUser(id,users, eid=null) { var s=''; 
+  for(var i in users) { var user = users[i]; 
+     s += `<br/><span onclick=" LoadInfoDocs('${id}', '${user}'); ">`+((eid==user)?`<b>${user}</b>`:user)+'</span>'; 
+  }
+  return s;
+}
+function LoadInfoDocs(dbid, eid=null) {
+ db.doc('/users/'+email).set({LastVisited:{'2':{id:dbid} } }, {merge:true} ); 
+ db.doc(dbid).onSnapshot(function(doc) { 
+   var d=doc.data()?doc.data():{}; d.dbid=dbid;
+   var sdbid= eid? dbid+'/users/'+eid: dbid+'/users/'+email; 
   if(!doc.exists) db.doc(dbid).set({creator:{email:email}}); 
 
   if( !($('#TARaw').css('display') == 'none') )   {$('#TA').val(JSON.stringify(d, null, 1));  }
-  if(priv.admin) { QYT(d); $('#TopMenu').html(adminB()); }
+  if(priv.admin) { 
+    QYT(d); $('#TopMenu').html(adminB()); 
+    $('#AdminSelectUsers').html( DropDown(SelectAUser(dbid,d.assigned?d.assigned.email:{}, eid),'Users')); 
+  }
   //db.doc(sdbid).onSnapshot(function(docs) { var dS=docs.data()?docs.data():{}; dS.dbid=sdbid;
    // if(!docs.exists) db.doc(sdbid).set({}); 
    // QYT_S(d, dS); 
   //} )
-  db.doc(sdbid).get().then(function(docs) { var dS=docs.data()?docs.data():{}; dS.dbid=sdbid;
-    if(!docs.exists) db.doc(sdbid).set({}); 
+  db.doc(sdbid).get().then(function(docs) { 
+    if(docs.data()) { var dS=docs.data();} else {db.doc(sdbid).set({}, {merge:true}); var dS={}; }
+    dS.dbid=sdbid;
     QYT_S(d, dS); 
   } )
  });
 }
 var adminChecked=''; 
-function adminB(){ 
+function adminB(){ var debugChecked=debug?'checked':''; 
   
   return `
+  | <span id=AdminSelectUsers>Users</span>
+
     | <input type=checkbox admin=0 onclick=" 
       if($(this).prop('checked')) { adminChecked='checked';
         admin=1; $(this).attr('admin',1); $('.admin').show(); $('.student').hide(); 
       } else {admin=0; $(this).attr('admin',0); $('.admin').hide(); $('.student').show(); adminChecked='';}     
-    " ${adminChecked}>Admin</input>
+    " ${adminChecked} />Admin
+    | <input type=checkbox onclick=" if($(this).prop('checked')) debug=1; else debug=0;" ${debugChecked} />Debug
+
   `; 
 }
 function ListI(O) { var time=firebase.firestore.Timestamp.now().toMillis(), uqid=uniqid2(), name=O.name?O.name:'Activities'; 
   var name=O.name?O.name:'name', group=O.group?O.group:'group', id=O.id?O.id:'/I/'+email; 
   db.doc(id).onSnapshot(function(doc) { var s='', d=doc.data()?doc.data():{};
       for(var i in d) { var n=d[i].name?d[i].name:i; 
-          s += `<button onclick="LoadInfoDocs('/I/${i}');" ondblclick=" dblclickEdit('${id}','${i}.name', $(this)); " >${n}</button>`;        
+          if(LastVisitedID==`/I/${i}`) var hc='yellow'; else var hc=''; 
+          if(priv.admin) s += `<button class=${uqid}I style='background-color:${hc};' onclick=" ToggleColor($(this)); LoadInfoDocs('/I/${i}');" ondblclick=" dblclickEdit('${id}','${i}.name', $(this)); " >${n}</button>`;        
+          else s += `<button class=${uqid}I onclick=" ToggleColor($(this)); LoadInfoDocs('/I/${i}');"  >${n}</button><br/>`;        
       }
       if(O.new) s += `<button onclick="db.doc('${id}').set({[firebase.firestore.Timestamp.now().toMillis()]:{}}, {merge:true}); ">New</button>`; 
 
@@ -169,11 +194,20 @@ function LoadOneQ(O) {   var id=O.id, idS=id+'/users/'+email, k=O.k, oid=O.oid, 
   })
 }
 function db2con(id) { db.doc(id).get().then(doc=>{console.log(doc.data());})}
+function togglePM(s,pm='+') { var uqid=uniqid2(), dis=(pm=='+')?'none':'inline';
+  return `
+   <button onclick=" 
+     $('#${uqid}T').toggle(); if($(this).text()=='+') $(this).text('-'); else $(this).text('+'); 
+    ">${pm}</button>
+    <span id=${uqid}T style='display:${dis};'>${s}</span>
+  `;
+}
 function QYT_S(O, OS) { 
-  var  iq=0, dbid=O.dbid?O.dbid:'/I/A_YT', a=O.a?O.a:{}, uqid=uniqid(), oid='AllQS', iq=0; $('#'+oid).html(''), $('#nAllQS').html(''), disAQ='none';
+  var  iq=0, dbid=O.dbid?O.dbid:'/I/A_YT', a=O.a?O.a:{}, aS=OS.a?OS.a:{}, uqid=uniqid(), oid='AllQS', iq=0; $('#'+oid).html(''), $('#nAllQS').html(''), disAQ='none';
   if(a.display =="AllQ") { disAQ='inline'; }
   $('#'+oid).append(O.Desc?O.Desc:''); 
  
+  var TotalScore=aS.TotalScore? ' (Score='+aS.TotalScore+' %)':''; 
 
   for (var i in O.Q) { var Q=O.Q[i], Desc=Q.Desc?Q.Desc:'Desc'; iq++; 
 
@@ -189,7 +223,7 @@ function QYT_S(O, OS) {
     var desc = IO_Desc(dbid, `Q.${i}.Desc`, Q.Desc?Q.Desc:'Desc', {editable:0}); 
 
     if(aa.Sketchpad) desc += Sketchpad_Placeholder({uqid:`StudentDesc${i}`, editable:0});
-
+    
     
     var videoId = aa.videoId?aa.videoId:'cpaigEYuNEw'; 
 
@@ -206,7 +240,7 @@ function QYT_S(O, OS) {
        // } else { $(this).css('background-color','');  e.hide(); }
     ">${name}</button>`);  
  
-    if(aaS.score) score='Score='+QS.a.score; else if(aaS.score===0) score='Score='+QS.a.score; else score=''; 
+    if( (aaS.score || aaS.score===0) && aaS.submitted) score='Score='+QS.a.score; else score=''; 
     
     if(!aa.Youtube) {play=''; disQ='inline'; }
     $('#'+oid).append(` 
@@ -221,6 +255,7 @@ function QYT_S(O, OS) {
     MathJax.Hub.Queue(["Typeset",MathJax.Hub, `${uqid}${i}Q` ]);
 
   }
+  $('#nAllQS').append(TotalScore); 
   
 }
 
@@ -294,44 +329,71 @@ function AssignActivity(O) {var id=O.id, fn=O.fn, name=O.name, s='', uqid=uniqid
 
 }
 function removewhitespace(s) {return s.replace(/\r?\n|\r/g, '').replace(/ /g,''); }
-function AssignGrade(O) { var i=O.i; //{Q:Q,i:i,users:O.assigned.email}
-  var Q=O.Q, a=Q.a; 
-  for (var j in O.users) { var user = O.users[j];
-    db.doc(O.id+'/users/'+user).get().then(doc=>{ var QS = doc.get('Q.'+O.i),  aS=QS.a, score=0; 
-      if(a.Type==='radio') {
-        if(a.checked==aS.checked) score=1; 
-      } else { score=1; 
-        for(var k in Q.Choices) { var ai = Q.Choices[k].a, aiS = QS.Choices[k].a; 
-          if( !(ai.checked===aiS.checked)) score=0; 
-        }
-      }
-      db.doc(O.id+'/users/'+user).update({[`Q.${i}.a.score`]:score})
-    });
-  }
+function AssignGrade(O) { if(debug) console.log('AssignGrade(O):', O); 
+ db.doc(O.id).get().then(doc=>{ var d=doc.data(), users=d.assigned.email; 
+   for(var i in users) {  GradeOne(O.id, d, users[i], i);    }
+ })
+ db.doc(O.id+'/users/OverallScore').get().then(doc=>{ if(!doc.exists) db.doc(O.id+'/users/OverallScore').set({},{merge:true}); })
 }
-function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html(''), a0=O.a?O.a:{}, uqid=uniqid();
+var csv={}; 
+function GradeOne(id, d, user, iuser) { var idS=id+'/users/'+user, QQ=d.Q; 
+    db.doc(idS).get().then(doc=>{ var dS=doc.data()?doc.data():{}, QQS=dS.Q?dS.Q:{}, TScore=0, TMaxScore=0; 
+       for (var iq in QQ) { var Q=QQ[iq], QS=QQS[iq]?QQS[iq]:{}, a=Q.a, score=0, aS=QS.a?QS.a:{}, MaxScore=a.MaxScore?a.MaxScore:10; 
+        TMaxScore += 1*MaxScore; 
+        if(QS.a && a.grading=='auto') { 
+          if(a.Type=='radio') { if(a.checked===aS.checked) score=1*MaxScore; 
+          } else  { score=1*MaxScore; // if(a.Type=='checkbox')
+           for(var k in Q.Choices) { var ai = Q.Choices[k].a, aiS = (QS.Choices && QS.Choices[k])?QS.Choices[k].a:{}; 
+             if( !(ai.checked && aiS.checked)) score =0;  
+             //if( (!ai.checked && aiS.checked)) score -=1;  
+           }
+          }
+          //csv[iq].score = score; ;
+          
+          db.doc(idS).update({[`Q.${iq}.a.score`]:score})
+          if(debug) console.log('E.js:GradeOne()', iuser, user, score); 
+        }
+        var u = dot2esc(user); 
+        var v = {score:score, submitted:(aS.submitted?1:0), MaxScore:MaxScore, PScore:Math.round(100*score/MaxScore)}; 
+        //var g={[user]:{[iq]:{score:score} }  }; //`{'${user}':{'${iq}':{score:${score}} } }`; 
+        console.log({[`'email.${u}.${iq}'`]: {score:score, submitted:(aS.submitted?1:0)} }  );
+        db.doc(id+'/users/OverallScore').update({[`email.${u}.${iq}`]: v } )
+        //db.doc(id+'/users/OverallScore').update({[`Q.${iq}.${u}`]: v } )
+        TScore += score; 
+       }
+       db.doc(idS).update({[`a.TotalScore`]:Math.round(100*TScore/TMaxScore) })
+       //db.doc(id+'/users/OverallScore').update({[`email.${u}.TotalScore`]: Math.round(100*TScore/TMaxScore) } )
+
+       //db.doc(id+'/users/OverallScore').update({[`Q.TotalScore.${u}`]: Math.round(100*TScore/TMaxScore) } )
+
+    });
+
+}
+
+function QYT(O) { 
+  var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html(''), a0=O.a?O.a:{}, uqid=uniqid();
   var displayAllQ = (a0.display=='AllQ')?'checked':'', fn=dbid.split(/[\\\/]/).pop(), name=a0.name?a0.name:fn; 
   var Top = `
-   Name <span ondblclick=" dblclickEdit('${dbid}','a.name', $(this) );  ">${name}</span> 
+   <span ondblclick=" dblclickEdit('${dbid}','a.name', $(this) );  ">${name}</span> 
    | AllQ <input type=checkbox name=grading${i} onclick=" db.doc('${dbid}').update({'a.display': $(this).prop('checked')?'AllQ':0 }); " ${displayAllQ}/>  
    `;
    Top += AssignActivity({id:dbid, fn:fn,name:name, assigned:O.assigned?O.assigned:[]}); 
-  $('#'+oid).append(Top+IO_DescCKEditor(dbid, `Desc`, O.Desc?O.Desc:'Desc', `${uqid}Desc0`,{})    ); 
+   Top += `<button onclick="AssignGrade({id:'${dbid}'});">Grade</button>`;
+   //Top += `<button onclick="OpenedClosed({id:'${dbid}', 'a.toggle', $(this)});">+</button>`;
+   Top += togglePM('<br/>'+IO_DescCKEditor(dbid, `Desc`, O.Desc?O.Desc:'Desc', `${uqid}Desc0`,{}),'-'); 
+  $('#'+oid).append(Top); 
 
-  
   for (var i in O.Q) { var Q=O.Q[i],  Desc=Q.Desc?Q.Desc:'Desc', MChoice='', MMChoice='', TA='', YT='';
     var a=Q.a?Q.a:{}; 
     var videoId=a.videoId?a.videoId:'cpaigEYuNEw', t1=a.t1?a.t1:0, t2=a.t2?a.t2:0; 
     if(a.Type=="radio")  MChoice="checked"; else if (a.Type=="textarea") TA='checked'; else MMChoice="checked";
     var CEInput=(a.ChoiceEditor=='input')?'checked':'', CETA=(a.ChoiceEditor=='textarea')?'checked':'', CECK=(a.ChoiceEditor=='CKEditor')?'checked':'', CESim=(a.ChoiceEditor=='simple')?'checked':''; 
     var nTrial = a.nTrial?a.nTrial:0;
-    var showans = a.showans?'checked':'', showsoln = a.showsoln?'checked':'', retry = a.retry?'checked':''; 
+    var showans = a.showans?'checked':'', showsoln = a.showsoln?'checked':'', retry = a.retry?'checked':'', inactive = a.inactive?'checked':''; 
     var manualgrade = (a.grading=='manual')?'checked':'', autograde = (a.grading=='auto')?'checked':'', selfgrade = (a.grading=='self')?'checked':''; 
     var Youtube = a.Youtube?'checked':'', hide = a.hide?'checked':''; 
     var Sketchpad = a.Sketchpad?'checked':''; 
     var Launched = (a0.Launch===i)?'checked':''; 
-
-    if(a.grading=='auto' && O.assigned) AssignGrade({id:dbid, Q:Q,i:i,users: (O.assigned.email)?O.assigned.email:[]});
 
     if(a.DescEditor=='CKEditor') var desc = IO_DescCKEditor(dbid, `Q.${i}.Desc`, Desc, `${uqid}${i}`,{}); 
     else if(a.DescEditor=='textarea')  var desc = IO_TA({id:dbid, k:`Q.${i}.Desc`, v:Desc });
@@ -366,23 +428,21 @@ function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid
 
   var Display = `
         Youtube <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.Youtube': $(this).prop('checked') }); " ${Youtube}/>
-        <p/>Hide <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.hide': $(this).prop('checked')?1:0 }); " ${hide}/>
-  `;
-  var Content = `
-        Editor: CK | Textarea | DoubleClick
-        <p/> Upload 
-        <p/> Sketchpad 
-  `;
-    var Allow = `
-      Retry:<input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.retry': $(this).prop('checked') }); " ${retry}/>
-      <br/> Show (Ans <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.showans': $(this).prop('checked') }); " ${showans}/>
+        | Hide <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.hide': $(this).prop('checked')?1:0 }); " ${hide}/>
+  
+      <br/> Retry:<input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.retry': $(this).prop('checked') }); " ${retry}/>
+      | Inactive :<input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.inactive': $(this).prop('checked') }); " ${inactive}/>
+       <br/> Show (Ans <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.showans': $(this).prop('checked') }); " ${showans}/>
        |Soln <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.showsoln': $(this).prop('checked') }); " ${showsoln}/>
        )
     `;
+
+    var MaxScore = a.MaxScore?a.MaxScore:10;
     var Grade = `
         Manual <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'manual':0 }); " ${manualgrade}/>
         | Auto <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'auto':0 }); " ${autograde}/>
         | Self <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'self':0 }); " ${selfgrade}/>
+        <br/> Max score <input type=text onchange=" db.doc('${dbid}').update({'Q.${i}.a.MaxScore': $(this).val()}); " value=${MaxScore} />
      `;
      if(a.Youtube) {
        var YT = `
@@ -393,14 +453,15 @@ function QYT(O) { var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid
        `;
      }
 
-     var qattr = YT + DropDown(Content,'Content') + DropDown(Display,'Display'); 
-         qattr += DropDown(Allow,'Allow') + DropDown(Grade,'Grading') + del + duplicate + Launch; 
+     var qattr = YT + DropDown(Display,'Display') + DropDown(Grade,'Grading') + del + duplicate + Launch; 
      var qdes = DropDown(DescOptions,'Desc') + desc, qchoice = DropDown(ChoicesOptions,'Choices') + choices; 
 
     if(a.Sketchpad) qdes += Sketchpad_Placeholder({uqid:`Desc${i}`, editable:1}); // Place holder for Sketpad
     
     var Grade = `<div id=Grade${i}></div>`; 
-    $('#'+oid).append(`<hr/>Q${i})<div class=QDisplay1>${qattr} <p/>${qdes} <br/>${qchoice} </div> ${Grade}`); 
+    var sDescCh =    togglePM('<br/>'+qdes+qchoice,'-'); 
+
+    $('#'+oid).append(`<hr/>Q${i})<span class=QDisplay1>${qattr} ${sDescCh} </span> ${Grade}`); 
 
     if(a.Sketchpad) IO_drawingsList({id:dbid, List:`Desc${i}`, uqid:`Desc${i}`}); 
 
@@ -436,11 +497,11 @@ function IO_SketchpadMenu(O) {
     `;
   }
   var addB = `
-   <p/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:400, h:400}, {merge:true});">Small (400x400)</button>
-   <p/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:800, h:600}, {merge:true});">Normal (800x600)</button>
-   <p/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:1400, h:600}, {merge:true});">Large (1400x600)</button>
+   <br/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:400, h:400}, {merge:true});">Small (400x400)</button>
+   </br><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:800, h:600}, {merge:true});">Normal (800x600)</button>
+   <br/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:1400, h:600}, {merge:true});">Large (1400x600)</button>
 `; 
-  if(O.editable) s += DropDown(addB,'Add'); 
+  if(O.editable) s += DropDown(addB,'+'); 
   if(O.editable) s += `
    <button onclick="
      db.doc('${dbid}/drawing/${newid}').set(sketchpads['${uqid}'].toObject()).then(()=>{
@@ -522,7 +583,7 @@ function Q_Choices_S(O, OS) {
    var iq=0, i=O.i, id=O.id+'/users/'+email, oid=`Choices${i}`; 
    var aa=O.Q.a?O.Q.a:{}, aaS=OS.Q.a?OS.Q.a:{}, type=(O.Q.a && O.Q.a.Type)?O.Q.a.Type:'checkbox';
    var nTrial = (O.Q.a && O.Q.a.nTrial)?O.Q.a.nTrial:1;
-   var submitted= (aaS.submitted )?'disabled=disabled':'';
+   var submitted= (aaS.submitted || aa.inactive )?'disabled=disabled':'';
    var retry = (aaS.submitted && aa.retry)?`<button  style='padding: 10px;' onclick=" 
      db.doc('${id}').update({'Q.${i}.a.submitted': 0 }); $('.Ch${i}').prop('disabled', false); $(this).prop('disabled', true);
      ">Retry</button>`:'';

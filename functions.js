@@ -313,6 +313,9 @@ function stopInetvalIDs(IDs) { for(var i=0; i<IDs.length; i++) clearInterval(set
   }
 
  
+  function escape_email(e) {return e.replace(/\./g, '&46'); }
+  function dot2esc(e) {return e.replace(/\./g, '&46'); }
+  function esc2dot(e) {return e.replace(/&46/g, '\.'); }
 
   
 /**
