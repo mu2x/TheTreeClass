@@ -9,11 +9,11 @@
  .QDisplay {  padding: 1px 2px 1px 2px; font-size: large; border:4px solid #555; }
  .largeinput {width:3px;height:10px;background:white;border-radius:5px;border:2px solid #555;}
 
-.dpdown {position: relative; display: inline-block; background-color: rgb(186, 212, 195); 
+.dpdown {position: relative;  display: inline-block; background-color: rgb(186, 212, 195); 
   border:4px solid #555; font-size: large; padding: 1px 2px 1px 2px; border-radius: 25px;
 }
 .dpdown-content {
-  display: none;   position: absolute;   background-color: #f9f9f9;   min-width: 360px;
+  display: none;   width:100%; position: absolute;   background-color: #f9f9f9;   min-width: 360px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);   padding: 6px 8px;   z-index: 1;
 }
 .dpdown:hover .dpdown-content {display: block;}
@@ -39,6 +39,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sketchpad/0.1.0/scripts/sketchpad.min.js"></script>
 
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 
 
@@ -53,7 +54,6 @@
     window.addEventListener('load', function() {       
       initApp({});      
     });
-    //    <span style='font-size:48px; padding: 2px 2px;'>&equiv;</span>&equiv;
 
 </script>
 </head>
@@ -103,6 +103,8 @@ window.addEventListener('load', function() {
  })
 
 });
+
+function trippleBar(o='') {return `<span style='font-size:16px; padding: 2px 2px;'>&equiv;</span>`; }
 
 function SelectAUser(id,users, eid=null) { var s=''; 
   for(var i in users) { var user = users[i]; 
@@ -196,18 +198,19 @@ function LoadOneQ(O) {   var id=O.id, idS=id+'/users/'+email, k=O.k, oid=O.oid, 
 function db2con(id) { db.doc(id).get().then(doc=>{console.log(doc.data());})}
 function togglePM(s,pm='+') { var uqid=uniqid2(), dis=(pm=='+')?'none':'inline';
   return `
-   <button onclick=" 
-     $('#${uqid}T').toggle(); if($(this).text()=='+') $(this).text('-'); else $(this).text('+'); 
-    ">${pm}</button>
-    <span id=${uqid}T style='display:${dis};'>${s}</span>
+   <button class=toggleB onclick="$('#${uqid}T').toggle(); if($(this).text()=='+') $(this).text('-'); else $(this).text('+'); ">${pm}</button>
+   <span id=${uqid}T style='display:${dis};'>${s}</span>
   `;
 }
 function QYT_S(O, OS) { 
-  var  iq=0, dbid=O.dbid?O.dbid:'/I/A_YT', a=O.a?O.a:{}, aS=OS.a?OS.a:{}, uqid=uniqid(), oid='AllQS', iq=0; $('#'+oid).html(''), $('#nAllQS').html(''), disAQ='none';
+  var  iq=0, dbid=O.dbid?O.dbid:'/I/A_YT', a=O.a?O.a:{}, aS=OS.a?OS.a:{}, uqid=uniqid(), oid='AllQS', iq=0; 
+  $('#'+oid).html(''), $('#nAllQS').html(''), disAQ='none';
   if(a.display =="AllQ") { disAQ='inline'; }
-  $('#'+oid).append(O.Desc?O.Desc:''); 
+  var Desc0 = O.Desc?O.Desc:''; 
+
+  $('#'+oid).append(togglePM(Desc0, a.toggle?a.toggle:'-')); 
  
-  var TotalScore=aS.TotalScore? ' (Score='+aS.TotalScore+' %)':''; 
+  var TotalScore= (aS.TotalScore || aS.TotalScore===0) ? ' (Score='+aS.TotalScore+' %)':''; 
 
   for (var i in O.Q) { var Q=O.Q[i], Desc=Q.Desc?Q.Desc:'Desc'; iq++; 
 
@@ -215,6 +218,7 @@ function QYT_S(O, OS) {
     if(a.Launch===-1) $('.Screen5').hide();
 
     var QS = (OS.Q && OS.Q[i])?OS.Q[i]:{}, aaS=QS.a?QS.a:{}, aa=Q.a?Q.a:{}, name=aa.name?aa.name:i;
+    var  MaxScore=aa.MaxScore?aa.MaxScore:10;
     var t1=aa.t1?aa.t1:0, t2=aa.t2?aa.t2:0;
     if(aa.hide) continue;
     var play=''; 
@@ -231,7 +235,7 @@ function QYT_S(O, OS) {
        <button class=Ch${i} style='padding: 10px;' onclick="
        var p = $('#player').data(); p.showid = '${uqid}${i}Q'; $(this).prop('disabled',true);
         onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  });
-        " ${submitted}>Play</button> 
+        " >Play</button> 
     `; else disQ='inline';
     
     if(a.display !="AllQ") $('#nAllQS').append(`<button class=${uqid} style='padding: 10px;' onclick=" 
@@ -240,13 +244,13 @@ function QYT_S(O, OS) {
        // } else { $(this).css('background-color','');  e.hide(); }
     ">${name}</button>`);  
  
-    if( (aaS.score || aaS.score===0) && aaS.submitted) score='Score='+QS.a.score; else score=''; 
+    if( (aaS.score || aaS.score===0) && aaS.submitted) score='Score='+QS.a.score+'/'+MaxScore; else score=''; 
     
     if(!aa.Youtube) {play=''; disQ='inline'; }
     $('#'+oid).append(` 
     <br/><span class=dispAllQ id=disp${i} style='display:${disAQ};'>
        <div align=left  id=${uqid}${i}  class=QDisplay>
-           <span id=${uqid}${i}Q style='display:${disQ};'> ${desc} ${choices}</span> ${score} ${play}
+           <span id=${uqid}${i}Q style='display:${disQ};'> ${desc} ${choices}</span>  ${play} ${score}
        </div>  
     </span>
   `); 
@@ -307,7 +311,7 @@ function AssignActivity(O) {var id=O.id, fn=O.fn, name=O.name, s='', uqid=uniqid
    <button onclick="db.doc('/COURSES/AdvMath/Fall2022/Roster').set({raw:$('#${uqid}TA').val()});">Save</button>
   
   <br/> CEMaterials
-  <br/><textarea id=${uqid}TA>${emails}</textarea>
+  <br/><textarea rows=5 style='width: 100%; max-width: 100%;' id=${uqid}TA>${emails}</textarea>
   <br/><button onclick="
     var emails = removewhitespace($('#${uqid}TA').val()).split(';'); 
     for(var i in emails) {
@@ -335,30 +339,96 @@ function AssignGrade(O) { if(debug) console.log('AssignGrade(O):', O);
  })
  db.doc(O.id+'/users/OverallScore').get().then(doc=>{ if(!doc.exists) db.doc(O.id+'/users/OverallScore').set({},{merge:true}); })
 }
+function MonitorGrade(O) { var iq=O.iq; 
+  console.log('AssignGrade(O):', O); 
+ var dataTable=[ ['Name', 'Number']       ];
+
+ db.doc(O.id+'/users/OverallScore').get().then(doc=>{ 
+ //db.doc(O.id+'/users/OverallScore').onSnapshot(function(doc) {
+   
+   var d=doc.get(`Q.${iq}`), n=0, ns=0, avg=0, avgs=0, TscoreS=0, Tscore=0, ic=0, iw=0, ics=0, iws=0, nch={}; ; 
+  for(var k in d) { var v = d[k], MaxScore=v.MaxScore, score=v.score;
+    n++; avg += score; Tscore += MaxScore; 
+    if(score>0) ic++; else iw++; 
+    if(v.submitted) {
+      ns++; avgs += score; TscoreS += MaxScore;
+      if(score>0) ics++; else iws++;
+    } 
+    if(v.Choices) { 
+      for(var j in v.Choices) { if(!nch[j]) nch[j] =0; 
+        if(v.Choices[j]) nch[j] += 1; 
+      }
+      ns++; avgs += score; TscoreS += MaxScore;
+      if(score>0) ics++; else iws++;
+    } 
+  }
+  dataTable.push(['Total',n]); 
+  dataTable.push(['Correct',ic]); 
+  dataTable.push(['Wrong',iw]); 
+  dataTable.push(['S-Total',ns]); 
+  dataTable.push(['S-Correct',ics]); 
+  dataTable.push(['S-Wrong',iws]); 
+  for(var j in nch) dataTable.push([`Choice${j}`,nch[j]]);
+
+  avg = Math.round(avg/n); avgs = Math.round(avgs/ns); 
+  $('#'+O.oid).html(`
+    Total: Avg = ${avg}, n=${n}, correct=${ic}, wrong=${iw}
+    <br/>Submitted: Avg = ${avgs}, n=${ns}, correct=${ics}, wrong=${iws}
+    <div id='chart_div${iq}'></div>
+  `);
+  google.charts.setOnLoadCallback(drawChart(`chart_div${iq}`, dataTable));
+
+ })
+}
+
+google.charts.load('current', {packages: ['corechart', 'bar']});
+
+function drawChart(divid, dataTable) {
+  var data = google.visualization.arrayToDataTable(dataTable);
+
+      var options = {
+        focusTarget: 'category',
+        hAxis: { 
+          viewWindow: {  min: [7, 30, 0],max: [17, 30, 0]},
+          textStyle: { fontSize: 14,color: '#053061', bold: true,italic: false},
+          titleTextStyle: {fontSize: 18,color: '#053061',bold: true, italic: false }
+        },
+        vAxis: {  textStyle: {fontSize: 18,color: '#67001f',bold: false,italic: false},
+          titleTextStyle: {fontSize: 18,color: '#67001f',bold: true,italic: false }
+        }
+      };
+
+      var chart = new google.visualization.ColumnChart(document.getElementById(`${divid}`));
+      chart.draw(data, options);
+}
 var csv={}; 
+function getScoreCheckbox(Ch,ChS) { 
+  var icMax=0, iright=0, iwrong=0; // if(a.Type=='checkbox')
+    for(var k in Ch) { var ai = Ch[k].a?Ch[k].a:{}, aiS = (ChS && ChS[k])?ChS[k].a:{}; 
+      if(ai.checked) icMax++; 
+      if(ai.checked && aiS.checked) iright++; 
+      if(!ai.checked && aiS.checked) iwrong++; 
+    }
+  if(iwrong>iright) score=0; else score = (iright-iwrong)/icMax; 
+  return score;
+}
 function GradeOne(id, d, user, iuser) { var idS=id+'/users/'+user, QQ=d.Q; 
-    db.doc(idS).get().then(doc=>{ var dS=doc.data()?doc.data():{}, QQS=dS.Q?dS.Q:{}, TScore=0, TMaxScore=0; 
+    db.doc(idS).get().then(doc=>{ if(doc.data()) {var dS=doc.data(); } else { db.doc(idS).set({},{merge:true}); dS={}; }
+      var  QQS=dS.Q?dS.Q:{}, TScore=0, TMaxScore=0; 
        for (var iq in QQ) { var Q=QQ[iq], QS=QQS[iq]?QQS[iq]:{}, a=Q.a, score=0, aS=QS.a?QS.a:{}, MaxScore=a.MaxScore?a.MaxScore:10; 
         TMaxScore += 1*MaxScore; 
         if(QS.a && a.grading=='auto') { 
           if(a.Type=='radio') { if(a.checked===aS.checked) score=1*MaxScore; 
-          } else  { score=1*MaxScore; // if(a.Type=='checkbox')
-           for(var k in Q.Choices) { var ai = Q.Choices[k].a, aiS = (QS.Choices && QS.Choices[k])?QS.Choices[k].a:{}; 
-             if( !(ai.checked && aiS.checked)) score =0;  
-             //if( (!ai.checked && aiS.checked)) score -=1;  
-           }
-          }
-          //csv[iq].score = score; ;
-          
+          } else  { score = Math.round(getScoreCheckbox(Q.Choices, QS.Choices)*MaxScore);  }
           db.doc(idS).update({[`Q.${iq}.a.score`]:score})
           if(debug) console.log('E.js:GradeOne()', iuser, user, score); 
         }
         var u = dot2esc(user); 
         var v = {score:score, submitted:(aS.submitted?1:0), MaxScore:MaxScore, PScore:Math.round(100*score/MaxScore)}; 
         //var g={[user]:{[iq]:{score:score} }  }; //`{'${user}':{'${iq}':{score:${score}} } }`; 
-        console.log({[`'email.${u}.${iq}'`]: {score:score, submitted:(aS.submitted?1:0)} }  );
+        console.log({[`email.${u}.${iq}`]: {score:score, submitted:(aS.submitted?1:0)} }  );
         db.doc(id+'/users/OverallScore').update({[`email.${u}.${iq}`]: v } )
-        //db.doc(id+'/users/OverallScore').update({[`Q.${iq}.${u}`]: v } )
+        db.doc(id+'/users/OverallScore').update({[`Q.${iq}.${u}`]: v } )
         TScore += score; 
        }
        db.doc(idS).update({[`a.TotalScore`]:Math.round(100*TScore/TMaxScore) })
@@ -371,7 +441,7 @@ function GradeOne(id, d, user, iuser) { var idS=id+'/users/'+user, QQ=d.Q;
 }
 
 function QYT(O) { 
-  var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html(''), a0=O.a?O.a:{}, uqid=uniqid();
+  var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html(''), a0=O.a?O.a:{}, uqid=uniqid2();
   var displayAllQ = (a0.display=='AllQ')?'checked':'', fn=dbid.split(/[\\\/]/).pop(), name=a0.name?a0.name:fn; 
   var Top = `
    <span ondblclick=" dblclickEdit('${dbid}','a.name', $(this) );  ">${name}</span> 
@@ -379,8 +449,12 @@ function QYT(O) {
    `;
    Top += AssignActivity({id:dbid, fn:fn,name:name, assigned:O.assigned?O.assigned:[]}); 
    Top += `<button onclick="AssignGrade({id:'${dbid}'});">Grade</button>`;
+   Top += `<button onclick=" var t=$('.DescToggle${uqid} .toggleB').text(); db.doc('${dbid}').update({['a.toggle']:t});">&#x261c;</button>`;
+
+   var DescTop = IO_DescCKEditor(dbid, `Desc`, O.Desc?O.Desc:'Desc', `${uqid}Desc0`,{}); 
    //Top += `<button onclick="OpenedClosed({id:'${dbid}', 'a.toggle', $(this)});">+</button>`;
-   Top += togglePM('<br/>'+IO_DescCKEditor(dbid, `Desc`, O.Desc?O.Desc:'Desc', `${uqid}Desc0`,{}),'-'); 
+   Top += `<span class=DescToggle${uqid}>`+togglePM('<br/>'+DescTop,a0.toggle?a0.toggle:'-') + '</span>'; 
+
   $('#'+oid).append(Top); 
 
   for (var i in O.Q) { var Q=O.Q[i],  Desc=Q.Desc?Q.Desc:'Desc', MChoice='', MMChoice='', TA='', YT='';
@@ -438,7 +512,7 @@ function QYT(O) {
     `;
 
     var MaxScore = a.MaxScore?a.MaxScore:10;
-    var Grade = `
+    var Grade = ` <br/> Grade: 
         Manual <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'manual':0 }); " ${manualgrade}/>
         | Auto <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'auto':0 }); " ${autograde}/>
         | Self <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'Q.${i}.a.grading': $(this).prop('checked')?'self':0 }); " ${selfgrade}/>
@@ -453,13 +527,16 @@ function QYT(O) {
        `;
      }
 
-     var qattr = YT + DropDown(Display,'Display') + DropDown(Grade,'Grading') + del + duplicate + Launch; 
+     var qattr = DropDown(Display+Grade,trippleBar()) + YT +  del + duplicate + Launch; 
+     qattr += `<button onclick="MonitorGrade({id:'${dbid}', iq:'${i}', oid:'Grade${i}'});">Monitor</button>`;
      var qdes = DropDown(DescOptions,'Desc') + desc, qchoice = DropDown(ChoicesOptions,'Choices') + choices; 
 
     if(a.Sketchpad) qdes += Sketchpad_Placeholder({uqid:`Desc${i}`, editable:1}); // Place holder for Sketpad
     
     var Grade = `<div id=Grade${i}></div>`; 
-    var sDescCh =    togglePM('<br/>'+qdes+qchoice,'-'); 
+    var toggleCh= `<button onclick=" var t=$('.QT${i}${uqid} .toggleB').text(); db.doc('${dbid}').update({['Q.${i}.a.toggle']:t});">&#x261c;</button>`;
+
+    var sDescCh = toggleCh + `<span class=QT${i}${uqid}>`+togglePM('<br/>'+qdes+qchoice,a.toggle?a.toggle:'-')+'</span>'; 
 
     $('#'+oid).append(`<hr/>Q${i})<span class=QDisplay1>${qattr} ${sDescCh} </span> ${Grade}`); 
 
@@ -579,8 +656,8 @@ function Q_Choices(O) { var iq=0, i=O.i, id=O.id, oid=`Choices${i}`, a0=O.Q.a?O.
       s +=`<br/><button onclick="db.doc('${id}').update({'Q.${i}.Choices.${iq}':{} }); ">+</button> `;
   return s; 
 }
-function Q_Choices_S(O, OS) { 
-   var iq=0, i=O.i, id=O.id+'/users/'+email, oid=`Choices${i}`; 
+function Q_Choices_S(O, OS) {  var user=email, u=dot2esc(user); 
+   var iq=0, i=O.i, id0=O.id, id=O.id+'/users/'+user, oid=`Choices${i}`; 
    var aa=O.Q.a?O.Q.a:{}, aaS=OS.Q.a?OS.Q.a:{}, type=(O.Q.a && O.Q.a.Type)?O.Q.a.Type:'checkbox';
    var nTrial = (O.Q.a && O.Q.a.nTrial)?O.Q.a.nTrial:1;
    var submitted= (aaS.submitted || aa.inactive )?'disabled=disabled':'';
@@ -599,9 +676,19 @@ function Q_Choices_S(O, OS) {
            s += IO_TA({id:id, k:`Q.${i}.Choices.${ii}.Desc`, class:`Ch${i}`, v:descS, disabled:submitted});
            if(showans) s += `<textarea rows=6 style='width: 100%; max-width: 100%; background-color: lightgreen;' disabled>`+desc+'</textarea>';
          } else {
-          if(type=='radio') s += IO_radio({id:id,k0:`Q.${i}`,k:`Q.${i}.Choices.${ii}`,v:desc, class:`Ch${i}`, name:`usersSelectChoices${i}`, ii:ii, checked:checked, disabled:submitted, color:color});
-          else { color=(submitted && a.checked && showans)?'lightgreen':'';
-            s += IO_checkbox({id:id,k:`Q.${i}.Choices.${ii}`,v:desc, checked:checked, class:`Ch${i}`, disabled:submitted}); 
+          if(type=='radio') {
+            s +=  ` <input  class=Ch${i}S name=usersSelectChoices${i} value=${ii} type=radio onclick=" 
+                db.doc('${id}').update({'Q.${i}.a.checked': $(this).val() });  
+                db.doc('${id0}/users/OverallScore').update({['Q.${i}.${u}.Choices']: getCheckedValues('Ch${i}S') } );
+            " ${submitted} ${checked} /> `; 
+            //s += IO_radio({id:id,k0:`Q.${i}`,k:`Q.${i}.Choices.${ii}`,v:desc, class:`Ch${i}`, name:`usersSelectChoices${i}`, ii:ii, checked:checked, disabled:submitted, color:color});
+          } else { color=(submitted && a.checked && showans)?'lightgreen':'';
+            //s += IO_checkbox({id:id,k:`Q.${i}.Choices.${ii}`,v:desc, checked:checked, class:`Ch${i}`, disabled:submitted}); 
+            s +=  `<input class='Ch${i}S' type=checkbox onclick="
+               db.doc('${id}').update({'Q.${i}.Choices.${ii}.a.checked': $(this).prop('checked') });
+               db.doc('${id0}/users/OverallScore').update({['Q.${i}.${u}.Choices']: getCheckedValues('Ch${i}S') } );
+              " ${submitted} ${checked} />` ; 
+
           }
           s += `<span style='background-color: ${color};'>`+IO_Desc(id,`Q.${i}.Choices.${ii}.Desc`,desc)+'</span>'; 
          }  
@@ -610,12 +697,14 @@ function Q_Choices_S(O, OS) {
        if(O.Q.Choices && Object.keys(O.Q.Choices).length>0) {
          s += `<br/><button  class=Ch${i} style='padding: 10px;' onclick=" $('.Ch${i}').prop('disabled', true);
             db.doc('${id}').update({'Q.${i}.a.submitted': 1 });
+            db.doc('${id0}/users/OverallScore').update({['Q.${i}.${u}.submitted']: 1 } );
           " ${submitted}>Submit</button>`+retry; 
        }
   return s; 
 
 }
 
+function getCheckedValues(cid){ var ch={}; $('.'+cid).each(function(e){ch[e]=$(this).prop('checked'); }); return ch; }
 function IO_radio(O){ var c=O.class?O.class:'sdisabled', id=O.id, k=O.k, checked=O.checked, name=O.name, k0=O.k0, desc=O.v, ii=O.ii, disabled=O.disabled?O.disabled:'', color=O.color?O.color:'', uqid=uniqid(); 
   return  ` <input  class=${c} name=${name} value=${ii} type=radio onclick=" db.doc('${id}').update({'${k0}.a.checked': $(this).val() });  " ${disabled} ${checked} /> `; 
 }
