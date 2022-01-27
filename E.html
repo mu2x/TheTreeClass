@@ -458,13 +458,12 @@ function QYT(O) {
 
    var DescTop = IO_DescCKEditor(dbid, `Desc`, O.Desc?O.Desc:'Desc', `${uqid}Desc0`,{}); 
    Top += `<span class=DescToggle${uqid}>`+togglePM('<br/>'+DescTop,a0.toggle?a0.toggle:'-') + '</span>'; 
-console.log(`${uqid}Desc0`);
   $('#'+oid).append(Top); 
 
-  for (var i in O.Q) { var Q=O.Q[i],  Desc=Q.Desc?Q.Desc:'Desc', MChoice='', MMChoice='', TA='', YT='';
+  for (var i in O.Q) { var Q=O.Q[i],  Desc=Q.Desc?Q.Desc:'Desc', MChoice='', MMChoice='', TA='', userinput='', YT='';
     var a=Q.a?Q.a:{}; 
     var videoId=a.videoId?a.videoId:'cpaigEYuNEw', t1=a.t1?a.t1:0, t2=a.t2?a.t2:0; 
-    if(a.Type=="radio")  MChoice="checked"; else if (a.Type=="textarea") TA='checked'; else MMChoice="checked";
+    if(a.Type=="radio")  MChoice="checked"; else if (a.Type=="textarea") TA='checked'; else if (a.Type=="input") userinput='checked'; else MMChoice="checked";
     var CEInput=(a.ChoiceEditor=='input')?'checked':'', CETA=(a.ChoiceEditor=='textarea')?'checked':'', CECK=(a.ChoiceEditor=='CKEditor')?'checked':'', CESim=(a.ChoiceEditor=='simple')?'checked':''; 
     var nTrial = a.nTrial?a.nTrial:0;
     var showans = a.showans?'checked':'', showsoln = a.showsoln?'checked':'', retry = a.retry?'checked':'', inactive = a.inactive?'checked':''; 
@@ -489,6 +488,7 @@ console.log(`${uqid}Desc0`);
           <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'radio' }); " ${MChoice} />radio
         | <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'checkbox' }); " ${MMChoice} />checkbox
         | <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'textarea' }); " ${TA} />TA
+        | <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'Q.${i}.a.Type': 'input' }); " ${userinput} />Input
         <p/>Editor:
         | <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.ChoiceEditor': $(this).prop('checked')?'input':0 }); " ${CEInput} />Input
         | <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.ChoiceEditor': $(this).prop('checked')?'textarea':0 }); " ${CETA} />TA
@@ -645,18 +645,19 @@ function Q_Choices(O) { var iq=0, i=O.i, id=O.id, oid=`Choices${i}`, a0=O.Q.a?O.
          var del= `<button onclick=" db_delPKey('${id}', 'Q.${i}.Choices', '${ii}', 'renumber'); 
          ">&cross;</button>`; 
          s += '<br/>'+del;
-         if(type=='textarea') {
-           s += IO_TA({id:id, k:`Q.${i}.Choices.${ii}.Desc`, v:desc });
+         var sS='', sI=''; 
+         if(type=='textarea') { sS += IO_TA({id:id, k:`Q.${i}.Choices.${ii}.v`, v:(C.v?C.v:'') });
+         } else if(type=='input') {sS += IO_Input({id:id,k:`Q.${i}.Choices.${ii}.v`,v:(C.v?C.v:'') });
          } else {
-          if(type=='radio') s += IO_radio({id:id,k0:`Q.${i}`,k:`Q.${i}.Choices.${ii}`,v:desc, name:`AdminSelectChoices${i}`, ii:ii, checked:(a0.checked===ii)?'checked':''});
-          else s += IO_checkbox({id:id,k:`Q.${i}.Choices.${ii}`,v:desc, checked:a.checked?'checked':''}); 
-          if(a0.ChoiceEditor=='input') s += IO_Input({id:id,k:`Q.${i}.Choices.${ii}.Desc`,v:desc});
-          else if(a0.ChoiceEditor=='textarea') s += IO_TA({id:id,k:`Q.${i}.Choices.${ii}.Desc`,v:desc});
-          else if(a0.ChoiceEditor=='CKEditor') s += IO_DescCKEditor(id, `Q.${i}.Choices.${ii}.Desc`, desc, `${uqid}${ii}`,{}); 
-          else  s += IO_Desc(id,`Q.${i}.Choices.${ii}.Desc`,desc, {editable:1}); 
-
+          if(type=='radio') sS += IO_radio({id:id,k0:`Q.${i}`,k:`Q.${i}.Choices.${ii}`,v:desc, name:`AdminSelectChoices${i}`, ii:ii, checked:(a0.checked===ii)?'checked':''});
+          else sS += IO_checkbox({id:id,k:`Q.${i}.Choices.${ii}`,v:desc, checked:a.checked?'checked':''}); 
          }  
-    
+         if(a0.ChoiceEditor=='input') sI += IO_Input({id:id,k:`Q.${i}.Choices.${ii}.Desc`,v:desc});
+         else if(a0.ChoiceEditor=='textarea') sI += IO_TA({id:id,k:`Q.${i}.Choices.${ii}.Desc`,v:desc});
+         else if(a0.ChoiceEditor=='CKEditor') sI += IO_DescCKEditor(id, `Q.${i}.Choices.${ii}.Desc`, desc, `${uqid}${ii}`,{}); 
+         else  sI += IO_Desc(id,`Q.${i}.Choices.${ii}.Desc`,desc, {editable:1}); 
+         
+         if(type=='textarea' || type=='input') s += sI + sS; else s += sS + sI;
          iq++; 
        }
       s +=`<br/><button onclick="db.doc('${id}').update({'Q.${i}.Choices.${iq}':{} }); ">+</button> `;
@@ -680,8 +681,11 @@ function Q_Choices_S(O, OS) {  var user=email, u=dot2esc(user);
          else var checked=aS.checked?'checked':''; 
          s += '<br/>';
          if(type=='textarea') {
-           s += IO_TA({id:id, k:`Q.${i}.Choices.${ii}.Desc`, class:`Ch${i}`, v:descS, disabled:submitted});
-           if(showans) s += `<textarea rows=6 style='width: 100%; max-width: 100%; background-color: lightgreen;' disabled>`+desc+'</textarea>';
+           s += desc+IO_TA({id:id, k:`Q.${i}.Choices.${ii}.v`, class:`Ch${i}`, v:CS.v?CS.v:'', disabled:submitted});
+           if(showans) s += `<textarea rows=6 style='width: 100%; max-width: 100%; background-color: lightgreen;' disabled>`+(C.v?C.v:'')+'</textarea>';
+         } else if(type=='input') {
+           s += desc+IO_Input({id:id, k:`Q.${i}.Choices.${ii}.v`, class:`Ch${i}`, v:CS.v?CS.v:'', disabled:submitted});
+           if(showans) s += `<input style='background-color: lightgreen;' value="`+(C.v?C.v:'')+'" disabled />';
          } else {
           if(type=='radio') {
             s +=  ` <input  class=Ch${i}S name=usersSelectChoices${i} value=${ii} type=radio onclick=" 
@@ -723,8 +727,8 @@ function IO_checkbox(O){ var c=O.class?O.class:'sdisabled', id=O.id, k=O.k, chec
 function IO_TA(O){ var c=O.class?O.class:'sdisabled', id=O.id, k=O.k, v=O.v, disabled=O.disabled?O.disabled:'', uqid=uniqid(); 
   return `<textarea class=${c} style="width: 100%; max-width: 100%;" rows=6 onchange="$('#msg${uqid}').html('Saved'); db.doc('${id}').update({'${k}': $(this).val() });  " ${disabled}>${v}</textarea><div id=msg${uqid}></div>`; 
 }
-function IO_Input(O){ var id=O.id, k=O.k, v=O.v; 
-  return `<input onchange="db.doc('${id}').update({'${k}': $(this).val() }); " value="${v}""></input>`; 
+function IO_Input(O){ var c=O.class?O.class:'sdisabled', id=O.id, k=O.k, v=O.v, disabled=O.disabled?O.disabled:'', uqid=uniqid(); 
+  return `<input class=${c}  onchange="db.doc('${id}').update({'${k}': $(this).val() }); " value="${v}" ${disabled}></input>`; 
 }
 
 
