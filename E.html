@@ -270,16 +270,17 @@ function IO_checkboxes(id,A,k){ var uqid=uniqid(), s='';
   return  s; 
 }
 
-function IO_DescCKEditor(id, key, v, uqid, O) { var s='', tb=O.tb?O.tb:'ckfull'; 
-  s += `
+function IO_DescCKEditor(id, key, v, uqid, O) { var s='', ss='', tb=O.tb?O.tb:'ckfull'; 
+   s += `
     <div id=Desc${uqid} class=QEdit contenteditable="false" ondblclick=" 
-      var opened = CKEDITOR.instances.Desc${uqid}?1:0;   
+      var opened = CKEDITOR.instances['Desc${uqid}']?1:0;   
       db.doc('${id}').get().then(doc=>{ 
         if(!opened) CKEDITOR.replace('Desc${uqid}', { toolbar:${tb}} ).setData( doc.get('${key}'));
       });
       $('#Desc${uqid}').attr('contenteditable','true'); $('#DescB${uqid}').show();
     " >`+v+`</div>
     `;
+    
   s += `<button id=DescB${uqid} style='display:none;' onclick=" 
     var data = CKEDITOR.instances['Desc${uqid}'].getData(); $('#TADesc${uqid}').val(data);
     db.doc('${id}').update({'${key}':data}); 
@@ -341,11 +342,11 @@ function AssignGrade(O) { if(debug) console.log('AssignGrade(O):', O);
 }
 function MonitorGrade(O) { var iq=O.iq; 
   console.log('AssignGrade(O):', O); 
- var dataTable=[ ['Name', 'Number']       ];
 
- db.doc(O.id+'/users/OverallScore').get().then(doc=>{ 
- //db.doc(O.id+'/users/OverallScore').onSnapshot(function(doc) {
-   
+ //db.doc(O.id+'/users/OverallScore').get().then(doc=>{ 
+ db.doc(O.id+'/users/OverallScore').onSnapshot(function(doc) {
+  var dataTable=[ ['Name', 'Number']       ];
+
    var d=doc.get(`Q.${iq}`), n=0, ns=0, avg=0, avgs=0, TscoreS=0, Tscore=0, ic=0, iw=0, ics=0, iws=0, nch={}; ; 
   for(var k in d) { var v = d[k], MaxScore=v.MaxScore, score=v.score;
     n++; avg += score; Tscore += MaxScore; 
@@ -363,17 +364,17 @@ function MonitorGrade(O) { var iq=O.iq;
     } 
   }
   dataTable.push(['Total',n]); 
-  dataTable.push(['Correct',ic]); 
-  dataTable.push(['Wrong',iw]); 
-  dataTable.push(['S-Total',ns]); 
-  dataTable.push(['S-Correct',ics]); 
-  dataTable.push(['S-Wrong',iws]); 
-  for(var j in nch) dataTable.push([`Choice${j}`,nch[j]]);
+  //dataTable.push(['Correct',ic]); 
+  //dataTable.push(['Wrong',iw]); 
+  dataTable.push(['Submitted',ns]); 
+  dataTable.push(['Correct',ics]); 
+  dataTable.push(['Wrong',iws]); 
+  for(var j in nch) dataTable.push([`Ch${j}`,nch[j]]);
 
   avg = Math.round(avg/n); avgs = Math.round(avgs/ns); 
   $('#'+O.oid).html(`
-    Total: Avg = ${avg}, n=${n}, correct=${ic}, wrong=${iw}
-    <br/>Submitted: Avg = ${avgs}, n=${ns}, correct=${ics}, wrong=${iws}
+    All (Avg = ${avg}, n=${n}, correct=${ic}, wrong=${iw})
+    <br/>Submitted (Avg = ${avgs}, n=${ns}, correct=${ics}, wrong=${iws})
     <div id='chart_div${iq}'></div>
   `);
   google.charts.setOnLoadCallback(drawChart(`chart_div${iq}`, dataTable));
@@ -425,12 +426,16 @@ function GradeOne(id, d, user, iuser) { var idS=id+'/users/'+user, QQ=d.Q;
         }
         var u = dot2esc(user); 
         var v = {score:score, submitted:(aS.submitted?1:0), MaxScore:MaxScore, PScore:Math.round(100*score/MaxScore)}; 
+        var uu = {}, sdata={}; uu[u]=v; sdata[iq]=uu; 
         //var g={[user]:{[iq]:{score:score} }  }; //`{'${user}':{'${iq}':{score:${score}} } }`; 
         console.log({[`email.${u}.${iq}`]: {score:score, submitted:(aS.submitted?1:0)} }  );
-        db.doc(id+'/users/OverallScore').update({[`email.${u}.${iq}`]: v } )
-        db.doc(id+'/users/OverallScore').update({[`Q.${iq}.${u}`]: v } )
+        if(debug) db.doc(id+'/users/OverallScore').update({[`email.${u}.${iq}`]: v } );
+        //db.doc(id+'/users/OverallScore').update({ [`Q.${iq}.${u}`]: v }, {merge:true} )
+
+        db.doc(id+'/users/OverallScore').set({ Q:sdata }, {merge:true} )
         TScore += score; 
        }
+
        db.doc(idS).update({[`a.TotalScore`]:Math.round(100*TScore/TMaxScore) })
        //db.doc(id+'/users/OverallScore').update({[`email.${u}.TotalScore`]: Math.round(100*TScore/TMaxScore) } )
 
@@ -452,9 +457,8 @@ function QYT(O) {
    Top += `<button onclick=" var t=$('.DescToggle${uqid} .toggleB').text(); db.doc('${dbid}').update({['a.toggle']:t});">&#x261c;</button>`;
 
    var DescTop = IO_DescCKEditor(dbid, `Desc`, O.Desc?O.Desc:'Desc', `${uqid}Desc0`,{}); 
-   //Top += `<button onclick="OpenedClosed({id:'${dbid}', 'a.toggle', $(this)});">+</button>`;
    Top += `<span class=DescToggle${uqid}>`+togglePM('<br/>'+DescTop,a0.toggle?a0.toggle:'-') + '</span>'; 
-
+console.log(`${uqid}Desc0`);
   $('#'+oid).append(Top); 
 
   for (var i in O.Q) { var Q=O.Q[i],  Desc=Q.Desc?Q.Desc:'Desc', MChoice='', MMChoice='', TA='', YT='';
@@ -474,6 +478,7 @@ function QYT(O) {
     else var desc = IO_Desc(dbid, `Q.${i}.Desc`, Desc, {eid:`Desc${i}`, editable:1}); 
 
     var choices = Q_Choices({id:dbid, i:i, Q:Q}); 
+
     var del = ` <button onclick="db_delPKey('${dbid}', 'Q', '${i}', 'renumber'); ">&cross;</button>`; 
     var duplicate = ` <button onclick="db_duplicatePKey('${dbid}', 'Q', '${i}'); ">Duplicate</button>`; 
     var Launch = ` <input type=checkbox onclick="db.doc('${dbid}').update({'a.Launch': $(this).prop('checked')?'${i}':-1 }); "  ${Launched}>Launch</input>`; 
@@ -650,7 +655,8 @@ function Q_Choices(O) { var iq=0, i=O.i, id=O.id, oid=`Choices${i}`, a0=O.Q.a?O.
           else if(a0.ChoiceEditor=='CKEditor') s += IO_DescCKEditor(id, `Q.${i}.Choices.${ii}.Desc`, desc, `${uqid}${ii}`,{}); 
           else  s += IO_Desc(id,`Q.${i}.Choices.${ii}.Desc`,desc, {editable:1}); 
 
-         }      
+         }  
+    
          iq++; 
        }
       s +=`<br/><button onclick="db.doc('${id}').update({'Q.${i}.Choices.${iq}':{} }); ">+</button> `;
@@ -661,8 +667,9 @@ function Q_Choices_S(O, OS) {  var user=email, u=dot2esc(user);
    var aa=O.Q.a?O.Q.a:{}, aaS=OS.Q.a?OS.Q.a:{}, type=(O.Q.a && O.Q.a.Type)?O.Q.a.Type:'checkbox';
    var nTrial = (O.Q.a && O.Q.a.nTrial)?O.Q.a.nTrial:1;
    var submitted= (aaS.submitted || aa.inactive )?'disabled=disabled':'';
-   var retry = (aaS.submitted && aa.retry)?`<button  style='padding: 10px;' onclick=" 
-     db.doc('${id}').update({'Q.${i}.a.submitted': 0 }); $('.Ch${i}').prop('disabled', false); $(this).prop('disabled', true);
+   var retry = (aaS.submitted && aa.retry)?`<button  id=Retry${i} style='padding: 10px;' onclick=" 
+     db.doc('${id}').update({'Q.${i}.a.submitted': 0 }); 
+     $('.Ch${i}S').prop('disabled', false); $('.Ch${i}').prop('disabled', false); $(this).prop('disabled', true);
      ">Retry</button>`:'';
    var showans = submitted && aa.showans?aa.showans:0; 
    var s='';
@@ -687,6 +694,7 @@ function Q_Choices_S(O, OS) {  var user=email, u=dot2esc(user);
             s +=  `<input class='Ch${i}S' type=checkbox onclick="
                db.doc('${id}').update({'Q.${i}.Choices.${ii}.a.checked': $(this).prop('checked') });
                db.doc('${id0}/users/OverallScore').update({['Q.${i}.${u}.Choices']: getCheckedValues('Ch${i}S') } );
+               if(debug) console.log('${id0}/users/OverallScore', 'Q.${i}.${u}.Choices', 'Ch${i}S');\")
               " ${submitted} ${checked} />` ; 
 
           }
@@ -695,7 +703,8 @@ function Q_Choices_S(O, OS) {  var user=email, u=dot2esc(user);
          iq++; 
        }
        if(O.Q.Choices && Object.keys(O.Q.Choices).length>0) {
-         s += `<br/><button  class=Ch${i} style='padding: 10px;' onclick=" $('.Ch${i}').prop('disabled', true);
+         s += `<br/><button  class=Ch${i} style='padding: 10px;' onclick=" 
+            $('.Ch${i}S').prop('disabled', true);  $('#Retry${i}').prop('disabled', false); $(this).prop('disabled', true);
             db.doc('${id}').update({'Q.${i}.a.submitted': 1 });
             db.doc('${id0}/users/OverallScore').update({['Q.${i}.${u}.submitted']: 1 } );
           " ${submitted}>Submit</button>`+retry; 
