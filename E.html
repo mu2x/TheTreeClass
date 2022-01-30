@@ -9,8 +9,11 @@
  .QDisplay {  padding: 1px 2px 1px 2px; font-size: large; border:4px solid #555; }
  .largeinput {width:3px;height:10px;background:white;border-radius:5px;border:2px solid #555;}
 
+.dblclick {position: relative;  display: inline-block; background-color: lightblue; 
+  border:4px solid #555; font-size: large; padding: 1px 2px 1px 2px; border-radius: 2px;
+}
 .dpdown {position: relative;  display: inline-block; background-color: rgb(186, 212, 195); 
-  border:4px solid #555; font-size: large; padding: 1px 2px 1px 2px; border-radius: 25px;
+  border:4px solid #555; font-size: large; padding: 1px 2px 1px 2px; border-radius: 10px;
 }
 .dpdown-content {
   display: none;   width:100%; position: absolute;   background-color: #f9f9f9;   min-width: 360px;
@@ -122,7 +125,7 @@ function LoadInfoDocs(dbid, eid=null) {
   if( !($('#TARaw').css('display') == 'none') )   {$('#TA').val(JSON.stringify(d, null, 1));  }
   if(priv.admin) { 
     QYT(d); $('#TopMenu').html(adminB()); 
-    $('#AdminSelectUsers').html( DropDown(SelectAUser(dbid,d.assigned?d.assigned.email:{}, eid),'Users')); 
+    $('#AdminSelectUsers').html(DropDown(SelectAUser(dbid,d.assigned?d.assigned.email:{}, eid),'Users',  {dpdown:'dblclick'} )); 
   }
   //db.doc(sdbid).onSnapshot(function(docs) { var dS=docs.data()?docs.data():{}; dS.dbid=sdbid;
    // if(!docs.exists) db.doc(sdbid).set({}); 
@@ -224,10 +227,16 @@ function QYT_S(O, OS) {
     var play=''; 
     var submitted= (aaS.submitted )?'disabled=disabled':'', disQ=(aaS.submitted )?'inline':'none';
     var choices = Q_Choices_S({id:dbid, i:i, Q:Q}, {Q:QS}); 
-    var desc = IO_Desc(dbid, `Q.${i}.Desc`, Q.Desc?Q.Desc:'Desc', {editable:0}); 
+    var desc = IO_Desc(dbid, `Q.${i}.Desc`, Q.Desc?Q.Desc:'Desc', {editable:0});
+
+    var copySketch = `<button onclick=" var d2=sketchpads['StudentDesc${i}'].toObject(); 
+      d2.element='#sketchpadStudentDesc${i}S'; sketchpads['StudentDesc${i}S']=new Sketchpad(d2); 
+      ">Copy</button>
+    `;
 
     if(aa.Sketchpad) desc += Sketchpad_Placeholder({uqid:`StudentDesc${i}`, editable:0});
-    
+    if(aa.Sketchpad) desc += Sketchpad_Placeholder({uqid:`StudentDesc${i}S`, editable:1, msg:`My(${copySketch}): `});
+
     
     var videoId = aa.videoId?aa.videoId:'cpaigEYuNEw'; 
 
@@ -255,7 +264,9 @@ function QYT_S(O, OS) {
     </span>
   `); 
     if(aa.Sketchpad) IO_drawingsList({id:dbid, List:`Desc${i}`, uqid:`StudentDesc${i}`, editable:0}); 
+    if(aa.Sketchpad) IO_drawingsList({id:`${dbid}/users/${email}`, List:`Desc${i}`, uqid:`StudentDesc${i}S`, editable:1}); 
 
+    
     MathJax.Hub.Queue(["Typeset",MathJax.Hub, `${uqid}${i}Q` ]);
 
   }
@@ -335,10 +346,10 @@ function AssignActivity(O) {var id=O.id, fn=O.fn, name=O.name, s='', uqid=uniqid
 }
 function removewhitespace(s) {return s.replace(/\r?\n|\r/g, '').replace(/ /g,''); }
 function AssignGrade(O) { if(debug) console.log('AssignGrade(O):', O); 
+ db.doc(O.id+'/users/OverallScore').get().then(doc=>{ if(!doc.exists) db.doc(O.id+'/users/OverallScore').set({},{merge:true}); })
  db.doc(O.id).get().then(doc=>{ var d=doc.data(), users=d.assigned.email; 
    for(var i in users) {  GradeOne(O.id, d, users[i], i);    }
  })
- db.doc(O.id+'/users/OverallScore').get().then(doc=>{ if(!doc.exists) db.doc(O.id+'/users/OverallScore').set({},{merge:true}); })
 }
 function MonitorGrade(O) { var iq=O.iq; 
   console.log('AssignGrade(O):', O); 
@@ -359,8 +370,6 @@ function MonitorGrade(O) { var iq=O.iq;
       for(var j in v.Choices) { if(!nch[j]) nch[j] =0; 
         if(v.Choices[j]) nch[j] += 1; 
       }
-      ns++; avgs += score; TscoreS += MaxScore;
-      if(score>0) ics++; else iws++;
     } 
   }
   dataTable.push(['Total',n]); 
@@ -428,8 +437,8 @@ function GradeOne(id, d, user, iuser) { var idS=id+'/users/'+user, QQ=d.Q;
         var v = {score:score, submitted:(aS.submitted?1:0), MaxScore:MaxScore, PScore:Math.round(100*score/MaxScore)}; 
         var uu = {}, sdata={}; uu[u]=v; sdata[iq]=uu; 
         //var g={[user]:{[iq]:{score:score} }  }; //`{'${user}':{'${iq}':{score:${score}} } }`; 
-        console.log({[`email.${u}.${iq}`]: {score:score, submitted:(aS.submitted?1:0)} }  );
-        if(debug) db.doc(id+'/users/OverallScore').update({[`email.${u}.${iq}`]: v } );
+        if(debug) console.log({[`email.${u}.${iq}`]: {score:score, submitted:(aS.submitted?1:0)} }  );
+        db.doc(id+'/users/OverallScore').update({[`email.${u}.${iq}`]: v } );
         //db.doc(id+'/users/OverallScore').update({ [`Q.${iq}.${u}`]: v }, {merge:true} )
 
         db.doc(id+'/users/OverallScore').set({ Q:sdata }, {merge:true} )
@@ -539,7 +548,7 @@ function QYT(O) {
     if(a.Sketchpad) qdes += Sketchpad_Placeholder({uqid:`Desc${i}`, editable:1}); // Place holder for Sketpad
     
     var Grade = `<div id=Grade${i}></div>`; 
-    var toggleCh= `<button onclick=" var t=$('.QT${i}${uqid} .toggleB').text(); db.doc('${dbid}').update({['Q.${i}.a.toggle']:t});">&#x261c;</button>`;
+    var toggleCh= `<button onclick=" var t=$('.QT${i}${uqid} .toggleB').text(); db.doc('${dbid}').update({['Q.${i}.a.toggle']:t});">&#128204;</button>`;
 
     var sDescCh = toggleCh + `<span class=QT${i}${uqid}>`+togglePM('<br/>'+qdes+qchoice,a.toggle?a.toggle:'-')+'</span>'; 
 
@@ -569,11 +578,11 @@ function IO_SketchpadMenu(O) {
    s +=`<button class=B${uqid} onclick=" 
      $('#C${uqid}').show(); $('#Options${uqid}').show(); ToggleColor($(this));
      var data =$('#sketchpad${uqid}').data(); data.dbid = '${id}'; 
-     db.doc('${id}').get().then(doc=>{
+     db.doc('${id}').get().then(doc=>{ //onSnapshot(function(doc) { //
       if(doc.data()) {var d=doc.data(); d.element='#sketchpad${uqid}'; sketchpads['${uqid}']=new Sketchpad(d); }
       else sketchpads['${uqid}']= new Sketchpad({element: '#sketchpad${uqid}', width: ${w},   height: ${h}, });
       var CLIPBOARD = new CLIPBOARD_CLASS('sketchpad${uqid}', true);
-
+      
      }); 
     ">${iq}</button>
     `;
@@ -582,16 +591,23 @@ function IO_SketchpadMenu(O) {
    <br/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:400, h:400}, {merge:true});">Small (400x400)</button>
    </br><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:800, h:600}, {merge:true});">Normal (800x600)</button>
    <br/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:1400, h:600}, {merge:true});">Large (1400x600)</button>
+   <br/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:1200, h:600}, {merge:true});">Laptop (1150x600)</button>
 `; 
   if(O.editable) s += DropDown(addB,'+'); 
+
+  var SaveO = `
+  <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">Save</button>
+  <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">AutoSave</button>
+  `;
+  var Save = DropDown(SaveO,'Save');
+
   if(O.editable) s += `
    <button onclick="
      db.doc('${dbid}/drawing/${newid}').set(sketchpads['${uqid}'].toObject()).then(()=>{
       db.doc('${ListID}').update({['ids.${iq}']:'${newid}'});
      });
     ">Duplicate</button>
-
-   <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">Save</button>
+   ${Save}
    <button onclick=" sketchpads['${uqid}'].redo(); ">&circlearrowright;</button>
    <button onclick=" sketchpads['${uqid}'].undo(); ">&circlearrowleft;</button>
    <button onclick=" sketchpads['${uqid}'].clear(); ">Clear</button>
@@ -610,10 +626,11 @@ function IO_drawingsList(O) {  var id=O.id, oid='menu'+O.uqid, List=O.List;
  })
 }
 
-function Sketchpad_Placeholder(O) { var uqid=O.uqid, menu=O.menu?O.menu:'', editable=O.editable?O.editable:0; 
+function Sketchpad_Placeholder(O) { 
+  var uqid=O.uqid, menu=O.menu?O.menu:'', editable=O.editable?O.editable:0, msg=O.msg?O.msg:'Sketches: '; 
 if(editable) {var cursor='allowed', pointerevents="auto";} else {var cursor='not-allowed', pointerevents="none"; }
   return   ` 
-  <table border=0><tr><td align=left>Sketches: <span id=menu${uqid}>${menu}</span></td></tr><tr>
+  <table border=0><tr><td align=left>${msg} <span id=menu${uqid}>${menu}</span></td></tr><tr>
     <td>
       <div id=C${uqid} class=SketchpadContainer style='cursor:${cursor}; pointer-events:${pointerevents}; display:none; width: 700,  height: 600'> 
        <canvas class="sketchpad" id="sketchpad${uqid}"></canvas>
@@ -621,8 +638,8 @@ if(editable) {var cursor='allowed', pointerevents="auto";} else {var cursor='not
     </td>
   </tr></table>`;
 }
-function DropDown(s,k,O={}) { var uqid=uniqid(); 
-  return ` <div class="dpdown"><span onclick="$('#${uqid}').toggle();">${k}</span><div id=${uqid} class="dpdown-content"> ${s} </div></div>`; 
+function DropDown(s,k,O={}) { var uqid=uniqid(), dpdown=(O.dpdown)?O.dpdown:'dpdown'; 
+  return ` <div class="${dpdown}"><span onclick=" $('#${uqid}').toggle();">${k}</span><div id=${uqid} class="dpdown-content"> ${s} </div></div>`; 
 }
 
 function IO_Desc(id,k,v, O={}) { var eid=O.eid?O.eid:uniqid(); 
