@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <style>
+body {padding: 2px 2px 2px 5px; font-size: large;}
 [admin="1"] {
   color: rgb(12, 12, 12);
   background: rgb(0, 255, 34);
@@ -9,6 +10,7 @@
  .QDisplay {  padding: 1px 2px 1px 2px; font-size: large; border:4px solid #555; }
  .largeinput {width:3px;height:10px;background:white;border-radius:5px;border:2px solid #555;}
 
+ .mainbar {position: relative;  display: inline-block; background-color: rgb(224, 223, 223);  width:100%; font-size: large; }
 .dblclick {position: relative;  display: inline-block; background-color: lightblue; 
   border:4px solid #555; font-size: large; padding: 1px 2px 1px 2px; border-radius: 2px;
 }
@@ -111,11 +113,20 @@ function trippleBar(o='') {return `<span style='font-size:16px; padding: 2px 2px
 
 function SelectAUser(id,users, eid=null) { var s=''; 
   for(var i in users) { var user = users[i]; 
-     s += `<br/><span onclick=" LoadInfoDocs('${id}', '${user}'); ">`+((eid==user)?`<b>${user}</b>`:user)+'</span>'; 
+     s += `<br/><span class=SelectUsers onclick=" ToggleColor($(this)); 
+       //LoadInfoDocs('${id}', '${user}'); 
+       db.doc('${id}').get().then(function(doc) { 
+         db.doc('${id}/users/${user}').get().then(function(docs) {
+           var d=doc.data(), dS=docs.data(); 
+           QYT_S(d, dS, {user:'${user}', id:'${id}'}); 
+          })
+       });
+      ">`+user+'</span>'; 
   }
   return s;
 }
 function LoadInfoDocs(dbid, eid=null) {
+  if(debug) console.log(dbid, eid);
  db.doc('/users/'+email).set({LastVisited:{'2':{id:dbid} } }, {merge:true} ); 
  db.doc(dbid).onSnapshot(function(doc) { 
    var d=doc.data()?doc.data():{}; d.dbid=dbid;
@@ -205,8 +216,9 @@ function togglePM(s,pm='+') { var uqid=uniqid2(), dis=(pm=='+')?'none':'inline';
    <span id=${uqid}T style='display:${dis};'>${s}</span>
   `;
 }
-function QYT_S(O, OS) { 
-  var  iq=0, dbid=O.dbid?O.dbid:'/I/A_YT', a=O.a?O.a:{}, aS=OS.a?OS.a:{}, uqid=uniqid(), oid='AllQS', iq=0; 
+function QYT_S(O, OS, Op={}) { var user = Op.user?Op.user:email, id=Op.id?Op.id:'/I/A_YT'; 
+  var  dbid=O.dbid?O.dbid:id, dbids=dbid+'/users/'+user
+  var iq=0, a=O.a?O.a:{}, aS=OS.a?OS.a:{}, uqid=uniqid(), oid='AllQS', iq=0; 
   $('#'+oid).html(''), $('#nAllQS').html(''), disAQ='none';
   if(a.display =="AllQ") { disAQ='inline'; }
   var Desc0 = O.Desc?O.Desc:''; 
@@ -235,7 +247,7 @@ function QYT_S(O, OS) {
     `;
 
     if(aa.Sketchpad) desc += Sketchpad_Placeholder({uqid:`StudentDesc${i}`, editable:0});
-    if(aa.Sketchpad) desc += Sketchpad_Placeholder({uqid:`StudentDesc${i}S`, editable:1, msg:`My(${copySketch}): `});
+    if(aa.Sketchpad) desc += Sketchpad_Placeholder({uqid:`StudentDesc${i}S`, editable:1, user:user, msg:`My(${copySketch}): `});
 
     
     var videoId = aa.videoId?aa.videoId:'cpaigEYuNEw'; 
@@ -254,17 +266,24 @@ function QYT_S(O, OS) {
     ">${name}</button>`);  
  
     if( (aaS.score || aaS.score===0) && aaS.submitted) score='Score='+QS.a.score+'/'+MaxScore; else score=''; 
-    
+    if(aa.grading == 'self') {
+      var gradb = `Self grade score = <input type=text size=1 onchange="db.doc('${dbids}').update({['Q.${i}.a.score']: $(this).val() }); " />`;   
+    } else var gradb = ''; 
+
     if(!aa.Youtube) {play=''; disQ='inline'; }
+
+    var Soln = (aa.showsoln) ? '<p/><u>Soln:</u>'+IO_DescCKEditor(dbid, `Soln`, O.Soln?O.Soln:'Soln', `${uqid}Soln`,{}) : ''; 
     $('#'+oid).append(` 
-    <br/><span class=dispAllQ id=disp${i} style='display:${disAQ};'>
-       <div align=left  id=${uqid}${i}  class=QDisplay>
-           <span id=${uqid}${i}Q style='display:${disQ};'> ${desc} ${choices}</span>  ${play} ${score}
+    <br/><span class=dispAllQ id=disp${i} style='display:${disAQ};'> 
+       <div align=left  id=${uqid}${i}  class=QDisplay> <div class=mainbar>(<b>A${i}</b>) ${score}, ${gradb}</div>
+           <span id=${uqid}${i}Q style='display:${disQ};'> ${desc} ${choices} ${Soln}</span>  ${play}  
        </div>  
     </span>
   `); 
+
+
     if(aa.Sketchpad) IO_drawingsList({id:dbid, List:`Desc${i}`, uqid:`StudentDesc${i}`, editable:0}); 
-    if(aa.Sketchpad) IO_drawingsList({id:`${dbid}/users/${email}`, List:`Desc${i}`, uqid:`StudentDesc${i}S`, editable:1}); 
+    if(aa.Sketchpad) IO_drawingsList({id:`${dbid}/users/${user}`, List:`Desc${i}`, uqid:`StudentDesc${i}S`, editable:1}); 
 
     
     MathJax.Hub.Queue(["Typeset",MathJax.Hub, `${uqid}${i}Q` ]);
@@ -341,7 +360,7 @@ function AssignActivity(O) {var id=O.id, fn=O.fn, name=O.name, s='', uqid=uniqid
   ">Remove</button>
 
   `;
-  return DropDown(s,'Assign');
+  return DropDown(s,'Assign',  {dpdown:'dblclick'});
 
 }
 function removewhitespace(s) {return s.replace(/\r?\n|\r/g, '').replace(/ /g,''); }
@@ -485,7 +504,7 @@ function QYT(O) {
     else if(a.DescEditor=='textarea')  var desc = IO_TA({id:dbid, k:`Q.${i}.Desc`, v:Desc });
     else var desc = IO_Desc(dbid, `Q.${i}.Desc`, Desc, {eid:`Desc${i}`, editable:1}); 
 
-    var choices = Q_Choices({id:dbid, i:i, Q:Q}); 
+    //var choices = Q_Choices({id:dbid, i:i, Q:Q}); 
 
     var del = ` <button onclick="db_delPKey('${dbid}', 'Q', '${i}', 'renumber'); ">&cross;</button>`; 
     var duplicate = ` <button onclick="db_duplicatePKey('${dbid}', 'Q', '${i}'); ">Duplicate</button>`; 
@@ -517,12 +536,14 @@ function QYT(O) {
   var Display = `
         Youtube <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.Youtube': $(this).prop('checked') }); " ${Youtube}/>
         | Hide <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.hide': $(this).prop('checked')?1:0 }); " ${hide}/>
-  
-      <br/> Retry:<input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.retry': $(this).prop('checked') }); " ${retry}/>
-      | Inactive :<input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.inactive': $(this).prop('checked') }); " ${inactive}/>
+        | Retry:<input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.retry': $(this).prop('checked') }); " ${retry}/>
+        | Inactive :<input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.inactive': $(this).prop('checked') }); " ${inactive}/>
        <br/> Show (Ans <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.showans': $(this).prop('checked') }); " ${showans}/>
        |Soln <input type=checkbox onclick=" db.doc('${dbid}').update({'Q.${i}.a.showsoln': $(this).prop('checked') }); " ${showsoln}/>
        )
+       <br/> Choices <input type=checkbox onclick="db.doc('${dbid}').update({'Q.${i}.a.Choices': $(this).prop('checked') }); " ${a.Choices?'checked':''}/>
+        | Soln <input type=checkbox onclick="db.doc('${dbid}').update({'Q.${i}.a.Soln': $(this).prop('checked') }); " ${a.Soln?'checked':''}/>
+
     `;
 
     var MaxScore = a.MaxScore?a.MaxScore:10;
@@ -543,22 +564,32 @@ function QYT(O) {
 
      var qattr = DropDown(Display+Grade,trippleBar()) + YT +  del + duplicate + Launch; 
      qattr += `<button onclick="MonitorGrade({id:'${dbid}', iq:'${i}', oid:'Grade${i}'});">Monitor</button>`;
-     var qdes = DropDown(DescOptions,'Desc') + desc, qchoice = DropDown(ChoicesOptions,'Choices') + choices; 
+     var qdes = DropDown(DescOptions,'Desc') + desc; 
+     if(a.Choices) var qchoice = DropDown(ChoicesOptions,'Choices') + Q_Choices({id:dbid, i:i, Q:Q}); else var qchoice = ''; 
 
     if(a.Sketchpad) qdes += Sketchpad_Placeholder({uqid:`Desc${i}`, editable:1}); // Place holder for Sketpad
     
     var Grade = `<div id=Grade${i}></div>`; 
     var toggleCh= `<button onclick=" var t=$('.QT${i}${uqid} .toggleB').text(); db.doc('${dbid}').update({['Q.${i}.a.toggle']:t});">&#128204;</button>`;
 
-    var sDescCh = toggleCh + `<span class=QT${i}${uqid}>`+togglePM('<br/>'+qdes+qchoice,a.toggle?a.toggle:'-')+'</span>'; 
+    if(a.Soln) { var Soln = '<p/><b><u>Soln</u></b>'+IO_DescCKEditor(dbid, `Soln`, O.Soln?O.Soln:'Soln', `${uqid}Soln`,{});  } else var Soln=''; 
 
-    $('#'+oid).append(`<hr/>Q${i})<span class=QDisplay1>${qattr} ${sDescCh} </span> ${Grade}`); 
+    var sDescCh = toggleCh + `<span class=QT${i}${uqid}>`+togglePM('<br/>'+ qdes + qchoice + Soln, a.toggle?a.toggle:'-')+'</span>'; 
+
+
+
+    $('#'+oid).append(`<hr/>A${i})<span class=QDisplay1>${qattr} ${sDescCh} </span> ${Grade}  `); 
 
     if(a.Sketchpad) IO_drawingsList({id:dbid, List:`Desc${i}`, uqid:`Desc${i}`}); 
 
 
     iq++; 
   }
+
+  
+
+
+
   MathJax.Hub.Queue(["Typeset",MathJax.Hub, 'Desc${uqid}' ]);
 
   $('#'+oid).append(`
@@ -578,10 +609,13 @@ function IO_SketchpadMenu(O) {
    s +=`<button class=B${uqid} onclick=" 
      $('#C${uqid}').show(); $('#Options${uqid}').show(); ToggleColor($(this));
      var data =$('#sketchpad${uqid}').data(); data.dbid = '${id}'; 
-     db.doc('${id}').get().then(doc=>{ //onSnapshot(function(doc) { //
-      if(doc.data()) {var d=doc.data(); d.element='#sketchpad${uqid}'; sketchpads['${uqid}']=new Sketchpad(d); }
+     db.doc('${id}').onSnapshot(function(doc) { //onSnapshot(function(doc) { //get().then(doc=>{
+      var source = doc.metadata.hasPendingWrites ? 'Local' : 'Server';
+      if(doc.data()) {
+        if(source=='Server') {var d=doc.data(); d.element='#sketchpad${uqid}'; sketchpads['${uqid}']=new Sketchpad(d); }
+      }
       else sketchpads['${uqid}']= new Sketchpad({element: '#sketchpad${uqid}', width: ${w},   height: ${h}, });
-      var CLIPBOARD = new CLIPBOARD_CLASS('sketchpad${uqid}', true);
+      //var CLIPBOARD = new CLIPBOARD_CLASS('sketchpad${uqid}', true);
       
      }); 
     ">${iq}</button>
@@ -599,20 +633,33 @@ function IO_SketchpadMenu(O) {
   <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">Save</button>
   <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">AutoSave</button>
   `;
-  var Save = DropDown(SaveO,'Save');
+  //var Save = DropDown(SaveO,'Save');
+  var Save = ` <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">Save</button>`;
 
+  var color = `
+    <span style="background-color:#000000;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#000000'; "  /></span>
+    <span style="background-color:#ff0000;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#ff0000'; "  /></span>
+    <span style="background-color:#00ff00;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#00ff00'; "  /></span>
+    <span style="background-color:#0000ff;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#0000ff'; "  /></span>
+    <span style="background-color:#ffffff;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#ffffff'; "  /></span>
+  `;
   if(O.editable) s += `
    <button onclick="
      db.doc('${dbid}/drawing/${newid}').set(sketchpads['${uqid}'].toObject()).then(()=>{
       db.doc('${ListID}').update({['ids.${iq}']:'${newid}'});
      });
     ">Duplicate</button>
-   ${Save}
    <button onclick=" sketchpads['${uqid}'].redo(); ">&circlearrowright;</button>
    <button onclick=" sketchpads['${uqid}'].undo(); ">&circlearrowleft;</button>
-   <button onclick=" sketchpads['${uqid}'].clear(); ">Clear</button>
+   <!-- <button onclick=" sketchpads['${uqid}'].clear(); ">Clear ${uqid}</button> -->
+   <button onclick=" 
+     var sk=sketchpads['${uqid}'].toObject();  
+     sketchpads['${uqid}']=new Sketchpad({element: '#sketchpad${uqid}', width: sk.width,   height: sk.height,});
+    ">Clear</button>
    <input type=color onchange="  sketchpads['${uqid}'].color = $(this).val(); " />
+   ${color}
    <input type=range value=3 min=1 max=20 onchange="  sketchpads['${uqid}'].penSize = $(this).val(); ">
+   ${Save}
 `;
   return s;
 }
