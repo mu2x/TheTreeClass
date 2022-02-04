@@ -225,7 +225,7 @@ function QYT_S(O, OS, Op={}) { var user = Op.user?Op.user:email, id=Op.id?Op.id:
 
   $('#'+oid).append(togglePM(Desc0, a.toggle?a.toggle:'-')); 
  
-  var TotalScore= (aS.TotalScore || aS.TotalScore===0) ? ' (Score='+aS.TotalScore+' %)':''; 
+  var TotalScore= (aS.TotalScore || aS.TotalScore===0) ? ` (Score=${aS.TotalScore}/${aS.TMaxScore}=${aS.TotalScoreP}%)`:''; 
 
   for (var i in O.Q) { var Q=O.Q[i], Desc=Q.Desc?Q.Desc:'Desc'; iq++; 
 
@@ -267,7 +267,9 @@ function QYT_S(O, OS, Op={}) { var user = Op.user?Op.user:email, id=Op.id?Op.id:
  
     if( (aaS.score || aaS.score===0) && aaS.submitted) score='Score='+QS.a.score+'/'+MaxScore; else score=''; 
     if(aa.grading == 'self') {
-      var gradb = `Self grade score = <input type=text size=1 onchange="db.doc('${dbids}').update({['Q.${i}.a.score']: $(this).val() }); " />`;   
+      var gradb = `Self grade <input type=text size=1 value=${aaS.score?aaS.score:0} onchange="db.doc('${dbids}').update({['Q.${i}.a.score']: $(this).val() }); " />/${MaxScore}`;   
+    } else if(aa.grading == 'manual' && priv.admin) {
+      var gradb = `Manual grade <input type=text size=1 value=${aaS.score?aaS.score:0} onchange="db.doc('${dbids}').update({['Q.${i}.a.score']: $(this).val() }); " />/${MaxScore}`;   
     } else var gradb = ''; 
 
     if(!aa.Youtube) {play=''; disQ='inline'; }
@@ -364,12 +366,7 @@ function AssignActivity(O) {var id=O.id, fn=O.fn, name=O.name, s='', uqid=uniqid
 
 }
 function removewhitespace(s) {return s.replace(/\r?\n|\r/g, '').replace(/ /g,''); }
-function AssignGrade(O) { if(debug) console.log('AssignGrade(O):', O); 
- db.doc(O.id+'/users/OverallScore').get().then(doc=>{ if(!doc.exists) db.doc(O.id+'/users/OverallScore').set({},{merge:true}); })
- db.doc(O.id).get().then(doc=>{ var d=doc.data(), users=d.assigned.email; 
-   for(var i in users) {  GradeOne(O.id, d, users[i], i);    }
- })
-}
+
 function MonitorGrade(O) { var iq=O.iq; 
   console.log('AssignGrade(O):', O); 
 
@@ -441,12 +438,22 @@ function getScoreCheckbox(Ch,ChS) {
   if(iwrong>iright) score=0; else score = (iright-iwrong)/icMax; 
   return score;
 }
+
+function AssignGrade(O) { if(debug) console.log('AssignGrade(O):', O); 
+ db.doc(O.id+'/users/OverallScore').get().then(doc=>{ if(!doc.exists) db.doc(O.id+'/users/OverallScore').set({},{merge:true}); })
+ db.doc(O.id).get().then(doc=>{ var d=doc.data(), users=d.assigned.email; 
+   for(var i in users) {  if(debug) { if(!(users[i]=='vkumar@utep.edu')) continue; }
+     GradeOne(O.id, d, users[i], i);    
+    }
+ })
+}
+
 function GradeOne(id, d, user, iuser) { var idS=id+'/users/'+user, QQ=d.Q; 
     db.doc(idS).get().then(doc=>{ if(doc.data()) {var dS=doc.data(); } else { db.doc(idS).set({},{merge:true}); dS={}; }
       var  QQS=dS.Q?dS.Q:{}, TScore=0, TMaxScore=0; 
-       for (var iq in QQ) { var Q=QQ[iq], QS=QQS[iq]?QQS[iq]:{}, a=Q.a, score=0, aS=QS.a?QS.a:{}, MaxScore=a.MaxScore?a.MaxScore:10; 
+       for (var iq in QQ) { var Q=QQ[iq], QS=QQS[iq]?QQS[iq]:{}, a=Q.a, aS=QS.a?QS.a:{}, score=aS.hasOwnProperty('score')?1*aS.score:0, MaxScore=a.MaxScore?a.MaxScore:10; 
         TMaxScore += 1*MaxScore; 
-        if(QS.a && a.grading=='auto') { 
+        if(QS.a && a.grading=='auto') {  score = 0; 
           if(a.Type=='radio') { if(a.checked===aS.checked) score=1*MaxScore; 
           } else  { score = Math.round(getScoreCheckbox(Q.Choices, QS.Choices)*MaxScore);  }
           db.doc(idS).update({[`Q.${iq}.a.score`]:score})
@@ -463,8 +470,10 @@ function GradeOne(id, d, user, iuser) { var idS=id+'/users/'+user, QQ=d.Q;
         db.doc(id+'/users/OverallScore').set({ Q:sdata }, {merge:true} )
         TScore += score; 
        }
-
-       db.doc(idS).update({[`a.TotalScore`]:Math.round(100*TScore/TMaxScore) })
+       
+       //db.doc(idS).update({[`a.TotalScore`]:Math.round(100*TScore/TMaxScore) })
+       db.doc(idS).set({a:{TotalScore:TScore,TMaxScore:TMaxScore, TotalScoreP: Math.round(100*TScore/TMaxScore) }},{merge:true});  
+       //console.log(idS,{a:{TotalScore:TScore,TMaxScore:TMaxScore, TotalScoreP: Math.round(100*TScore/TMaxScore) }});
        //db.doc(id+'/users/OverallScore').update({[`email.${u}.TotalScore`]: Math.round(100*TScore/TMaxScore) } )
 
        //db.doc(id+'/users/OverallScore').update({[`Q.TotalScore.${u}`]: Math.round(100*TScore/TMaxScore) } )
