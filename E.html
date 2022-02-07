@@ -238,7 +238,7 @@ function QYT_S(O, OS, Op={}) { var user = Op.user?Op.user:email, id=Op.id?Op.id:
     if(aa.hide) continue;
     var play=''; 
     var submitted= (aaS.submitted )?'disabled=disabled':'', disQ=(aaS.submitted )?'inline':'none';
-    var choices = Q_Choices_S({id:dbid, i:i, Q:Q}, {Q:QS}); 
+    var choices = aa.Choices? Q_Choices_S({id:dbid, i:i, Q:Q}, {Q:QS}) : ''; 
     var desc = IO_Desc(dbid, `Q.${i}.Desc`, Q.Desc?Q.Desc:'Desc', {editable:0});
 
     var copySketch = `<button onclick=" var d2=sketchpads['StudentDesc${i}'].toObject(); 
