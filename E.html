@@ -732,7 +732,7 @@ if(editable) {var cursor='allowed', pointerevents="auto";} else {var cursor='not
 
 // Converts image to canvas; returns new canvas element
 function CameraUpload(O) { 
-var s='', cid=O.cid?O.cid:'canvasC', w=O.w?O.w:640, h=O.h?O.h:480,facing=O.facing?O.facing:'user'; 
+var s='', cid=O.cid?O.cid:'canvasC', w=O.w?O.w:640, h=O.h?O.h:480,facing=O.facing?O.facing:'environment'; 
 $('.Screen5').show();
   s += `
 <video style='display:none;' id="video" width="${w}" height="${h}" autoplay></video>
@@ -743,11 +743,11 @@ $('.Screen5').show();
 `; 
 
  $('#Screen5M').html(s);
- OpenCamera({cid:cid, facing:facing});
+ OpenCamera({cid:cid});
 }
 function OpenCamera(O) { var s='', cid=O.cid?O.cid:'canvasC', vid=O.vid?O.vid:'video'; 
   var video = document.getElementById(vid); 
-  var facing = O.facing?O.facing:'user';
+  var facing = O.facing?O.facing:'environment';
   $('#'+cid).hide(); $('#'+vid).show(); 
   const constraints = { advanced: [{ facingMode: facing }] };
   if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
