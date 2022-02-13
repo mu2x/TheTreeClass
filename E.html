@@ -735,11 +735,13 @@ function CameraUpload(O) {
 var s='', cid=O.cid?O.cid:'canvasC', w=O.w?O.w:640, h=O.h?O.h:480,facing=O.facing?O.facing:'environment'; 
 $('.Screen5').show();
   s += `
+  <center>
 <video style='display:none;' id="video" width="${w}" height="${h}" autoplay></video>
 <br/><button onclick="Video2Canvas({cid:'${cid}',vid:'video',facing:'${facing}'}); $('.Screen5').hide(); ">Capture</button>
 <button data-facing=${facing} onclick=" 
  var d=$(this).data(); d.facing = (d.facing=='user')?'environment':'user'; $(this).text(d.facing);
  OpenCamera({cid:'${cid}',facing:d.facing});  ">${facing}</button>
+ </center>
 `; 
 
  $('#Screen5M').html(s);
@@ -749,7 +751,7 @@ function OpenCamera(O) { var s='', cid=O.cid?O.cid:'canvasC', vid=O.vid?O.vid:'v
   var video = document.getElementById(vid); 
   var facing = O.facing?O.facing:'environment';
   $('#'+cid).hide(); $('#'+vid).show(); 
-  const constraints = { advanced: [{ facingMode: facing }] };
+  var constraints = { advanced: [{ facingMode: facing }] };
   if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ video: constraints }).then(function(stream) {
         video.srcObject = stream;
