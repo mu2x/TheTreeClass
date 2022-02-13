@@ -65,7 +65,7 @@ body {padding: 2px 2px 2px 5px; font-size: large;}
 
 <html>
   <body>
-    <table width=100% height=90% class=Screen5>
+    <table width=100% height=95% class=Screen5>
       <tr><td valign=top class=L></td>
          <td id=Screen5M valign=top width=100% class=M></td>
          <td valign=top class=R><button onclick=" $('.Screen5').hide();">&cross;</button></td>
@@ -110,6 +110,7 @@ window.addEventListener('load', function() {
 });
 
 function trippleBar(o='') {return `<span style='font-size:16px; padding: 2px 2px;'>&equiv;</span>`; }
+
 
 function SelectAUser(id,users, eid=null) { var s=''; 
   for(var i in users) { var user = users[i]; 
@@ -263,10 +264,10 @@ function QYT_S(O, OS, Op={}) { var user = Op.user?Op.user:email, id=Op.id?Op.id:
         var e=$('#disp${i}');  $('.dispAllQ').hide(); e.show(); ToggleColor($(this));
         //if(e.css('display')=='none') {  $(this).css('background-color','yellow');  e.show();
        // } else { $(this).css('background-color','');  e.hide(); }
-    ">A${name}</button>`);  
+    ">${name}</button>`);  
  
     if( (aaS.score || aaS.score===0) && aaS.submitted) score='Score='+QS.a.score+'/'+MaxScore; else score=''; 
-    if(aa.grading == 'self' && aaS.submitted) {
+    if(aa.grading == 'self') {
       var gradb = `Self grade <input type=text size=1 value=${aaS.score?aaS.score:0} onchange="db.doc('${dbids}').update({['Q.${i}.a.score']: $(this).val() }); " />/${MaxScore}`;   
     } else if(aa.grading == 'manual' && priv.admin) {
       var gradb = `Manual grade <input type=text size=1 value=${aaS.score?aaS.score:0} onchange="db.doc('${dbids}').update({['Q.${i}.a.score']: $(this).val() }); " />/${MaxScore}`;   
@@ -274,7 +275,7 @@ function QYT_S(O, OS, Op={}) { var user = Op.user?Op.user:email, id=Op.id?Op.id:
 
     if(!aa.Youtube) {play=''; disQ='inline'; }
 
-    var Soln = (aa.showsoln) ? ('<p/><u>Soln:</u>'+(Q.Soln?Q.Soln:'Soln')): ''; 
+    var Soln = (aa.showsoln) ? '<p/><u>Soln:</u>'+IO_DescCKEditor(dbid, `Soln`, O.Soln?O.Soln:'Soln', `${uqid}Soln`,{}) : ''; 
     $('#'+oid).append(` 
     <br/><span class=dispAllQ id=disp${i} style='display:${disAQ};'> 
        <div align=left  id=${uqid}${i}  class=QDisplay> <div class=mainbar>(<b>A${i}</b>) ${score}, ${gradb}</div>
@@ -581,7 +582,7 @@ function QYT(O) {
     var Grade = `<div id=Grade${i}></div>`; 
     var toggleCh= `<button onclick=" var t=$('.QT${i}${uqid} .toggleB').text(); db.doc('${dbid}').update({['Q.${i}.a.toggle']:t});">&#128204;</button>`;
 
-    if(a.Soln) { var Soln = '<p/><b><u>Soln</u></b>'+IO_DescCKEditor(dbid, `Q.${i}.Soln`, Q.Soln?Q.Soln:'Soln', `${uqid}${i}Soln`,{});  } else var Soln=''; 
+    if(a.Soln) { var Soln = '<p/><b><u>Soln</u></b>'+IO_DescCKEditor(dbid, `Soln`, O.Soln?O.Soln:'Soln', `${uqid}Soln`,{});  } else var Soln=''; 
 
     var sDescCh = toggleCh + `<span class=QT${i}${uqid}>`+togglePM('<br/>'+ qdes + qchoice + Soln, a.toggle?a.toggle:'-')+'</span>'; 
 
@@ -607,23 +608,8 @@ function QYT(O) {
   `); 
 }
 
-var sketchpads={}, image=new Image();
+var sketchpads={};
 
-function dbimg2canvas(id,cid) { 
-  db.doc(id).get().then(docimg=>{ 
-    if(docimg.exists) {
-      image.src =docimg.data().png; image.width=640; image.height=480;
-      img2canvas(image,cid); 
-      //png2canvas(docimg.data().png, cid); 
-    }
-      
-       });
-}
-function png2canvas(image,cid, w=640, h=480) { 
-        var canvas = document.getElementById(cid); 
-        var ctx=canvas.getContext('2d'); 
-        ctx.drawImage(image,0,0,canvas.width,canvas.height);
-}
 function IO_SketchpadMenu(O) {     
   var dbid=O.id, ids=O.ids, uqid=O.uqid, d=O.d, ids=d.ids?d.ids:[]; 
   var ListID=dbid+'/drawing/'+(O.ListFile?O.ListFile:'List'); 
@@ -633,28 +619,15 @@ function IO_SketchpadMenu(O) {
    s +=`<button class=B${uqid} onclick=" 
      $('#C${uqid}').show(); $('#Options${uqid}').show(); ToggleColor($(this));
      var data =$('#sketchpad${uqid}').data(); data.dbid = '${id}'; 
-     db.doc('${id}.png').get().then(docimg=>{  
-
-       if(docimg.exists) { image.src =docimg.data().png;  png2canvas(image, 'sketchpad${uqid}' );       }
-
-       db.doc('${id}').onSnapshot(function(doc) { //onSnapshot(function(doc) { //get().then(doc=>{
-        var source = doc.metadata.hasPendingWrites ? 'Local' : 'Server';
-        if(doc.data()) {
-          if(source=='Server') {var d=doc.data(); d.element='#sketchpad${uqid}'; sketchpads['${uqid}']=new Sketchpad(d); }
-        }
-        else sketchpads['${uqid}']= new Sketchpad({element: '#sketchpad${uqid}', width: ${w},   height: ${h}, });
-        //var CLIPBOARD = new CLIPBOARD_CLASS('sketchpad${uqid}', true);
+     db.doc('${id}').onSnapshot(function(doc) { //onSnapshot(function(doc) { //get().then(doc=>{
+      var source = doc.metadata.hasPendingWrites ? 'Local' : 'Server';
+      if(doc.data()) {
+        if(source=='Server') {var d=doc.data(); d.element='#sketchpad${uqid}'; sketchpads['${uqid}']=new Sketchpad(d); }
+      }
+      else sketchpads['${uqid}']= new Sketchpad({element: '#sketchpad${uqid}', width: ${w},   height: ${h}, });
+      //var CLIPBOARD = new CLIPBOARD_CLASS('sketchpad${uqid}', true);
       
-       }); 
-     })
-    ">${iq}</button>
-    `;
-    s +=`<button class=B${uqid} onclick=" 
-     $('#C${uqid}').show(); $('#Options${uqid}').show(); ToggleColor($(this));
-     var data =$('#sketchpad${uqid}').data(); data.dbid = '${id}'; 
-     db.doc('${id}.png').get().then(docimg=>{  
-       if(docimg.exists) { image.src =docimg.data().png;  png2canvas(image, 'sketchpad${uqid}', '${w}', '${h}' );       } 
-     })
+     }); 
     ">${iq}</button>
     `;
   }
@@ -671,13 +644,7 @@ function IO_SketchpadMenu(O) {
   <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">AutoSave</button>
   `;
   //var Save = DropDown(SaveO,'Save');
-  var Save = ` ${uqid} <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">Save</button>`;
-   Save += `<button onclick=" var e = $('#sketchpad${uqid}'), dbid=e.data().dbid, dbidImg = dbid+'.png'; 
-     db.doc(dbid).set(sketchpads['${uqid}'].toObject());
-     db.doc(dbidImg).set({png: document.getElementById('sketchpad${uqid}').toDataURL('image/png') });
-     if(debug) console.log(dbid);
-  ">Save</button>`;
-
+  var Save = ` <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">Save</button>`;
 
   var color = `
     <span style="background-color:#000000;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#000000'; "  /></span>
@@ -718,10 +685,9 @@ function IO_drawingsList(O) {  var id=O.id, oid='menu'+O.uqid, List=O.List;
 
 function Sketchpad_Placeholder(O) { 
   var uqid=O.uqid, menu=O.menu?O.menu:'', editable=O.editable?O.editable:0, msg=O.msg?O.msg:'Sketches: '; 
-  var Upload = `<button onclick="CameraUpload({cid:'sketchpad${uqid}'});">&#128247; </button> `;
 if(editable) {var cursor='allowed', pointerevents="auto";} else {var cursor='not-allowed', pointerevents="none"; }
   return   ` 
-  <table border=0><tr><td align=left>${msg} <span id=menu${uqid}>${menu}</span>${Upload}</td></tr><tr>
+  <table border=0><tr><td align=left>${msg} <span id=menu${uqid}>${menu}</span></td></tr><tr>
     <td>
       <div id=C${uqid} class=SketchpadContainer style='cursor:${cursor}; pointer-events:${pointerevents}; display:none; width: 700,  height: 600'> 
        <canvas class="sketchpad" id="sketchpad${uqid}"></canvas>
@@ -729,55 +695,6 @@ if(editable) {var cursor='allowed', pointerevents="auto";} else {var cursor='not
     </td>
   </tr></table>`;
 }
-
-// Converts image to canvas; returns new canvas element
-function CameraUpload(O) { 
-var s='', cid=O.cid?O.cid:'canvasC', w=O.w?O.w:640, h=O.h?O.h:480,facing=O.facing?O.facing:'user'; 
-$('.Screen5').show();
-  s += `
-<video style='display:none;' id="video" width="${w}" height="${h}" autoplay></video>
-<br/><button onclick="Video2Canvas({cid:'${cid}',vid:'video',facing:'${facing}'}); $('.Screen5').hide(); ">Capture</button>
-<button data-facing=${facing} onclick=" 
- var d=$(this).data(); d.facing = (d.facing=='user')?'environment':'user'; $(this).text(d.facing);
- OpenCamera({cid:'${cid}',facing:d.facing});  ">${facing}</button>
-`; 
-
- $('#Screen5M').html(s);
- OpenCamera({cid:cid, facing:facing});
-}
-function OpenCamera(O) { var s='', cid=O.cid?O.cid:'canvasC', vid=O.vid?O.vid:'video'; 
-  var video = document.getElementById(vid); 
-  var facing = O.facing?O.facing:'user';
-  $('#'+cid).hide(); $('#'+vid).show(); 
-  const constraints = { advanced: [{ facingMode: facing }] };
-  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: constraints }).then(function(stream) {
-        video.srcObject = stream;
-        video.play();
-    });
-  }
-}
-
-
-
-function Video2Canvas(O) { var cid=O.cid?O.cid:'canvasC', vid=O.vid?O.vid:'video'; 
-  $('#'+cid).show(); $('#'+vid).hide(); 
-  var canvas = document.getElementById(cid), context = canvas.getContext('2d'), video = document.getElementById(vid);
-	context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  video.srcObject.getVideoTracks().forEach(track => track.stop());
-
-}
-function img2canvas(image, eid='canvas') {
-	var canvas = document.getElementById(eid); //document.createElement("canvas");
-	canvas.width = image.width; canvas.height = image.height;
-	canvas.getContext("2d").drawImage(image, 0, 0, canvas.width,  canvas.height);
-	return canvas;
-}
-function canvas2img(canvas) {	var image = new Image(); 	image.src = canvas.toDataURL("image/png"); 	return image; }
-//--------------
-
-
-
 function DropDown(s,k,O={}) { var uqid=uniqid(), dpdown=(O.dpdown)?O.dpdown:'dpdown'; 
   return ` <div class="${dpdown}"><span onclick=" $('#${uqid}').toggle();">${k}</span><div id=${uqid} class="dpdown-content"> ${s} </div></div>`; 
 }
@@ -794,6 +711,23 @@ function IO_Desc(id,k,v, O={}) { var eid=O.eid?O.eid:uniqid();
 }
 
 
+// Converts image to canvas; returns new canvas element
+function CameraUpload() { var s=''; 
+
+s = `<video id="video" width="640" height="480" autoplay></video>
+<button id="snap">Snap Photo</button>
+<canvas id="canvasC" width="640" height="480"></canvas>
+`; 
+}
+
+function img2canvas(image, eid='canvas') {
+	var canvas = document.getElementById(eid); //document.createElement("canvas");
+	canvas.width = image.width; canvas.height = image.height;
+	canvas.getContext("2d").drawImage(image, 0, 0);
+	return canvas;
+}
+function canvas2img(canvas) {	var image = new Image(); 	image.src = canvas.toDataURL("image/png"); 	return image; }
+//--------------
 
 function Q_Choices(O) { var iq=0, i=O.i, id=O.id, oid=`Choices${i}`, a0=O.Q.a?O.Q.a:{}, uqid=uniqid(); 
    var type=a0.Type?a0.Type:'checkbox';
