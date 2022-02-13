@@ -732,7 +732,7 @@ if(editable) {var cursor='allowed', pointerevents="auto";} else {var cursor='not
 
 // Converts image to canvas; returns new canvas element
 function CameraUpload(O) { 
-var s='', cid=O.cid?O.cid:'canvasC', w=O.w?O.w:640, h=O.h?O.h:480,facing=O.facing?O.facing:'environment'; 
+var s='', cid=O.cid?O.cid:'canvasC', vid=O.vid?O.vid:'video', w=O.w?O.w:640, h=O.h?O.h:480,facing=O.facing?O.facing:'environment'; 
 $('.Screen5').show();
   s += `
   <center>
@@ -740,7 +740,7 @@ $('.Screen5').show();
 <br/><button onclick="Video2Canvas({cid:'${cid}',vid:'video',facing:'${facing}'}); $('.Screen5').hide(); ">Capture</button>
 <button data-facing=${facing} onclick=" 
  var d=$(this).data(); d.facing = (d.facing=='user')?'environment':'user'; $(this).text(d.facing);
- OpenCamera({cid:'${cid}',facing:d.facing});  ">${facing}</button>
+ stopVideo('${vid}'); OpenCamera({cid:'${cid}',facing:d.facing});  ">${facing}</button>
  </center>
 `; 
 
@@ -761,7 +761,9 @@ function OpenCamera(O) { var s='', cid=O.cid?O.cid:'canvasC', vid=O.vid?O.vid:'v
 }
 
 
-
+function stopVideo(vid) { var video = document.getElementById(vid); 
+  video.srcObject.getVideoTracks().forEach(track => track.stop());
+}
 function Video2Canvas(O) { var cid=O.cid?O.cid:'canvasC', vid=O.vid?O.vid:'video'; 
   $('#'+cid).show(); $('#'+vid).hide(); 
   var canvas = document.getElementById(cid), context = canvas.getContext('2d'), video = document.getElementById(vid);
