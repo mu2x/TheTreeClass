@@ -619,10 +619,14 @@ function dbimg2canvas(id,cid) {
       
        });
 }
-function png2canvas(image,cid, w=640, h=480) { 
+function png2canvas(image,cid, s=null) { 
+    setTimeout(function() {
         var canvas = document.getElementById(cid); 
         var ctx=canvas.getContext('2d'); 
         ctx.drawImage(image,0,0,canvas.width,canvas.height);
+        if(s) s.redraw( s.strokes); 
+      }, 100);
+
 }
 function IO_SketchpadMenu(O) {     
   var dbid=O.id, ids=O.ids, uqid=O.uqid, d=O.d, ids=d.ids?d.ids:[]; 
@@ -633,14 +637,17 @@ function IO_SketchpadMenu(O) {
    s +=`<button class=B${uqid} onclick=" 
      $('#C${uqid}').show(); $('#Options${uqid}').show(); ToggleColor($(this));
      var data =$('#sketchpad${uqid}').data(); data.dbid = '${id}'; 
-     db.doc('${id}.png').get().then(docimg=>{  
+     db.doc('${id}.png').get().then(docimg=>{  var bgimg=false; 
 
-       if(docimg.exists) { image.src =docimg.data().png;  png2canvas(image, 'sketchpad${uqid}' );       }
+       if(docimg.exists) { bgimg=true; image.src =docimg.data().png;      }
 
        db.doc('${id}').onSnapshot(function(doc) { //onSnapshot(function(doc) { //get().then(doc=>{
         var source = doc.metadata.hasPendingWrites ? 'Local' : 'Server';
         if(doc.data()) {
-          if(source=='Server') {var d=doc.data(); d.element='#sketchpad${uqid}'; sketchpads['${uqid}']=new Sketchpad(d); }
+          if(source=='Server') {var d=doc.data(); d.element='#sketchpad${uqid}'; 
+            sketchpads['${uqid}']=new Sketchpad(d); 
+            if(bgimg) { png2canvas(image, 'sketchpad${uqid}',  sketchpads['${uqid}'] );   }
+          }
         }
         else sketchpads['${uqid}']= new Sketchpad({element: '#sketchpad${uqid}', width: ${w},   height: ${h}, });
         //var CLIPBOARD = new CLIPBOARD_CLASS('sketchpad${uqid}', true);
@@ -649,49 +656,46 @@ function IO_SketchpadMenu(O) {
      })
     ">${iq}</button>
     `;
-    s +=`<button class=B${uqid} onclick=" 
-     $('#C${uqid}').show(); $('#Options${uqid}').show(); ToggleColor($(this));
-     var data =$('#sketchpad${uqid}').data(); data.dbid = '${id}'; 
-     db.doc('${id}.png').get().then(docimg=>{  
-       if(docimg.exists) { image.src =docimg.data().png;  png2canvas(image, 'sketchpad${uqid}', '${w}', '${h}' );       } 
-     })
-    ">${iq}</button>
-    `;
+    
   }
   var addB = `
-   <br/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:400, h:400}, {merge:true});">Small (400x400)</button>
-   </br><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:800, h:600}, {merge:true});">Normal (800x600)</button>
-   <br/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:1400, h:600}, {merge:true});">Large (1400x600)</button>
-   <br/><button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:1200, h:600}, {merge:true});">Laptop (1150x600)</button>
+   <button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:400, h:400}, {merge:true});">Small (400x400)</button>
+   <button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:800, h:600}, {merge:true});">Normal (800x600)</button>
+   <button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:1400, h:600}, {merge:true});">Large (1400x600)</button>
+   <button onclick="db.doc('${ListID}').set({ids:{'${iq}':'${newid}'}, w:1200, h:600}, {merge:true});">Laptop (1150x600)</button>
 `; 
-  if(O.editable) s += DropDown(addB,'+'); 
+  //if(O.editable) s += DropDown(addB,'+',{dpdown:'dblclick'}); 
 
   var SaveO = `
   <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">Save</button>
   <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">AutoSave</button>
   `;
   //var Save = DropDown(SaveO,'Save');
-  var Save = ` ${uqid} <button onclick="db.doc($('#sketchpad${uqid}').data().dbid).set(sketchpads['${uqid}'].toObject());">Save</button>`;
-   Save += `<button onclick=" var e = $('#sketchpad${uqid}'), dbid=e.data().dbid, dbidImg = dbid+'.png'; 
+  var Save  = `<button onclick=" var e = $('#sketchpad${uqid}'), dbid=e.data().dbid, dbidImg = dbid+'.png'; 
      db.doc(dbid).set(sketchpads['${uqid}'].toObject());
-     db.doc(dbidImg).set({png: document.getElementById('sketchpad${uqid}').toDataURL('image/png') });
+     if( $('#SaveInput${uqid}').prop('checked')) db.doc(dbidImg).set({png: document.getElementById('sketchpad${uqid}').toDataURL('image/png') });
      if(debug) console.log(dbid);
-  ">Save</button>`;
+  ">Save</button>
+   (<input id=SaveInput${uqid} type=checkbox />img)
+  `;
 
 
   var color = `
-    <span style="background-color:#000000;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#000000'; "  /></span>
-    <span style="background-color:#ff0000;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#ff0000'; "  /></span>
-    <span style="background-color:#00ff00;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#00ff00'; "  /></span>
-    <span style="background-color:#0000ff;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#0000ff'; "  /></span>
-    <span style="background-color:#ffffff;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#ffffff'; "  /></span>
+    <span style="background-color:#000000;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#000000'; sketchpads['${uqid}'].penSize= $('#pensize${uqid}').val(); "  /></span>
+    <span style="background-color:#ff0000;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#ff0000'; sketchpads['${uqid}'].penSize= $('#pensize${uqid}').val(); "  /></span>
+    <span style="background-color:#00ff00;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#00ff00'; sketchpads['${uqid}'].penSize= $('#pensize${uqid}').val(); "  /></span>
+    <span style="background-color:#0000ff;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#0000ff'; sketchpads['${uqid}'].penSize= $('#pensize${uqid}').val(); "  /></span>
+    <span style="background-color:#ffffff;"><input name=cp${uqid} type=radio  onclick="sketchpads['${uqid}'].color= '#ffffff'; sketchpads['${uqid}'].penSize=30;"  /></span>
   `;
-  if(O.editable) s += `
+
+  if(O.editable) var Duplicate = `
    <button onclick="
      db.doc('${dbid}/drawing/${newid}').set(sketchpads['${uqid}'].toObject()).then(()=>{
       db.doc('${ListID}').update({['ids.${iq}']:'${newid}'});
      });
     ">Duplicate</button>
+    `;
+  if(O.editable) var more = `
    <button onclick=" sketchpads['${uqid}'].redo(); ">&circlearrowright;</button>
    <button onclick=" sketchpads['${uqid}'].undo(); ">&circlearrowleft;</button>
    <!-- <button onclick=" sketchpads['${uqid}'].clear(); ">Clear ${uqid}</button> -->
@@ -700,10 +704,10 @@ function IO_SketchpadMenu(O) {
      sketchpads['${uqid}']=new Sketchpad({element: '#sketchpad${uqid}', width: sk.width,   height: sk.height,});
     ">Clear</button>
    <input type=color onchange="  sketchpads['${uqid}'].color = $(this).val(); " />
-   ${color}
-   <input type=range value=3 min=1 max=20 onchange="  sketchpads['${uqid}'].penSize = $(this).val(); ">
-   ${Save}
+   <input type=range id=pensize${uqid} value=2 min=1 max=20 onchange="  sketchpads['${uqid}'].penSize = $(this).val(); ">
 `;
+  if(O.editable) s +=  Duplicate  + DropDown(addB+more,'+',{dpdown:'dblclick'}) + color + Save; 
+
   return s;
 }
 
@@ -718,7 +722,7 @@ function IO_drawingsList(O) {  var id=O.id, oid='menu'+O.uqid, List=O.List;
 
 function Sketchpad_Placeholder(O) { 
   var uqid=O.uqid, menu=O.menu?O.menu:'', editable=O.editable?O.editable:0, msg=O.msg?O.msg:'Sketches: '; 
-  var Upload = `<button onclick="CameraUpload({cid:'sketchpad${uqid}'});">&#128247; </button> `;
+  var Upload = editable?`<button onclick="CameraUpload({cid:'sketchpad${uqid}'});">&#128247; </button> `:'';
 if(editable) {var cursor='allowed', pointerevents="auto";} else {var cursor='not-allowed', pointerevents="none"; }
   return   ` 
   <table border=0><tr><td align=left>${msg} <span id=menu${uqid}>${menu}</span>${Upload}</td></tr><tr>
@@ -782,7 +786,7 @@ function canvas2img(canvas) {	var image = new Image(); 	image.src = canvas.toDat
 
 
 
-function DropDown(s,k,O={}) { var uqid=uniqid(), dpdown=(O.dpdown)?O.dpdown:'dpdown'; 
+function DropDown(s,k,O={}) { var uqid=uniqid2(), dpdown=(O.dpdown)?O.dpdown:'dpdown'; 
   return ` <div class="${dpdown}"><span onclick=" $('#${uqid}').toggle();">${k}</span><div id=${uqid} class="dpdown-content"> ${s} </div></div>`; 
 }
 
