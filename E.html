@@ -59,7 +59,10 @@ body {padding: 2px 2px 2px 5px; font-size: large;}
 <script src="functions.js"></script>
   <script type="text/javascript">
     var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
-    var dbid=getURLVars().id?'/I/'+getURLVars().id:'/I/1642521925052'; 
+    var URLVars = getURLVars(); 
+
+    var dbid=URLVars.id?'/I/'+getURLVars().id:'/I/1642521925052'; 
+
     LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js", "A.js"]); //Load our style and JS files
     firebase.initializeApp(firebaseConfig); 
     var  debug=0, role='student', admin=0, db = firebase.firestore(), A = new Assessment({}), I=new Info(); 
@@ -81,7 +84,7 @@ body {padding: 2px 2px 2px 5px; font-size: large;}
 
     <table width=100%><tr>
       <td id=main width=50%><span id=main1></span><span id=main2></span>  </td>
-      <td align="left"><span id=TopMenu><span id=TopMenu2></span></td>
+      <td id=mainM  align="left"><span id=TopMenu><span id=TopMenu2></span></td>
       <td align=right width=20%><span id=Login data-display=simple data-logged=0>Login</span> </td>
     </tr></table>
     <hr/>
@@ -106,6 +109,9 @@ window.addEventListener('load', function() {
  db.doc('/users/'+email).get().then( doc=>{ 
        if(doc.data()) var d=doc.data(); else var d={}; 
        dbid = (d.LastVisited && d.LastVisited[2] && d.LastVisited[2].id)?d.LastVisited[2].id:dbid; 
+       if(URLVars.id) { // Overide dbid if URL Var id is defined
+         dbid='/I/'+URLVars.id;  $('#main').hide(); $('#mainM').hide(); 
+       }
        LastVisitedID = dbid; 
     LoadInfoDocs(dbid); 
     setTimeout(function() {
@@ -236,6 +242,8 @@ function QYT_S(O, OS, Op={}) { var user = Op.user?Op.user:email, id=Op.id?Op.id:
 
   for (var i in O.Q) { var Q=O.Q[i], Desc=Q.Desc?Q.Desc:'Desc'; iq++; 
 
+    if(URLVars.iq) { $('#nAllQS').hide(); $('.mainbar').hide(); if(!(i===URLVars.iq)) continue; } // Only one Q display mode
+
     if(a.Launch===i && !priv.admin) {$('.Screen5').show(); LoadOneQ({id:dbid, k:i, oid:'Screen5M'});    } 
     if(a.Launch===-1) $('.Screen5').hide();
 
@@ -283,11 +291,11 @@ function QYT_S(O, OS, Op={}) { var user = Op.user?Op.user:email, id=Op.id?Op.id:
 
     var Soln = (aa.showsoln) ? ('<p/><u>Soln:</u>'+(Q.Soln?Q.Soln:'Soln')): ''; 
     $('#'+oid).append(` 
-    <br/><span class=dispAllQ id=disp${i} style='display:${disAQ};'> 
+    <div class=dispAllQ id=disp${i} style='display:${disAQ};'> 
        <div align=left  id=${uqid}${i}  class=QDisplay> <div class=mainbar>(<b>A${i}</b>) ${score}, ${gradb}</div>
            <span id=${uqid}${i}Q style='display:${disQ};'> ${desc} ${choices} ${Soln}</span>  ${play}  
        </div>  
-    </span>
+    </div>
   `); 
 
 
@@ -493,7 +501,7 @@ function QYT(O) {
   var  dbid=O.dbid?O.dbid:'/I/A_YT', oid='AllQ', iq=0; $('#'+oid).html(''), a0=O.a?O.a:{}, uqid=uniqid2();
   var displayAllQ = (a0.display=='AllQ')?'checked':'', fn=dbid.split(/[\\\/]/).pop(), name=a0.name?a0.name:fn; 
   var Top = `
-   <span ondblclick=" dblclickEdit('${dbid}','a.name', $(this) );  ">${name}</span> 
+   <span ondblclick=" dblclickEdit('${dbid}','a.name', $(this) );  ">${name}</span> | ${fn}
    | AllQ <input type=checkbox name=grading${i} onclick=" db.doc('${dbid}').update({'a.display': $(this).prop('checked')?'AllQ':0 }); " ${displayAllQ}/>  
    `;
    Top += AssignActivity({id:dbid, fn:fn,name:name, assigned:O.assigned?O.assigned:[]}); 
