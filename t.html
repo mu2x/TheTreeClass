@@ -1,60 +1,41 @@
+<head>
+
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/2.0.0-alpha.2/cropper.min.js" integrity="sha512-IlZV3863HqEgMeFLVllRjbNOoh8uVj0kgx0aYxgt4rdBABTZCl/h5MfshHD9BrnVs6Rs9yNN7kUQpzhcLkNmHw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/2.0.0-alpha.2/cropper.css" integrity="sha512-5ZQRy5L3cl4XTtZvjaJRucHRPKaKebtkvCWR/gbYdKH67km1e18C1huhdAc0wSnyMwZLiO7nEa534naJrH6R/Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+  img {
+  display: block;
+
+  /* This rule is very important, please don't ignore this */
+  max-width: 100%;
+}
+</style>
+</head>
+<!-- Wrap the image or canvas element with a block element (container) -->
+<div>
+  <img id="image" src="NS.jpg">
+</div>
 
 
-                <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/sketchpad/0.1.0/scripts/sketchpad.min.js"></script>
 
-
-                <div style="text-align: center">
-                    <canvas class="sketchpad" id="sketchpad"><canvas>
-                  </div>
-                  
-              <div style="text-align: center">
-                <button onclick="undo()">undo</button>
-                <button onclick="redo()">redo</button>
-                <input id="color-picker" type="color">
-                <input id="size-picker" type="range" min="1" max="50">
-                <button onclick="animateSketchpad()">animate</button>
-              </div>
 
 <script>
- var sketchpad;
-      $(document).ready(function() {
-        sketchpad = new Sketchpad({
-          element: '#sketchpad',
-          width: 400,
-          height: 400
-        });
-        $('#color-picker').change(color);
-        $('#color-picker').val('#000');
-        $('#size-picker').change(size);
-        $('#size-picker').val(1);
-      });
 
-function undo() {
-        sketchpad.undo();
-      }
-      function redo() {
-        sketchpad.redo();
-      }
-      function color(event) {
-        sketchpad.color = $(event.target).val();
-      }
-      function size(event) {
-        sketchpad.penSize = $(event.target).val();
-      }
-      function animateSketchpad() {
-        sketchpad.animate(10);
-      }
+// import 'cropperjs/dist/cropper.css';
 
-      function recover(event) {
-        var settings = sketchpad.toObject();
-        settings.element = '#other-sketchpad';
-        var otherSketchpad = new Sketchpad(settings);
-        $('#recover-button').hide();
-      }
+const image = document.getElementById('image');
+const cropper = new Cropper(image, {
+  aspectRatio: 16 / 9,
+  crop(event) {
+    console.log(event.detail.x);
+    console.log(event.detail.y);
+    console.log(event.detail.width);
+    console.log(event.detail.height);
+    console.log(event.detail.rotate);
+    console.log(event.detail.scaleX);
+    console.log(event.detail.scaleY);
+  },
+});
+
 </script>
-
-
-
-
-
