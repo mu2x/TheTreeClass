@@ -3,6 +3,8 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
+   
+   
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
@@ -39,16 +41,27 @@
     <span  id=Top11 >HOME</span>     
     <span style='float:right;'> <span id=Login data-logged=0>Login</span>   </span>
   <div id=Top21></div>
-
-  <span id=Middle1>    
-    <span id=Middle11></span>   
-    <span id=Middle12></span>   
-  <span id=Middle2></span>
- 
   <hr/>
-  <span id=Bottom1 style='left: 0; position: fixed; text-align: left; bottom: 0; width: 100%;'>
-   <span id=Bottom11></span>   <span id=Bottom12></span> 
-   
+
+  <table id=Middle1 width="100%" border="1">   
+    <tr width="100%" align="center" >
+      <td valign="middle"> Admin
+         <input id=SubmitUserInput value=""></input>   
+        <button id=SubmitUserInput>Submit</button>   
+      </td>
+    </tr> 
+
+    <tr width="100%" align="center" >
+      <td valign="middle"> Student
+         <input id=SubmitUserInput value=""  /> 
+        <button id=SubmitUserInput>Submit</button>   
+          <br/><input id=SubmittedUserInput value=""  disabled />
+
+
+      </td>
+    </tr> 
+
+  </table>
  
     <script>
 
