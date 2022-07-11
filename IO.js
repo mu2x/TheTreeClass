@@ -1,4 +1,5 @@
 var tr_down='&#x25BC', tr_up='&#x25B2'; 
+
 class Info { 
   constructor(O) { var O=(arguments.length)?O:{};
     if(arguments.length) { for(var k of Object.keys(O)) {this[k] = O[k];} 
