@@ -46,7 +46,10 @@
   <table id=Middle1 width="100%" border="1">   
     <tr width="100%" align="center" >
       <td valign="middle"> Admin
-         <input id=SubmitUserInput value=""></input>   
+         <input id=SubmitUserInput value="" onchange=" 
+           var value = $(this).val(); 
+           db.doc('/wordle/test').update({v:value} ); 
+           "></input>   
         <button id=SubmitUserInput>Submit</button>   
       </td>
     </tr> 
@@ -75,8 +78,16 @@ function initApp(O) {
     );
   };
 
+  test({});
   function test(O) {
-    db.doc('/public/v').onSnapshot(function(doc) {
+    db.doc('/wordle/test').onSnapshot(function(doc) {
+      var source = doc.metadata.hasPendingWrites ? 'Local' : 'Server';
+        if(doc.data()) {
+          if(source=='Server') {
+            $('#SubmitUserInput').val(doc.data().v);
+          }
+        }
+
       console.log(doc.data());
     });
   }
