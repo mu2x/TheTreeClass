@@ -46,11 +46,12 @@
   <table id=Middle1 width="100%" border="1">   
     <tr width="100%" align="center" >
       <td valign="middle"> Admin
-         <input id=SubmitUserInput value="" onchange=" 
-           var value = $(this).val(); 
-           db.doc('/wordle/test').update({v:value} ); 
-           "></input>   
-        <button id=SubmitUserInput>Submit</button>   
+         <br/>
+          <button onclick="NewWord(); ">New</button>  
+          <button onclick="List('/wordle/words/word','WordList'); ">List the words</button>  
+          <p id="NewWord"></p> 
+
+        <br/> <span  id="WordList"></span> 
       </td>
     </tr> 
 
@@ -59,26 +60,61 @@
          <input id=SubmitUserInput value=""  /> 
         <button id=SubmitUserInput>Submit</button>   
           <br/><input id=SubmittedUserInput value=""  disabled />
-
-
       </td>
     </tr> 
 
   </table>
  
     <script>
+var dbWords = '/wordle/words/word'; 
+function NewWord() { 
+  var id='NewWord'; 
+  var s= `
+         <input id=${id}W title='Word' size=3 value=""></input> 
+         <input id=${id}C title='Category' size=7 value=""></input>   
+         <input id=${id}M title='Meaning' size=7 value=""></input>   
+        <button onclick=" Save('${id}'); ">Save</button>  
+  `;
+  $('#NewWord').html(s); 
+}
 
-function initApp(O) {
-    firebase.auth().onAuthStateChanged(function(user) {
-     if (user) { 
-       uinfo = user; email=user.email; 
-       LoggedOutDisplay({id:'Login',photo:0},user);
-     } else {  LoginDisplay({id:'Login'});  }
-    }, function(error) { console.log(error); }
-    );
-  };
+function EditWord(v,c,m) { 
+  var id=v; 
+  var s= `
+         <input id=${id}W title='Word' size=3 value="${v}"></input> 
+         <input id=${id}C title='Category' size=7 value="${c}"></input>   
+         <input id=${id}M title='Meaning' size=7 value="${m}"></input>   
+        <button onclick=" Save('${id}'); ">Save</button>  
+  `;
+  return s;  
+}
 
-  test({});
+function Save(id){ var d={}; 
+  var v=$(`#${id}W`).val(), c=$(`#${id}C`).val(), m=$(`#${id}M`).val(); 
+  var v = (v=='')?'t':v;  
+  db.doc(`${dbWords}/${v}`).set({category:c, meaning:m});
+}
+
+function List(docid, oid) { 
+ db.collection(docid).get()
+ .then((querySnapshot) => {
+        var s = '', i=0;
+        querySnapshot.forEach((doc) => { var d=doc.data(), id=doc.id;  i++; 
+           // console.log(doc.id, " => ", doc.data());
+            s += '<br/>'+EditWord(doc.id, d.category, d.meaning)
+        });
+        $('#'+oid).html(s);
+    })
+
+}
+
+
+function update(id, e) { var k=e.attr('k'), v = e.val(); 
+ var d={}; d[k]=v; 
+ db.doc(id).set(d, {merge:true}); 
+}
+
+test({});
   function test(O) {
     db.doc('/wordle/test').onSnapshot(function(doc) {
       var source = doc.metadata.hasPendingWrites ? 'Local' : 'Server';
@@ -92,6 +128,19 @@ function initApp(O) {
     });
   }
 
+
+//--------------------------
+function initApp(O) {
+    firebase.auth().onAuthStateChanged(function(user) {
+     if (user) { 
+       uinfo = user; email=user.email; 
+       LoggedOutDisplay({id:'Login',photo:0},user);
+     } else {  LoginDisplay({id:'Login'});  }
+    }, function(error) { console.log(error); }
+    );
+  };
+
+  
   function SignIn(O) {
       var errors;
       if(O.provider=='microsoft') {  var provider = new firebase.auth.OAuthProvider('microsoft.com');
