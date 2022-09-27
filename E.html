@@ -134,7 +134,7 @@ class Excel {
   }; 
   
   
-  View(O) { var sh = '', f=this.f, isheet= this.isheet; 
+  View(O) { var sh = '', f=O.f?O.f:this.f, isheet= O.isheet?O.isheet:this.isheet; 
     sh += ` 
     <button onclick="EditRawByID('${this.f}','xlsM'); ">Raw</button>
     <button onclick="EditRawByID('${this.f}','xlsM'); ">Raw</button>
