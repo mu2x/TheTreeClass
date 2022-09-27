@@ -128,13 +128,13 @@ window.addEventListener('load', function() {
 
 class Excel { 
   constructor(O) { var O=(arguments.length)?O:{};
-    this.f='/public/Table.xls';
+    this.f='/public/Table.xls', this.isheet=0;
     if(arguments.length) { for(var k of Object.keys(O)) this[k] = O[k]; } 
     db.doc(this.f).get().then(doc=>{ if(!doc.exists) db.doc(this.f).set({}); })
   }; 
   
   
-  View(O) { var sh = '', f=this.f; 
+  View(O) { var sh = '', f=this.f, isheet= this.isheet; 
     sh += ` 
     <button onclick="EditRawByID('${this.f}','xlsM'); ">Raw</button>
     <button onclick="EditRawByID('${this.f}','xlsM'); ">Raw</button>
@@ -143,10 +143,10 @@ class Excel {
 
     $('#AllQS').html(`<div id=xlsTop>${sh}</div><div id=xlsM>M</div>`); 
     db.doc(this.f).onSnapshot(function(doc) { var s='', sm='', sb=''; // .get().then(doc=>{ 
-      var d = doc.data(),  nsheet=0, isheet=0; 
+      var d = doc.data(),  nsheet=0; 
       if(!d.sheet) d.sheet = {0:{a:{},d:{0:{}}}};
      for (var i in d.sheet) { var v=d.sheet[i], as=v.a?v.a:{}; nsheet++; 
-        sb += `<span ondblclick="dblclickEdit('${f}','sheet.${i}.a.n', $(this) );  ">${as.n?as.n:i}</span> |`; 
+        sb += `<span ondblclick="dblclickEdit('${f}','sheet.${i}.a.n', $(this) );  " onclick="xls.View({isheet:'${i}'});">${as.n?as.n:i}</span> |`; 
      }
       sm += `<div>All</div>`; 
       sb += ` <button onclick="db.doc('${f}').update({'sheet.${nsheet}': {a:{}, d:{} }  }); ">+</button>`;
