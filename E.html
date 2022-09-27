@@ -155,9 +155,8 @@ class Excel {
       var nj=Object.keys(d.sheet[0].d[0]).length, ni=Object.keys(d.sheet[0].d).length; 
       for(var i in d.sheet[isheet].d) { 
         var v=d.sheet[isheet].d[i], smt=''; 
-        for(var j in d.sheet[isheet].d[0]) { 
-	  if(i=="0") { smt += `<th width=20% ondblclick="dblclickEdit('${f}','sheet.${isheet}.d.${i}.${j}', $(this) );  ">${v[j]?v[j]:0}</th>`; 
-	  } else { smt += `<td width=20% ondblclick="dblclickEdit('${f}','sheet.${isheet}.d.${i}.${j}', $(this) );  ">${v[j]?v[j]:0}</td>`; }
+        for(var j in d.sheet[isheet].d[0]) { var td = (i=="0")? 'th' : 'th'; 
+          smt += `<${td} width=20% ondblclick="dblclickEdit('${f}','sheet.${isheet}.d.${i}.${j}', $(this) );  ">${v[j]?v[j]:0}</${td}>`; 
         }
         if(i=="0")  smt += `<td><button onclick="db.doc('${f}').update({'sheet.${isheet}.d.0.${nj}': 0 }); ">+</button></td>`;
 
