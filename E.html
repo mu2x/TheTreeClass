@@ -6,6 +6,8 @@ body {padding: 2px 2px 2px 5px; font-size: large;}
   background: rgb(0, 255, 34);
   
  }
+[selected="1"] { font-size: large; font-weight: bold }
+	
  .sketchpad {  padding: 1px 2px 1px 2px; font-size: large; border:4px solid #555; }
  .QDisplay {  padding: 1px 2px 1px 2px; font-size: large; border:4px solid #555; }
  .largeinput {width:3px;height:10px;background:white;border-radius:5px;border:2px solid #555;}
@@ -147,7 +149,7 @@ class Excel {
       var d = doc.data(),  nsheet=0; 
       if(!d.sheet) d.sheet = {0:{a:{},d:{0:{}}}};
      for (var i in d.sheet) { var v=d.sheet[i], as=v.a?v.a:{}; nsheet++; 
-        sb += `<span class=Sheets ondblclick="dblclickEdit('${f}','sheet.${i}.a.n', $(this) );  " onclick=" ToggleBold($(this));  xls.View({isheet:'${i}'});">${as.n?as.n:i}</span> |`; 
+        sb += `<span selected=${i===isheet} ondblclick="dblclickEdit('${f}','sheet.${i}.a.n', $(this) );" onclick="xls.View({isheet:'${i}'});">${as.n?as.n:i}</span> |`; 
      }
       sm += `<div>All</div>`; 
       sb += ` <button onclick="db.doc('${f}').update({'sheet.${nsheet}': {a:{}, d:{} }  }); ">+</button>`;
