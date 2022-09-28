@@ -149,7 +149,7 @@ class Excel {
       var d = doc.data(),  nsheet=0; 
       if(!d.sheet) d.sheet = {0:{a:{},d:{0:{}}}};
      for (var i in d.sheet) { var v=d.sheet[i], as=v.a?v.a:{}; nsheet++; 
-        sb += `<span selected=${(i==isheet)?1:0} ondblclick="dblclickEdit('${f}','sheet.${i}.a.n', $(this) );" onclick="xls.View({isheet:'${i}'});">${as.n?as.n:i}</span> |`; 
+        sb += `<span selected=${(i==isheet)?1:0} ondblclick="dblclickEdit('${f}','sheet.${i}.a.n', $(this) );" onclick="if(!EditFlag) xls.View({isheet:'${i}'});">${as.n?as.n:i}</span> |`; 
      }
       sm += `<div>All</div>`; 
       sb += ` <button onclick="db.doc('${f}').update({'sheet.${nsheet}': {a:{}, d:{} }  }); ">+</button>`;
@@ -251,8 +251,8 @@ function LoadInfoDocs(dbid, eid=null) {
   } )
  });
 }
-var adminChecked=''; 
-function adminB(){ var debugChecked=debug?'checked':''; 
+var adminChecked='', EditFlag=0; 
+function adminB(){ var debugChecked=debug?'checked':'', EditFlagChecked=EditFlag?'checked':''; 
   
   return `
   | <span id=AdminSelectUsers>Users</span>
@@ -263,6 +263,8 @@ function adminB(){ var debugChecked=debug?'checked':'';
       } else {admin=0; $(this).attr('admin',0); $('.admin').hide(); $('.student').show(); adminChecked='';}     
     " ${adminChecked} />Admin
     | <input type=checkbox onclick=" if($(this).prop('checked')) debug=1; else debug=0;" ${debugChecked} />Debug
+    | <input type=checkbox onclick=" if($(this).prop('checked')) EditFlag=1; else EditFlag=0;" ${EditFlagChecked} />Edit
+
 
   `; 
 }
