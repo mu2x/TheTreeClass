@@ -147,7 +147,7 @@ class Excel {
       var d = doc.data(),  nsheet=0; 
       if(!d.sheet) d.sheet = {0:{a:{},d:{0:{}}}};
      for (var i in d.sheet) { var v=d.sheet[i], as=v.a?v.a:{}; nsheet++; 
-        sb += `<span ondblclick="dblclickEdit('${f}','sheet.${i}.a.n', $(this) );  " onclick="xls.View({isheet:'${i}'});">${as.n?as.n:i}</span> |`; 
+        sb += `<span class=Sheets ondblclick="dblclickEdit('${f}','sheet.${i}.a.n', $(this) );  " onclick=" $('.Sheets').css('font-weight','normal'); $(this).css('font-weight','Bold'); xls.View({isheet:'${i}'});">${as.n?as.n:i}</span> |`; 
      }
       sm += `<div>All</div>`; 
       sb += ` <button onclick="db.doc('${f}').update({'sheet.${nsheet}': {a:{}, d:{} }  }); ">+</button>`;
