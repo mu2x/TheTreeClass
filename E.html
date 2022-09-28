@@ -153,7 +153,7 @@ class Excel {
       sb += ` <button onclick="db.doc('${f}').update({'sheet.${nsheet}': {a:{}, d:{} }  }); ">+</button>`;
       
       //------------
-      var nj=Object.keys(d.sheet[0].d[0]).length, ni=Object.keys(d.sheet[0].d).length; 
+      var nj=Object.keys(d.sheet[isheet].d[0]).length, ni=Object.keys(d.sheet[isheet].d).length; 
       for(var i in d.sheet[isheet].d) { 
         var v=d.sheet[isheet].d[i], smt=''; 
         for(var j in d.sheet[isheet].d[0]) { var td = (i=="0")? 'th' : 'td'; 
