@@ -145,26 +145,36 @@ class Excel {
     `; 
 
     $('#AllQS').html(`<div id=xlsTop>${sh}</div><div id=xlsM>M</div>`); 
-    db.doc(this.f).onSnapshot(function(doc) { var s='', sm='', sb=''; // .get().then(doc=>{ 
-      var d = doc.data(),  nsheet=0; 
+    
+    db.doc(f).onSnapshot(function(doc) { var s='', sm='', sb=''; // .get().then(doc=>{ 
+      var d = doc.data(),  nsheet=0, isheet = d.a.SheetLastVisted?d.a.SheetLastVisted:isheet; 
       if(!d.sheet) d.sheet = {0:{a:{},d:{0:{}}}};
      for (var i in d.sheet) { var v=d.sheet[i], as=v.a?v.a:{}; nsheet++; 
-        sb += `<span selected=${(i==isheet)?1:0} ondblclick="dblclickEdit('${f}','sheet.${i}.a.n', $(this) );" onclick="if(!EditFlag) xls.View({isheet:'${i}'});">${as.n?as.n:i}</span> |`; 
+        sb += `<span selected=${(i==isheet)?1:0} 
+               ondblclick="dblclickEdit('${f}','sheet.${i}.a.n', $(this) );" 
+               onclick="if(!EditFlag) xls.View({isheet:'${i}'});"
+               >${as.n?as.n:i}</span> |`; 
      }
       sm += `<div>All</div>`; 
       sb += ` <button onclick="db.doc('${f}').update({'sheet.${nsheet}': {a:{}, d:{} }  }); ">+</button>`;
       
       //------------
-      var nj= d.sheet[isheet].d[0] ? Object.keys(d.sheet[isheet].d[0]).length : 0;
+      var nj= d.sheet[isheet].header ? Object.keys(d.sheet[isheet].header).length : 0;
       var ni=Object.keys(d.sheet[isheet].d).length; 
       if(debug) console.log(ni, nj);
+
+      var v=d.sheet[isheet].header, smt='';
+      for(var j in d.sheet[isheet].header) {   
+          smt += `<th width=20% ondblclick="dblclickEdit('${f}','sheet.${isheet}.d.${i}.${j}', $(this) );  ">${v[j]?v[j]:0}</th>`; 
+      }
+      smt += `<td><button onclick="db.doc('${f}').update({'sheet.${isheet}.header.${nj}': 0 }); ">+</button></td>`;
+      sm += '<tr>'+smt+'</tr>';
+
       for(var i in d.sheet[isheet].d) { 
         var v=d.sheet[isheet].d[i], smt=''; 
-        for(var j in d.sheet[isheet].d[0]) { var td = (i=="0")? 'th' : 'td'; 
-          smt += `<${td} width=20% ondblclick="dblclickEdit('${f}','sheet.${isheet}.d.${i}.${j}', $(this) );  ">${v[j]?v[j]:0}</${td}>`; 
+        for(var j in d.sheet[isheet].header) {  
+          smt += `<td width=20% ondblclick="dblclickEdit('${f}','sheet.${isheet}.d.${i}.${j}', $(this) );  ">${v[j]?v[j]:0}</td>`; 
         }
-        if(i=="0")  smt += `<td><button onclick="db.doc('${f}').update({'sheet.${isheet}.d.0.${nj}': 0 }); ">+</button></td>`;
-
         sm += '<tr>'+smt+'</tr>';
       }
       sm += ` <tr/><td><button onclick="db.doc('${f}').update({'sheet.${isheet}.d.${ni}': {} }); ">+</button></td></tr>`;
@@ -174,7 +184,7 @@ class Excel {
         <table border=1 width=100% height=100%>
              <tr width=100%><td>hh</td></tr>
              <tr><td width=100%> ${smAll}</td></tr>
-             <tr><td style="position:absolute; bottom:0px;">${sb}</td></tr>
+             <tr><td style="position:absolute; bottom:0px;" title='${debug?f:""}'>${sb}</td></tr>
         </table>
       `;
       
