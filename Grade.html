@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<style>
+body {padding: 2px 2px 2px 5px; font-size: large;}
+
+[admin="1"] {
+  color: rgb(12, 12, 12);
+  background: rgb(0, 255, 34);
+ }
+[selected="1"] { font-size: large; font-weight: bold }
+	
+ .sketchpad {  padding: 1px 2px 1px 2px; font-size: large; border:4px solid #555; }
+ .QDisplay {  padding: 1px 2px 1px 2px; font-size: large; border:4px solid #555; }
+ .largeinput {width:3px;height:10px;background:white;border-radius:5px;border:2px solid #555;}
+
+ .mainbar {position: relative;  display: inline-block; background-color: rgb(224, 223, 223);  width:100%; font-size: large; }
+.dblclick {position: relative;  display: inline-block; background-color: lightblue; 
+  border:4px solid #555; font-size: large; padding: 1px 2px 1px 2px; border-radius: 2px;
+}
+
+.Instructor{ background: yellow; }
+[edit="1"] { background: greenyellow; }
+
+.dpdown {position: relative;  display: inline-block; background-color: rgb(186, 212, 195); 
+  border:4px solid #555; font-size: large; padding: 1px 2px 1px 2px; border-radius: 10px;
+}
+.dpdown-content {
+  display: none;   width:100%; position: absolute;   background-color: #f9f9f9;   min-width: 360px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);   padding: 6px 8px;   z-index: 1;
+}
+.dpdown:hover .dpdown-content {display: block;}
+
+.Screen5 {  
+  display: none;  position: absolute;  background-color: #f9f9f9;  
+  left: 0;  box-shadow: 0px 8px 12px 0px rgba(0,0,0,0.2);  z-index: 5;
+  border:2px solid #555;
+}
+
+.Screen55 {
+  z-index: 5;   position: absolute;
+  width: 100%;   height: 100%;
+  top: 5px;   left: 5px;   left: 5px;   right: 5px;
+  border: 1px dashed #900;   background-color: #fdd; 
+}
+.dpdown:hover .FrontScreen {display: block;}
+[hide="1"] {display: none;}
+[hide="0"] {display: inline;}
+
+.SketchpadContainer {display: flex;  justify-content: center; border:4px solid #555; }
+</style>
+<head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-firestore.js"></script>
+<script src="https://cdn.ckeditor.com/4.16.2/full-all/ckeditor.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sketchpad/0.1.0/scripts/sketchpad.min.js"></script>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+
+
+<link rel="stylesheet" href="index.css" />
+<script src="functions.js"></script>
+  <script type="text/javascript">
+    var editors=[], qdata={}, nchoice=0, realtime, ckeditor='ckeditor4';
+    var URLVars = getURLVars();  console.log(URLVars);
+    var dbid=URLVars.id?'/I/'+getURLVars().id:'/I/1642521925052'; 
+    LoadJSs(["Login.js", "myconfig.js", "IO.js", "UserManagement.js","Q.js", "A.js"]); //Load our style and JS files
+    firebase.initializeApp(firebaseConfig); 
+    var  debug=0, role='student', admin=0, db = firebase.firestore(), A = new Assessment({}), I=new Info(); 
+    window.addEventListener('load', function() {       
+      initApp({});      
+    });
+
+</script>
+</head>
+
+<html>
+  <body>
+    <span id="MainTop">
+
+    <table width=100% height=90% class=Screen5>
+      <tr><td valign=top class=L></td>
+         <td id=Screen5M valign=top width=100% class=M></td>
+         <td valign=top class=R><button onclick=" $('.Screen5').hide();">&cross;</button></td>
+      </tr>
+    </table>
+
+    <table width=100%><tr>
+      <td id=main width=50%>
+        <span id=main1></span>
+        <span id=main2></span>  
+        <button id=Grade onclick="xls.View();">Grade</button> 
+      </td>
+      <td id=mainM  align="left"><span id=TopMenu><span id=TopMenu2></span></td>
+      <td align=right width=20%><span id=Login data-display=simple data-logged=0>Login</span> </td>
+    </tr></table>
+    <hr/>
+    </span>
+
+    <div class=student id=nAllQS></div>
+    <div id="player" style='display:none;'></div> 
+    <div id=Assessment class=QDisplay style='display:none;'></div>
+    <div class=student id=AllQS></div>
+
+  <div class=admin style='display:none;'>
+  <div id=AllQ></div>
+  <span id=TARaw  style='display:none;'>
+    <br/><textarea  id=TA  cols="100" rows="20"></textarea>
+    <br/> <button onclick="db.doc(dbid).set(JSON.parse($('#TA').val())); ">Save</button>  
+  </span>
+ </div>
+ <span id=msg></span>
+<script src="functions2.js"></script>
+<script>
+var LastVisitedID; 
+var xls = new Excel({f:URLVars.xls?URLVars.xls:'/public/Table.xls'});
+
+window.addEventListener('load', function() { 
+  xls.View();
+});
+if(URLVars.hide) $('#'+URLVars.hide).hide();
+    </script>
+  </body>
+</html>
