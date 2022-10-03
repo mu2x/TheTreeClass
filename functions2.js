@@ -53,7 +53,7 @@ class Excel {
       var instB = `<input type=checkbox onclick=" if($(this).prop('checked')) $('.Instructor').attr('hide',0); else $('.Instructor').attr('hide',1); ">Inst</input>`;
       var stdB= `<input type=checkbox onclick=" if($(this).prop('checked')) $('.Student').attr('hide',0); else $('.Student').attr('hide',1); " checked>Student</input>`;
       var v=d.sheet[isheet].header, smt=`<th>${instB} | ${stdB}</th>`;
-      for(var j in d.sheet[isheet].header) {   var ah = v[j].a?v[j].a:{}; console.log(ah);  
+      for(var j in d.sheet[isheet].header) {   var ah = v[j].a?v[j].a:{}; 
           var prop = (priv.admin)? `<button onclick=" EditJSONByKeyRaw('${f}','MainTableTop','sheet.${isheet}.header.${j}.a'); ">&equiv;</button>`:'';
           var LoadIframe = ah.iframe?`<span onclick="LoadIframe('${ah.iframe}','MainTableTop'); ">Load</span>`:'';
           smt += `<th>
