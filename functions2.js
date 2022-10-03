@@ -55,7 +55,7 @@ class Excel {
       var v=d.sheet[isheet].header, smt=`<th>${instB} | ${stdB}</th>`;
       for(var j in d.sheet[isheet].header) {   var ah = v[j].a?v[j].a:{}; 
           var prop = (priv.admin)? `<button onclick=" EditJSONByKeyRaw('${f}','MainTableTop','sheet.${isheet}.header.${j}.a'); ">&equiv;</button>`:'';
-          var LoadIframe = ah.iframe?`<span onclick="LoadIframe('${ah.iframe}','MainTableTop'); ">Load</span>`:'';
+          var LoadIframe = ah.iframe?`<span class=iframe onclick="LoadIframe('${ah.iframe}','MainTableTop'); ToggleColor($(this)); ">Load</span>`:'';
           smt += `<th>
             <span ondblclick="if(priv.admin) dblclickEdit('${f}','sheet.${isheet}.header.${j}.v', $(this) );  ">${v[j].v?v[j].v:0}</span>
             ${LoadIframe} 
