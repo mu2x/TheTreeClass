@@ -10,6 +10,9 @@ function exportF(elem, tid,f) {
   return false;
 }
 
+function LoadIframe(src,oid) {
+          $('#'+oid).html(`<iframe height=400 width=100% src=${src}></iframe>`); 
+}
 class Excel { 
   constructor(O) { var O=(arguments.length)?O:{};
     this.f='/public/Table.xls', this.isheet=0, this.oid='AllQS';
@@ -50,12 +53,12 @@ class Excel {
       var instB = `<input type=checkbox onclick=" if($(this).prop('checked')) $('.Instructor').attr('hide',0); else $('.Instructor').attr('hide',1); ">Inst</input>`;
       var stdB= `<input type=checkbox onclick=" if($(this).prop('checked')) $('.Student').attr('hide',0); else $('.Student').attr('hide',1); " checked>Student</input>`;
       var v=d.sheet[isheet].header, smt=`<th>${instB} | ${stdB}</th>`;
-      for(var j in d.sheet[isheet].header) {    var ah = d.sheet[isheet].header[j].a; 
-          var prop = (priv.admin)? `<button onclick="
-            EditJSONByKeyRaw('${f}','MainTableTop','sheet.${isheet}.header.${j}.a'); $('#msgth${j}').toggle(); 
-            ">&equiv;</button>`:'';
+      for(var j in d.sheet[isheet].header) {   var ah = v[j].a?v[j].a:{}; console.log(ah);  
+          var prop = (priv.admin)? `<button onclick=" EditJSONByKeyRaw('${f}','MainTableTop','sheet.${isheet}.header.${j}.a'); ">&equiv;</button>`:'';
+          var LoadIframe = ah.iframe?`<span onclick="LoadIframe('${ah.iframe}','MainTableTop'); ">Load</span>`:'';
           smt += `<th>
             <span ondblclick="if(priv.admin) dblclickEdit('${f}','sheet.${isheet}.header.${j}.v', $(this) );  ">${v[j].v?v[j].v:0}</span>
+            ${LoadIframe} 
             ${prop}<span style='display:none;' id=msgth${j}></span>
             </th>`; 
       }
@@ -67,10 +70,12 @@ class Excel {
         // Auto-populate with Roster
         for(var i=0; i<d.roster.length; i++) { var ueid=d.roster[i], smt=`<td>${ueid}</td>`, si=0, sf=f+'/users/'+d.roster[i]; 
           for(var j in d.sheet[isheet].header) { var ah = d.sheet[isheet].header[j].a? d.sheet[isheet].header[j].a:{};
-            var edit = (ah.edit)?ah.edit:0;
+            var edit = (ah.edit)?ah.edit:0; // aEditor=(ah.editor)?ah.editor[0]:'inline';
             if(priv.admin) { var tmp = `<span class=Instructor id='sheet_${isheet}_d_${i}_${j}' ondblclick="dblclickEdit('${sf}','sheet.${isheet}.d.${si}.${j}', $(this) );  ">0</span>`;
             } else { var tmp = `<span hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}'>0</span>`; }
-            smt += `<td> <span  edit=${edit} class=Student id='sheet_${isheet}_dS_${i}_${j}' ondblclick="if(${edit}) dblclickEdit('${sf}','sheet.${isheet}.dS.${si}.${j}', $(this) );  ">0</span> ${tmp} </td>`; 
+            smt += `<td> 
+               <span  edit=${edit} class=Student id='sheet_${isheet}_dS_${i}_${j}' ondblclick="if(${edit}) dblclickEdit('${sf}','sheet.${isheet}.dS.${si}.${j}', $(this) );  ">0</span> ${tmp} 
+            </td>`; 
           }
           sm += '<tr>'+smt+'</tr>';
         }

@@ -1,6 +1,6 @@
 * {  box-sizing: border-box;}
 
-[contenteditable=true] {  border: 5px solid black;  } 
+[contenteditable=true] {  border: 15px solid black;  } 
 
 body {  margin: 0;}
 .navbar {  overflow: hidden;  background-color: rgb(57, 133, 64);  font-family: Arial, Helvetica, sans-serif;}
