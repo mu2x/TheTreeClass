@@ -53,14 +53,15 @@ class Excel {
       var instB = `<input type=checkbox onclick=" if($(this).prop('checked')) $('.Instructor').attr('hide',0); else $('.Instructor').attr('hide',1); ">Inst</input>`;
       var stdB= `<input type=checkbox onclick=" if($(this).prop('checked')) $('.Student').attr('hide',0); else $('.Student').attr('hide',1); " checked>Student</input>`;
       var v=d.sheet[isheet].header, smt=`<th>${instB} | ${stdB}</th>`;
-      for(var j in d.sheet[isheet].header) {   var ah = v[j].a?v[j].a:{}; 
-          var prop = (priv.admin)? `<button onclick=" EditJSONByKeyRaw('${f}','MainTableTop','sheet.${isheet}.header.${j}.a'); ">&equiv;</button>`:'';
-          var LoadIframe = ah.iframe?`<span class=iframe onclick="LoadIframe('${ah.iframe}','MainTableTop'); ToggleColor($(this)); ">Load</span>`:'';
-          smt += `<th>
-            <span ondblclick="if(priv.admin) dblclickEdit('${f}','sheet.${isheet}.header.${j}.v', $(this) );  ">${v[j].v?v[j].v:0}</span>
-            ${LoadIframe} 
-            ${prop}<span style='display:none;' id=msgth${j}></span>
-            </th>`; 
+      for(var j in d.sheet[isheet].header) {   var ah = v[j].a?v[j].a:{}, jp1=eval(`${j}+1`); 
+          var prop = `<button onclick=" EditJSONByKeyRaw('${f}','MainTableTop','sheet.${isheet}.header.${j}.a'); ">&equiv;</button>`;
+          var Load1 = `<button class=iframe 
+             ondblclick="if(priv.admin) dblclickEdit('${f}','sheet.${isheet}.header.${j}.v', $(this) );  "
+             onclick="if(!EditFlag) LoadIframe('${ah.iframe}','MainTableTop'); ToggleColor($(this)); "
+             >${v[j].v?v[j].v:jp1}</button>`;
+          var Load2 = `<span ondblclick="if(priv.admin) dblclickEdit('${f}','sheet.${isheet}.header.${j}.v', $(this) );  ">${v[j].v?v[j].v:jp1}</span>`;
+
+          smt += `<th> ${ah.iframe?Load1:Load2} ${priv.admin?prop:''} </th>`; 
       }
       if(priv.admin) smt += `<td><button onclick="db.doc('${f}').update({'sheet.${isheet}.header.${nj}': 0 }); ">+</button></td>`;
       sm += '<tr>'+smt+'</tr>';
@@ -71,7 +72,7 @@ class Excel {
         for(var i=0; i<d.roster.length; i++) { var ueid=d.roster[i], smt=`<td>${ueid}</td>`, si=0, sf=f+'/users/'+d.roster[i]; 
           for(var j in d.sheet[isheet].header) { var ah = d.sheet[isheet].header[j].a? d.sheet[isheet].header[j].a:{};
             var edit = (ah.edit)?ah.edit:0; // aEditor=(ah.editor)?ah.editor[0]:'inline';
-            if(priv.admin) { var tmp = `<span class=Instructor id='sheet_${isheet}_d_${i}_${j}' ondblclick="dblclickEdit('${sf}','sheet.${isheet}.d.${si}.${j}', $(this) );  ">0</span>`;
+            if(priv.admin) { var tmp = `<span hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}' ondblclick="dblclickEdit('${sf}','sheet.${isheet}.d.${si}.${j}', $(this) );  ">0</span>`;
             } else { var tmp = `<span hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}'>0</span>`; }
             smt += `<td> 
                <span  edit=${edit} class=Student id='sheet_${isheet}_dS_${i}_${j}' ondblclick="if(${edit}) dblclickEdit('${sf}','sheet.${isheet}.dS.${si}.${j}', $(this) );  ">0</span> ${tmp} 
@@ -94,15 +95,17 @@ class Excel {
       var smAll='<table id=RosterTable width=100% border=1>'+sm+'</table>';
       //--------------
       s += `
-        <table border=1 width=100% height=100%>
+        <table border=0 width=100% height=100%>
              <tr width=100%><td><span id=MainTableTop><span></td></tr>
              <tr><td width=100%> ${smAll}</td></tr>
-             <tr><td style="position:absolute; bottom:0px;" title='${debug?f:""}'>${sb}</td></tr>
         </table>
+        <div class="FixedBottomLeft" ><span style='background-color: whitesmoke; border: 3px solid #070807;'>${sb}</span></div>
 
       `;
-      
+      //<tr><td style="position:absolute; bottom:0px;" title='${debug?f:""}'>${sb}</td></tr>
+
       $('#xlsM').html(s); 
+
 
      if(d.a && d.a.DataSource=="AutoRoster") {
        for(var i=0; i<d.roster.length; i++) { var sf=f+'/users/'+d.roster[i]; xls.Update(sf,`sheet.${isheet}`,i); }
