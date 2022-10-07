@@ -72,11 +72,15 @@ class Excel {
         for(var i=0; i<d.roster.length; i++) { var ueid=d.roster[i], smt=`<td>${ueid}</td>`, si=0, sf=f+'/users/'+d.roster[i]; 
           for(var j in d.sheet[isheet].header) { var ah = d.sheet[isheet].header[j].a? d.sheet[isheet].header[j].a:{};
             var edit = (ah.edit)?ah.edit:0; // aEditor=(ah.editor)?ah.editor[0]:'inline';
-            if(priv.admin) { var tmp = `<span hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}' ondblclick="dblclickEdit('${sf}','sheet.${isheet}.d.${si}.${j}', $(this) );  ">0</span>`;
+            if(priv.admin) { 
+              if(ah.editor) {
+                var tmp = `<input type=${ah.editor} size=1 hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}' value=0 onmouseout="db.doc('${sf}').update({'sheet.${isheet}.d.${si}.${j}':$(this).val()});"></input>`;
+              } else var tmp = `<span hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}' ondblclick="dblclickEdit('${sf}','sheet.${isheet}.d.${si}.${j}', $(this) );  ">0</span>`;
             } else { var tmp = `<span hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}'>0</span>`; }
-            smt += `<td> 
-               <span  edit=${edit} class=Student id='sheet_${isheet}_dS_${i}_${j}' ondblclick="if(${edit}) dblclickEdit('${sf}','sheet.${isheet}.dS.${si}.${j}', $(this) );  ">0</span> ${tmp} 
-            </td>`; 
+            if(ah.editor) { var max = ah.max?ah.max:100; 
+               var SEdit = `<input style='width: ${ah.width?ah.width:"40px"};' max=${max} title='max value=${max}' type=${ah.editor}  edit=${edit} size=1 class=Student id='sheet_${isheet}_dS_${i}_${j}' value=0 onmouseout="db.doc('${sf}').update({'sheet.${isheet}.dS.${si}.${j}':$(this).val()}); " ${edit?'':'disabled'}></input> `;
+            } else var SEdit = `<span  edit=${edit} class=Student id='sheet_${isheet}_dS_${i}_${j}' ondblclick="if(${edit}) dblclickEdit('${sf}','sheet.${isheet}.dS.${si}.${j}', $(this) );  ">0</span> `;
+            smt += `<td>  ${SEdit} ${tmp}    </td>`; 
           }
           sm += '<tr>'+smt+'</tr>';
         }
@@ -115,9 +119,9 @@ class Excel {
   }
   Update(f,k, i) { var kk=k.replace(/\./g,'_'); // Populate all the table data (in placeholder) by looping over every users
        db.doc(f).onSnapshot(function(doc) { if(!doc.exists) db.doc(f).set({}); 
-         var v=doc.get(`${k}`)?doc.get(`${k}`):{};  if(debug) console.log(v) ;
-         for(var j in v.d?v.d[0]:{}) {  $(`#${kk}_d_${i}_${j}`).html(v.d[0][j]); }
-         for(var j in v.dS?v.dS[0]:{}) {  $(`#${kk}_dS_${i}_${j}`).html(v.dS[0][j]); }
+         var v=doc.get(`${k}`)?doc.get(`${k}`):{};  if(debug) console.log(`${kk}_d_${i}`, f, v) ;
+         for(var j in v.d?v.d[0]:{}) {  var oid=`#${kk}_d_${i}_${j}`; if($(oid).is("input") ) $(oid).val(v.d[0][j]); else $(oid).html(v.d[0][j]); }
+         for(var j in v.dS?v.dS[0]:{}) {  var oid=`#${kk}_dS_${i}_${j}`; if($(oid).is("input") ) $(oid).val(v.dS[0][j]); else $(oid).html(v.dS[0][j]);           }
         })
   }
   AddCol(d, sheet) { var n = Object.keys(d[sheet]).length; 
@@ -190,7 +194,6 @@ function LoadInfoDocs(dbid, eid=null) {
 }
 var adminChecked='', EditFlag=0; 
 function adminB(){ var debugChecked=debug?'checked':'', EditFlagChecked=EditFlag?'checked':''; 
-  
   return `
   | <span id=AdminSelectUsers>Users</span>
 

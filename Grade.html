@@ -122,11 +122,10 @@ body {padding: 2px 2px 2px 5px; font-size: large;}
 
 <script src="functions2.js"></script>
 <script>
-var LastVisitedID; 
-var xls = new Excel({f:URLVars.xls?URLVars.xls:'/public/Table.xls'});
-
+var LastVisitedID, xls = new Excel({f:URLVars.xls?URLVars.xls:'/public/Table.xls'});
 window.addEventListener('load', function() { 
-  xls.View(); $('#TopMenu').html(adminB()); 
+  xls.View(); 
+  var setout = setTimeout(function () { if(priv.admin==1) $('#TopMenu').html(adminB()); }, 1000);
 });
 if(URLVars.hide) $('#'+URLVars.hide).hide();
     </script>
