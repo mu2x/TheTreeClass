@@ -7,6 +7,7 @@ class Info {
     if(O.col && O.id) this.id=O.col+'/'+O.id; 
     this.uqid = uniqid(); 
   }; 
+
   List(O) {  var id=O.id, col=O.col, uqid=uniqid(), s=''; 
     var queryid = O.queryid?O.queryid:'#'+O.oid; 
     db.collection(O.col).get().then((qS) => {  var iq=0;  

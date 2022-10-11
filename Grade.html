@@ -27,9 +27,11 @@ body {padding: 2px 2px 2px 5px; font-size: large;}
 }
 .dpdown-content {
   display: none;   width:100%; position: absolute;   background-color: #f9f9f9;   min-width: 360px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);   padding: 6px 8px;   z-index: 1;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);   padding: 6px 8px;   z-index: 1; border:2px solid #555;
 }
 .dpdown:hover .dpdown-content {display: block;}
+
+[border="2"] {  border:2px solid #555; }
 
 .Screen5 {  
   display: none;  position: absolute;  background-color: #f9f9f9;  
@@ -37,13 +39,15 @@ body {padding: 2px 2px 2px 5px; font-size: large;}
   border:2px solid #555;
 }
 
-.Screen55 {j
+.Screen55 {
   z-index: 5;   position: absolute;
   width: 100%;   height: 100%;
   top: 5px;   left: 5px;   left: 5px;   right: 5px;
   border: 1px dashed #900;   background-color: #fdd; 
 }
 .dpdown:hover .FrontScreen {display: block;}
+[show="1"] {display: inline;}
+[show="0"] {display: none;}
 [hide="1"] {display: none;}
 [hide="0"] {display: inline;}
 
@@ -105,6 +109,7 @@ body {padding: 2px 2px 2px 5px; font-size: large;}
     <hr/>
     </span>
 
+    
     <div class=student id=nAllQS></div>
     <div id="player" style='display:none;'></div> 
     <div id=Assessment class=QDisplay style='display:none;'></div>

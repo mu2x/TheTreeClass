@@ -2,11 +2,10 @@
 
 
 function exportF(elem, tid,f) {
-  var table = document.getElementById(tid);
-  var html = table.outerHTML;
+  //for (var i = 0, row; row = table.rows[i]; i++) { for (var j = 0, col; col = row.cells[j]; j++) { }  }
+  var table = document.getElementById(tid), html = table.outerHTML;
   var url = 'data:application/vnd.ms-excel,' + escape(html); // Set your html table into url 
-  elem.setAttribute("href", url);
-  elem.setAttribute("download", f); 
+  elem.setAttribute("href", url); elem.setAttribute("download", f); 
   return false;
 }
 
@@ -59,9 +58,17 @@ class Excel {
              ondblclick="if(priv.admin) dblclickEdit('${f}','sheet.${isheet}.header.${j}.v', $(this) );  "
              onclick="if(!EditFlag) LoadIframe('${ah.iframe}','MainTableTop'); ToggleColor($(this)); "
              >${v[j].v?v[j].v:jp1}</button>`;
+          if(ah.Q) { var Qstr = JSON.stringify(ah.Q), keyj = `sheet.${isheet}.header.${j}.a.Q`;
+            var Load1 = `<button class=iframe 
+             ondblclick="if(priv.admin) dblclickEdit('${f}','sheet.${isheet}.header.${j}.v', $(this) );  "
+             onclick='if(!EditFlag) LoadIs(${Qstr},"MainTableTop", {ref:"${f}", k:"${keyj}", disable:"${ah.disable?ah.disable:0}"} ); ToggleColor($(this)); '
+             >${v[j].v?v[j].v:jp1}</button>`;
+          }
+
           var Load2 = `<span ondblclick="if(priv.admin) dblclickEdit('${f}','sheet.${isheet}.header.${j}.v', $(this) );  ">${v[j].v?v[j].v:jp1}</span>`;
 
-          smt += `<th> ${ah.iframe?Load1:Load2} ${priv.admin?prop:''} </th>`; 
+          
+          smt += `<th> ${(ah.Q || ah.iframe)?Load1:Load2} ${priv.admin?prop:''} </th>`; 
       }
       if(priv.admin) smt += `<td><button onclick="db.doc('${f}').update({'sheet.${isheet}.header.${nj}': 0 }); ">+</button></td>`;
       sm += '<tr>'+smt+'</tr>';
@@ -77,7 +84,7 @@ class Excel {
                 var tmp = `<input type=${ah.editor} size=1 hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}' value=0 onmouseout="db.doc('${sf}').update({'sheet.${isheet}.d.${si}.${j}':$(this).val()});"></input>`;
               } else var tmp = `<span hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}' ondblclick="dblclickEdit('${sf}','sheet.${isheet}.d.${si}.${j}', $(this) );  ">0</span>`;
             } else { var tmp = `<span hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}'>0</span>`; }
-            if(ah.editor) { var max = ah.max?ah.max:100; 
+            if(ah.editor && ah.edit) { var max = ah.max?ah.max:100; 
                var SEdit = `<input style='width: ${ah.width?ah.width:"40px"};' max=${max} title='max value=${max}' type=${ah.editor}  edit=${edit} size=1 class=Student id='sheet_${isheet}_dS_${i}_${j}' value=0 onmouseout="db.doc('${sf}').update({'sheet.${isheet}.dS.${si}.${j}':$(this).val()}); " ${edit?'':'disabled'}></input> `;
             } else var SEdit = `<span  edit=${edit} class=Student id='sheet_${isheet}_dS_${i}_${j}' ondblclick="if(${edit}) dblclickEdit('${sf}','sheet.${isheet}.dS.${si}.${j}', $(this) );  ">0</span> `;
             smt += `<td>  ${SEdit} ${tmp}    </td>`; 
@@ -243,6 +250,7 @@ function EditJSONByKeyRaw(f,oid, k) {
 
 function AttrEditor(f, a, k, oid) { var s='', ah=a?a:{}; 
    var i='edit', v= ah[i]?ah[i]:0; s += `<input type=checkbox onclick="db.doc('${f}').update({'${k}.${i}': $(this).prop('checked')?1:0}); "  ${v?'checked':''}>${i}</input>`;
+   var i='disable', v= ah[i]?ah[i]:0; s += `<input type=checkbox onclick="db.doc('${f}').update({'${k}.${i}': $(this).prop('checked')?1:0}); "  ${v?'checked':''}>${i}</input>`;
   $('#'+oid).html(s);
   if(debug) console.log(s,a,k);
 }
@@ -273,6 +281,45 @@ function LoadOneQ(O) {   var id=O.id, idS=id+'/users/'+email, k=O.k, oid=O.oid, 
   }) 
   })
 }
+
+
+function LoadIs(Qs,oid='AllQS', O={}) {  var QStr = JSON.stringify(Qs); 
+  $('#'+oid).html('');
+  var newid = ` <button onclick='var A=${QStr},newid= "/Q/"+new Date().valueOf(); A.push(newid);  db.doc("${O.ref}").update({["${O.k}"]:A}); db.doc(newid).set({});  '>new</button>`; 
+    $('#'+oid).append(newid);
+  for(var i in Qs) {  
+    var oidi=`${oid}${i}`; $('#'+oid).append(`<div id=${oidi}></div>`); OneI(Qs[i], oidi, O); 
+  }
+}
+
+function LoadOneI(f,oid='AllQS', O={}) {   
+  var id=O.col?`${O.col}/${f}`:f, idS=id+'/users/'+email, uqid=uniqid2(); 
+  if(debug) console.log(f,id,idS, oid);
+  db.doc(id).get().then(doc=>{ var Q=doc.data();
+    db.doc(idS).get().then(docs=>{ 
+     if(!docs.exists) {db.doc(idS).set({}); var QS={}; } else var QS=docs.data();
+
+    var t1=Q.t1?Q.t1:0, t2=Q.t2?Q.t2:0, Desc=Q.Desc?Q.Desc:'Desc';
+    var aaS=QS.a?QS.a:{}, aa=Q.a?Q.a:{};
+    var play=''; 
+    var submitted= (aaS.submitted )?'disabled=disabled':'', disQ=(aaS.submitted )?'inline':'none';
+    var choices = Q_Choices_S({id:dbid, i:0, Q:Q}, {Q:QS}); 
+    var desc = IO_Desc(id, `Desc`, Q.Desc?Q.Desc:'Desc', {editable:1}); 
+    
+    if(Q.Choices && Object.keys(Q.Choices).length>0) 
+      play=` <button style='padding: 10px;' onclick="
+       var p = $('#player').data(); p.showid = '${uqid}Q'; onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  });
+        " ${submitted}>Play</button> 
+      `; 
+    else disQ='inline';
+    disQ='inline';
+    
+
+    $('#'+oid).html(` <span id=${uqid}Q style='display:${disQ};'> ${desc} ${choices}</span> ${play} `); 
+  }) 
+  })
+}
+
 function db2con(id) { db.doc(id).get().then(doc=>{console.log(doc.data());})}
 function togglePM(s,pm='+') { var uqid=uniqid2(), dis=(pm=='+')?'none':'inline';
   return `
@@ -674,6 +721,180 @@ function QYT(O) {
   `); 
 }
 
+
+function OneI(f,oid='AllQS', O={}) { 
+  if(debug) console.log("OneI():",O);
+  var disabled=O.disable?'disabled':'', dbid=f, a0={}, u=O.user?O.user:email, uqid = uniqid2(), inst=O.inst?O.inst:0, Desc, Soln;
+  var sf=O.sf?O.sf: (inst?(f+'/users/Instructor'):(f+'/users/'+u)); 
+  var s = `
+   <div id=${uqid} border=2>
+    <div hide=${priv.admin?0:1}>
+      <span class=Attr>Attr</span>
+      <input type=checkbox onclick="
+          if($(this).prop('checked')) setTimeout(function() { OneI('${f}', '${oid}', {inst:1}); }, 100);
+          else OneI('${f}', '${oid}', {inst:0}); 
+      " ${inst?'checked':''}>Instructor</input>
+    </div>
+    <div class=Desc >Desc</div>
+    <div class=Choices ></div>
+    <div class=Soln ></div>
+    <div inst=1 show=${inst} class=Raw>Raw</div>
+  </div>
+  `;
+  $('#'+oid).html(s);
+  db.doc(f).onSnapshot(function(doc) { //get().then((doc)=>{}
+    var source = doc.metadata.hasPendingWrites ? 'Local' : 'Server';
+    //if(source=="Local") return;
+
+    var Q=doc.data()?doc.data():{}, i=0, Desc=Q.Desc?Q.Desc:'Desc', MChoice='', MMChoice='', TA='', userinput='', YT='';
+    var a=Q.a?Q.a:{}; 
+    var videoId=a.videoId?a.videoId:'cpaigEYuNEw', t1=a.t1?a.t1:0, t2=a.t2?a.t2:0; 
+    if(a.Type=="radio")  MChoice="checked"; else if (a.Type=="textarea") TA='checked'; else if (a.Type=="input") userinput='checked'; else MMChoice="checked";
+    var CEInput=(a.ChoiceEditor=='input')?'checked':'', CETA=(a.ChoiceEditor=='textarea')?'checked':'', CECK=(a.ChoiceEditor=='CKEditor')?'checked':'', CESim=(a.ChoiceEditor=='simple')?'checked':''; 
+    var nTrial = a.nTrial?a.nTrial:0;
+    var showans = a.showans?'checked':'', showsoln = a.showsoln?'checked':'', retry = a.retry?'checked':'', inactive = a.inactive?'checked':''; 
+    var manualgrade = (a.grading=='manual')?'checked':'', autograde = (a.grading=='auto')?'checked':'', selfgrade = (a.grading=='self')?'checked':''; 
+    var Youtube = a.Youtube?'checked':'', hide = a.hide?'checked':''; 
+    var Sketchpad = a.Sketchpad?'checked':''; 
+    var Launched = (a0.Launch===i)?'checked':''; 
+
+    if(a.DescEditor=='CKEditor') var desc = IO_DescCKEditor(dbid, `Desc`, Desc, `${uqid}`,{}); 
+    else if(a.DescEditor=='textarea')  var desc = IO_TA({id:dbid, k:`Desc`, v:Desc });
+    else var desc = IO_Desc(dbid, `Q.Desc`, Desc, {eid:`Desc`, editable:1}); 
+
+    if(!inst) desc = Desc; 
+
+
+    var del = ` <button onclick="db_delPKey('${dbid}', 'Q', '${i}', 'renumber'); ">&cross;</button>`; 
+    var duplicate = ` <button onclick="db_duplicatePKey('${dbid}', 'Q', '${i}'); ">Duplicate</button>`; 
+    var Launch = ` <input type=checkbox onclick="db.doc('${dbid}').update({'a.Launch': $(this).prop('checked')?'${i}':-1 }); "  ${Launched}>Launch</input>`; 
+    //var choices = Q_Choices({id:dbid, i:i, Q:Q}); 
+
+
+//      nTrial:<input size=1 onchange=" db.doc('${dbid}').update({'Q.${i}.a.nTrial': $(this).val() }); " value=${nTrial} />
+    var ChoicesOptions = `
+        User IO: 
+          <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'a.Type': 'radio' }); " ${MChoice} />radio
+        | <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'a.Type': 'checkbox' }); " ${MMChoice} />checkbox
+        | <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'a.Type': 'textarea' }); " ${TA} />TA
+        | <input type=radio name=Choices${i}  onclick=" db.doc('${dbid}').update({'a.Type': 'input' }); " ${userinput} />Input
+        <p/>Editor:
+        | <input type=checkbox onclick=" db.doc('${dbid}').update({'a.ChoiceEditor': $(this).prop('checked')?'input':0 }); " ${CEInput} />Input
+        | <input type=checkbox onclick=" db.doc('${dbid}').update({'a.ChoiceEditor': $(this).prop('checked')?'textarea':0 }); " ${CETA} />TA
+        | <input type=checkbox onclick=" db.doc('${dbid}').update({'a.ChoiceEditor': $(this).prop('checked')?'CKEditor':0 }); " ${CECK} />CKEditor
+        <input type=checkbox onclick=" db.doc('${dbid}').update({'a.ChoiceEditor': $(this).prop('checked')?'simple':0 }); " ${CESim} />Simple
+
+      `;
+    
+    var CKEditor=(a.DescEditor=='CKEditor')?'checked':'', DescEditorTA=(a.DescEditor=='Textarea')?'checked':'', DescEditor=(a.DescEditor=='Simple')?'checked':''; 
+    var DescOptions = `
+        Editor:  <input type=radio name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'a.DescEditor': 'CKEditor' }); " ${CKEditor} />CKEditor
+        | <input type=radio name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'a.DescEditor': 'textarea' }); " ${DescEditorTA} />TA
+        | <input type=radio name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'a.DescEditor': 'simple' }); " ${DescEditor} />Simple
+        <br/> <input type=checkbox name=DescEditor${i}  onclick=" db.doc('${dbid}').update({'a.Sketchpad': $(this).prop('checked') }); " ${Sketchpad} />Drawing
+      `;
+
+  var Display = `
+        Youtube <input type=checkbox onclick=" db.doc('${dbid}').update({'a.Youtube': $(this).prop('checked') }); " ${Youtube}/>
+        | Hide <input type=checkbox onclick=" db.doc('${dbid}').update({'a.hide': $(this).prop('checked')?1:0 }); " ${hide}/>
+        | Retry:<input type=checkbox onclick=" db.doc('${dbid}').update({'a.retry': $(this).prop('checked') }); " ${retry}/>
+        | Inactive :<input type=checkbox onclick=" db.doc('${dbid}').update({'a.inactive': $(this).prop('checked') }); " ${inactive}/>
+       <br/> Show (Ans <input type=checkbox onclick=" db.doc('${dbid}').update({'a.showans': $(this).prop('checked') }); " ${showans}/>
+       |Soln <input type=checkbox onclick=" db.doc('${dbid}').update({'a.showsoln': $(this).prop('checked') }); " ${showsoln}/>
+       )
+       <br/> Choices <input type=checkbox onclick="db.doc('${dbid}').update({'a.Choices': $(this).prop('checked') }); " ${a.Choices?'checked':''}/>
+        | Soln <input type=checkbox onclick="db.doc('${dbid}').update({'a.Soln': $(this).prop('checked') }); " ${a.Soln?'checked':''}/>
+
+    `;
+
+    var MaxScore = a.MaxScore?a.MaxScore:10;
+    var Grade = ` <br/> Grade: 
+        Manual <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'a.grading': $(this).prop('checked')?'manual':0 }); " ${manualgrade}/>
+        | Auto <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'a.grading': $(this).prop('checked')?'auto':0 }); " ${autograde}/>
+        | Self <input type=radio name=grading${i} onclick=" db.doc('${dbid}').update({'a.grading': $(this).prop('checked')?'self':0 }); " ${selfgrade}/>
+        <br/> Max score <input type=text onchange=" db.doc('${dbid}').update({'a.MaxScore': $(this).val()}); " value=${MaxScore} />
+     `;
+     if(a.Youtube) {
+       var YT = `
+       VideoId: <input size=5 onchange=" db.doc('${dbid}').update({'a.videoId': $(this).val() }); " value=${videoId} />
+       t1: <input size=1 onchange=" db.doc('${dbid}').update({'a.t1': $(this).val() }); " value=${t1} />
+       t2: <input size=1 onchange=" db.doc('${dbid}').update({'a.t2': $(this).val() }); " value=${t2} />
+       <button onclick=" onPlayerReady({videoId:'${videoId}', t1:${t1}, t2:${t2}  });    $('#Assessment').html( $('#Desc${i}').html() );  ">Play</button>
+       `;
+     }
+
+     var qattr = DropDown(Display+Grade,trippleBar()) + YT +  del + duplicate + Launch; 
+     qattr += `<button onclick="MonitorGrade({id:'${dbid}', iq:'${i}', oid:'Grade${i}'});">Monitor</button>`;
+
+
+     var qdes = (inst?DropDown(DescOptions,'Desc'):'') + desc; 
+
+     var qchoice = '';
+     if(a.Choices) {
+       if(inst) { qchoice += DropDown(ChoicesOptions,'Choices') + I_Choices({id:dbid, k:'Choices', Q:Q, inst:inst, uqid:uqid, sf:sf});
+       } else qchoice += 'Choices' + I_Choices({id:dbid, k:'Choices', Q:Q, inst:inst, sf:sf, uqid:uqid}); //Q_Choices_S({id:dbid, k:'Choices', Q:Q, inst:inst}, {Q:Q}); 
+     }
+
+
+    if(a.Sketchpad) qdes += Sketchpad_Placeholder({uqid:`Desc${i}`, editable:1}); // Place holder for Sketpad
+    
+    var Grade = `<div id=Grade${i}></div>`; 
+    var toggleCh= `<button onclick=" var t=$('.QT${i}${uqid} .toggleB').text(); db.doc('${dbid}').update({['a.toggle']:t});">&#128204;</button>`;
+
+
+    if(a.Soln) { var k='Soln', ss='', editor='ckeditoror';   if(!Q[k]) {db.doc(f).update({Soln:{}}); Q[k]= {};}
+      aL = Q[k].a?Q[k].a:{}; 
+      for(var j in aL) { var v=aL[j]; ss += '<br>'+j+': '; 
+        if(v.constructor.name == "Array") for(var jj in v) {
+          ss += `<input type=radio name=${k}${j}aL${uqid} onclick="I_ReorderA('${f}','${k}.a.${j}','${jj}','0'); " ${jj==0?'checked':''}>  ${v[jj]} </input>`;
+        }
+        if(j=='Editor') editor=aL[j][0];
+      }
+      
+       var Raw= ` <button onclick="EditJSONByKeyRaw('${f}','${k}${uqid}msg','${k}.a'); ">Raw</button><div id=${k}${uqid}msg></div> `;
+
+      var kk=`${k}.v`, vv=Q[k].v?Q[k].v:'Edit me', txt='', Soln=''; 
+      if(editor=='ckeditor') txt += IO_DescCKEditor(f, kk, vv , `${uqid}ck${k}`,{});  
+      else if(editor=='textarea')  txt += IO_TA({id:f, k:kk, v:vv});
+      else if(editor=='none')  txt  += vv;
+      else txt  += IO_Desc(f, kk, vv, {eid:`${k}`, editable:1}); 
+      if(inst) Soln += DropDown(Raw + ss,k) + txt; else Soln += '<br/>Soln:<br/>' + vv; 
+
+      if(aL.Drawing) Soln += Sketchpad_Placeholder({uqid:`${k}${uqid}`, editable:1}); // Place holder for Sketpad
+    } 
+
+    var sDescCh = toggleCh + `<span class=QT${i}${uqid}>`+togglePM('<br/>'+ qdes + qchoice + Soln, a.toggle?a.toggle:'-')+'</span>'; 
+
+
+    $(`#${uqid} .Attr`).html(priv.admin?qattr:'');
+    $(`#${uqid} .Desc`).html(qdes);
+    $(`#${uqid} .Choices`).html(qchoice);
+    if(showsoln || inst) $(`#${uqid} .Soln`).html(Soln);
+    $(`#${uqid} .Raw`).html(`<button title=${f} onclick="EditRawByID('${f}','${uqid}Raw'); ">Raw</button><div id=${uqid}Raw></div>`);
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub, `${uqid}` ]);
+
+
+    if(a.Sketchpad) IO_drawingsList({id:dbid, List:`Desc${i}`, uqid:`Desc${i}`}); 
+
+  })
+   //--------------------------------Fill the user submitted inputs
+   db.doc(sf).get().then((doc)=>{ if(!doc.exists) db.doc(sf).set({},{merge:true}); 
+     var type='', k='Choices', d=doc.data()?doc.data():{},Ch=d[k]?d[k]:{};
+     
+     for (var ii in Ch) { var eid=`${uqid}${k}${ii}`, type=$('#'+eid).attr('type'); 
+        if(debug) console.log("OneI():", O, sf,type);
+         if(['textarea', 'text'].indexOf(type) != -1) { $(`#`+eid).val(Ch[ii].v); if(O.disable=="1") $(`#`+eid).attr('disabled',true);
+         } else { $(`#`+eid).prop('checked',Ch[ii].a.checked); if(O.disable=="1") $(`#`+eid).attr('disabled',true); }  
+     }
+   })
+   //-----------------------------------------
+}
+
+
+function ASwap(array, indexA, indexB) { var tmp = array[indexA]; array[indexA] = array[indexB]; array[indexB] = tmp; };
+function I_ReorderA(f,k,from,to) { db.doc(f).get().then(doc=>{  var A=doc.get(k); ASwap(A,from,to); db.doc(f).update({[`${k}`]: A}); }) }
+
+
 var sketchpads={}, image=new Image();
 
 function dbimg2canvas(id,cid) { 
@@ -890,7 +1111,42 @@ function IO_Desc(id,k,v, O={}) { var eid=O.eid?O.eid:uniqid();
   return s;
 }
 
+function I_RadioUpdate(f,k,n) { $(`[name='${n}']`).each(function(i,e){ I_Update(f,`${k}.${i}.a.checked`,$(e).prop('checked')); }); }
+function I_Update(f,k,v) {
+ db.doc(f).get().then((doc)=>{if(!doc.exists) db.doc(f).set({}); })
+ db.doc(f).update({[k]:v});
+}
+function I_Choices(O) { 
+   var iq=0, k=O.k, id=O.id, Q=O.Q?O.Q:{}, a0=Q.a?Q.a:{}, Ch=Q.Choices?Q.Choices:{}, uqid=O.uqid?O.uqid:uniqid(), del=''; 
+   var sf = O.sf?O.sf:(id+'/users/'+email); 
+   var type=a0.Type?a0.Type:'checkbox';
+   if(debug) console.log("I_Choices", Q);
+   var s='';
+       for (var ii in Ch) { var C=Ch[ii], desc=C.Desc?C.Desc:'Change me', a=C.a?C.a:{}; 
+         if(O.inst) del= `<button onclick=" db_delPKey('${id}', '${k}', '${ii}', 'renumber'); ">&cross;</button>`; 
+         s += '<br/>'+del;
+         var sS='', sI=''; 
 
+         // Feedback - users
+         if(type=='textarea') { sS += `<textarea id='${uqid}${k}${ii}' type=textarea onmouseout="I_Update('${sf}','${k}.${ii}.v',$(this).val()); "></textarea>`;
+         } else if(type=='input') {sS += `<input id='${uqid}${k}${ii}' type=text onmouseout="I_Update('${sf}','${k}.${ii}.v',$(this).val()); " />`;
+         } else {
+          if(type=='radio') sS += `<input id='${uqid}${k}${ii}' name='${uqid}${k}' type=radio onclick="I_RadioUpdate('${sf}','${k}','${uqid}${k}'); " />`;
+          else sS += `<input id='${uqid}${k}${ii}' type=checkbox onclick="I_Update('${sf}','${k}.${ii}.a.checked',$(this).prop('checked')); " />`;
+         }  
+
+         // Editor (Instructor)
+         if(a0.ChoiceEditor=='input') sI += IO_Input({id:id,k:`${k}.${ii}.Desc`,v:desc});
+         else if(a0.ChoiceEditor=='textarea') sI += IO_TA({id:id,k:`${k}.${ii}.Desc`,v:desc});
+         else if(a0.ChoiceEditor=='CKEditor') sI += IO_DescCKEditor(id, `${k}.${ii}.Desc`, desc, `${uqid}${ii}`,{}); 
+         else  sI += IO_Desc(id,`${k}.${ii}.Desc`,desc, {editable:1}); 
+         
+         s += sS + (O.inst?sI:desc); // if(type=='textarea' || type=='input') s += sI + sS; else s += sS + sI;
+         iq++; 
+       }
+      if(O.inst) s +=`<br/><button onclick="db.doc('${id}').update({'${k}.${iq}':{} }); ">+</button> `;
+  return s; 
+}
 
 function Q_Choices(O) { var iq=0, i=O.i, id=O.id, oid=`Choices${i}`, a0=O.Q.a?O.Q.a:{}, uqid=uniqid(); 
    var type=a0.Type?a0.Type:'checkbox';
