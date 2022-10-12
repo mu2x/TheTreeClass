@@ -33,6 +33,7 @@ class Excel {
     db.doc(f).onSnapshot(function(doc) { var s='', sm='', sb=''; 
       if(!doc.exists) db.doc(f).set({});
       var d = doc.data(),  nsheet=0, isInst=((d.a.roles.instructor).includes(email) )?1:0; 
+      //if(priv.admin) isInst=1;  
       if(debug) console.log('View():', isInst); 
       if(priv.admin) isheet = d.a && d.a.SheetLastVisted?d.a.SheetLastVisted:isheet; 
       if(!(d.roster).includes(email)) alert(`${email} isn't the roster, ask the instructor`); 
@@ -70,7 +71,7 @@ class Excel {
           var Load2 = `<span ondblclick="if(priv.admin) dblclickEdit('${f}','sheet.${isheet}.header.${j}.v', $(this) );  ">${v[j].v?v[j].v:jp1}</span>`;
 
           
-          smt += `<th> ${(ah.Q || ah.iframe)?Load1:Load2} ${priv.admin?prop:''} </th>`; 
+          smt += `<th> ${(ah.Q || ah.iframe)?Load1:Load2} ${isInst?prop:''} </th>`; 
       }
       if(priv.admin) smt += `<td><button onclick="db.doc('${f}').update({'sheet.${isheet}.header.${nj}': 0 }); ">+</button></td>`;
       sm += '<tr>'+smt+'</tr>';
@@ -81,7 +82,7 @@ class Excel {
         for(var i=0; i<d.roster.length; i++) { var ueid=d.roster[i], smt=`<td>${ueid}</td>`, si=0, sf=f+'/users/'+d.roster[i]; 
           for(var j in d.sheet[isheet].header) { var ah = d.sheet[isheet].header[j].a? d.sheet[isheet].header[j].a:{};
             var edit = (ah.edit)?ah.edit:0; // aEditor=(ah.editor)?ah.editor[0]:'inline';
-            if(priv.admin) { 
+            if(isInst) { 
               if(ah.editor) {
                 var tmp = `<input type=${ah.editor} size=1 hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}' value=0 onmouseout="db.doc('${sf}').update({'sheet.${isheet}.d.${si}.${j}':$(this).val()});"></input>`;
               } else var tmp = `<span hide=1 class=Instructor id='sheet_${isheet}_d_${i}_${j}' ondblclick="dblclickEdit('${sf}','sheet.${isheet}.d.${si}.${j}', $(this) );  ">0</span>`;
