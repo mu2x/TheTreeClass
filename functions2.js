@@ -32,9 +32,11 @@ class Excel {
     
     db.doc(f).onSnapshot(function(doc) { var s='', sm='', sb=''; 
       if(!doc.exists) db.doc(f).set({});
-      var d = doc.data(),  nsheet=0; 
+      var d = doc.data(),  nsheet=0, isInst=((d.a.roles.instructor).includes(email) )?1:0; 
+      if(debug) console.log('View():', isInst); 
       if(priv.admin) isheet = d.a && d.a.SheetLastVisted?d.a.SheetLastVisted:isheet; 
-      if(!priv.admin) d.roster = [email];
+      if(!(d.roster).includes(email)) alert(`${email} isn't the roster, ask the instructor`); 
+      if(!isInst) {d.roster = [email]; }
       if(!d.sheet) d.sheet = {0:{a:{},d:{0:{}}}};
      for (var i in d.sheet) { var v=d.sheet[i], as=v.a?v.a:{}; nsheet++; 
         sb += `<span selected=${(i==isheet)?1:0} 
