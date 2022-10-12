@@ -32,7 +32,7 @@ class Excel {
     
     db.doc(f).onSnapshot(function(doc) { var s='', sm='', sb=''; 
       if(!doc.exists) db.doc(f).set({});
-      var d = doc.data(),  nsheet=0, isInst=((d.a.roles.instructor).includes(email) )?1:0; 
+      var d = doc.data(),  nsheet=0, roles=(d.a&& d.a.roles && d.a.roles.instructor)?d.a.roles.instructor:[], isInst=(roles.includes(email) )?1:0; 
       //if(priv.admin) isInst=1;  
       if(debug) console.log('View():', isInst); 
       if(priv.admin) isheet = d.a && d.a.SheetLastVisted?d.a.SheetLastVisted:isheet; 
