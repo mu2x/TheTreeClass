@@ -67,6 +67,12 @@ class Excel {
              onclick='if(!EditFlag) LoadIs(${Qstr},"MainTableTop", {ref:"${f}", k:"${keyj}", disable:"${ah.disable?ah.disable:0}"} ); ToggleColor($(this)); '
              >${v[j].v?v[j].v:jp1}</button>`;
           }
+          if(ah.Assessment) { var keyj = `sheet.${isheet}.header.${j}.a.Q`;
+            var Load1 = `<button class=iframe 
+             ondblclick="if(priv.admin) dblclickEdit('${f}','sheet.${isheet}.header.${j}.v', $(this) );  "
+             onclick="if(!EditFlag) LoadInfoDocs('/I/${ah.AID}');"
+             >${v[j].v?v[j].v:jp1}</button>`;
+          }
 
           var Load2 = `<span ondblclick="if(priv.admin) dblclickEdit('${f}','sheet.${isheet}.header.${j}.v', $(this) );  ">${v[j].v?v[j].v:jp1}</span>`;
 
@@ -237,24 +243,29 @@ function dblclickEdit(id,k, e) { if(debug) console.log(id,k);
         } else e.attr('contenteditable', true); 
 }
 function EditAByKeyRaw(f,oid, k) {
-  var sb = `<br/><button onclick=" db.doc('${f}').update({'${k}': removewhitespace($('#EditARaw').val()).split(';')  }); ">Save</button>`;
+  var sb = `<br/><button onclick=" db.doc('${f}').update({'${k}': removewhitespace($('#EditARaw').val()).split(';')  }); ">Save</button>${debug?f:''}`;
   $('#'+oid).html('<textarea cols=100 rows=10 id=EditARaw></textarea>'+sb); 
   db.doc(f).get().then(doc=>{ var A = doc.get(k)?doc.get(k):[]; $('#EditARaw').val( A.join('; ')); });
 }
 
-function EditJSONByKeyRaw(f,oid, k) {
-  var sb = `<br/><button onclick=" db.doc('${f}').update({'${k}': JSON.parse($('#EditJSONRaw').val())  }); ">Save</button>`;
-  $('#'+oid).html('<textarea cols=100 rows=10 id=EditJSONRaw></textarea>'+sb+`<div id=${oid}-attr></div>`); 
+function EditJSONByKeyRaw(f,oid, k) { var taid=uniqid2(); 
+  var sb = `<br/><button onclick=" db.doc('${f}').update({'${k}': JSON.parse($('#${taid}').val())  }); ">Save</button> ${debug?f:''}`;
+  $('#'+oid).html(`<textarea cols=100 rows=10 id=${taid}></textarea>`+sb+`<div id=${oid}-attr></div>`); 
   db.doc(f).get().then(doc=>{ 
-    $('#EditJSONRaw').val( JSON.stringify(doc.get(k)?doc.get(k):{}) );  
+    $(`#${taid}`).val( JSON.stringify(doc.get(k)?doc.get(k):{}) );  
     AttrEditor(f,doc.get(k),k,`${oid}-attr`);
   });
 }
 
-function AttrEditor(f, a, k, oid) { var s='', ah=a?a:{}; 
-   var i='edit', v= ah[i]?ah[i]:0; s += `<input type=checkbox onclick="db.doc('${f}').update({'${k}.${i}': $(this).prop('checked')?1:0}); "  ${v?'checked':''}>${i}</input>`;
-   var i='disable', v= ah[i]?ah[i]:0; s += `<input type=checkbox onclick="db.doc('${f}').update({'${k}.${i}': $(this).prop('checked')?1:0}); "  ${v?'checked':''}>${i}</input>`;
-  $('#'+oid).html(s);
+function AttrEditor(f, a, k, oid) { var i, s='', ah=a?a:{}; 
+   i='edit', v= ah[i]?ah[i]:0; s += `<input type=checkbox onclick="db.doc('${f}').update({'${k}.${i}': $(this).prop('checked')?1:0}); "  ${v?'checked':''}>${i}</input>`;
+   i='disable', v= ah[i]?ah[i]:0; s += `<input type=checkbox onclick="db.doc('${f}').update({'${k}.${i}': $(this).prop('checked')?1:0}); "  ${v?'checked':''}>${i}</input>`;
+   i='Assessment', v= ah[i]?ah[i]:0; s += `<input type=checkbox onclick="
+      db.doc('${f}').update({'${k}.${i}': $(this).prop('checked')?1:0}); 
+      if(${ah.AID?0:1}) db.doc('${f}').update({'${k}.AID': firebase.firestore.Timestamp.now().toMillis()}); 
+    "  ${v?'checked':''}>${i}</input>`;
+
+   $('#'+oid).html(s);
   if(debug) console.log(s,a,k);
 }
 function LoadOneQ(O) {   var id=O.id, idS=id+'/users/'+email, k=O.k, oid=O.oid, uqid=uniqid2(); 
@@ -288,11 +299,9 @@ function LoadOneQ(O) {   var id=O.id, idS=id+'/users/'+email, k=O.k, oid=O.oid, 
 
 function LoadIs(Qs,oid='AllQS', O={}) {  var QStr = JSON.stringify(Qs); 
   $('#'+oid).html('');
-  var newid = ` <button onclick='var A=${QStr},newid= "/Q/"+new Date().valueOf(); A.push(newid);  db.doc("${O.ref}").update({["${O.k}"]:A}); db.doc(newid).set({});  '>new</button>`; 
-    $('#'+oid).append(newid);
-  for(var i in Qs) {  
-    var oidi=`${oid}${i}`; $('#'+oid).append(`<div id=${oidi}></div>`); OneI(Qs[i], oidi, O); 
-  }
+  var newid = `<button onclick='var A=${QStr},newid= "/Q/"+new Date().valueOf(); A.push(newid);  db.doc("${O.ref}").update({["${O.k}"]:A}); db.doc(newid).set({});  '>new</button>`; 
+  if(priv.admin)  $('#'+oid).append(newid);
+  for(var i in Qs) {  var oidi=`${oid}${i}`; $('#'+oid).append(`<div id=${oidi}></div>`); OneI(Qs[i], oidi, O); }
 }
 
 function LoadOneI(f,oid='AllQS', O={}) {   
@@ -845,24 +854,18 @@ function OneI(f,oid='AllQS', O={}) {
     var toggleCh= `<button onclick=" var t=$('.QT${i}${uqid} .toggleB').text(); db.doc('${dbid}').update({['a.toggle']:t});">&#128204;</button>`;
 
 
-    if(a.Soln) { var k='Soln', ss='', editor='ckeditoror';   if(!Q[k]) {db.doc(f).update({Soln:{}}); Q[k]= {};}
-      aL = Q[k].a?Q[k].a:{}; 
-      for(var j in aL) { var v=aL[j]; ss += '<br>'+j+': '; 
-        if(v.constructor.name == "Array") for(var jj in v) {
-          ss += `<input type=radio name=${k}${j}aL${uqid} onclick="I_ReorderA('${f}','${k}.a.${j}','${jj}','0'); " ${jj==0?'checked':''}>  ${v[jj]} </input>`;
+    if(a.Soln) { var k='Soln', Soln='';   if(!Q[k]) {db.doc(f).update({Soln:{}}); Q[k]= {};}
+      var aL = Q[k].a?Q[k].a:{},  ss='', editor=aL.Editor?aL.Editor[0]:'ckeditor'; 
+
+      for(var j in aL) { var v=aL[j]; sss = ''; 
+        if(v.constructor.name == "Array") for(var jj in v) { var str=JSON.stringify(v);
+          if(jj>0) sss += `<input type=radio name=${k}${j}aL${uqid} onclick='var aa=${str}; aa.splice(0,1,"${v[jj]}");  db.doc("${f}").update({["${k}.a.${j}"]:aa});' ${v[jj]==v[0]?'checked':''}>  ${v[jj]} </input>`;
         }
-        if(j=='Editor') editor=aL[j][0];
+        ss += j + ': ' + sss + '<br/>';
       }
-      
-       var Raw= ` <button onclick="EditJSONByKeyRaw('${f}','${k}${uqid}msg','${k}.a'); ">Raw</button><div id=${k}${uqid}msg></div> `;
-
-      var kk=`${k}.v`, vv=Q[k].v?Q[k].v:'Edit me', txt='', Soln=''; 
-      if(editor=='ckeditor') txt += IO_DescCKEditor(f, kk, vv , `${uqid}ck${k}`,{});  
-      else if(editor=='textarea')  txt += IO_TA({id:f, k:kk, v:vv});
-      else if(editor=='none')  txt  += vv;
-      else txt  += IO_Desc(f, kk, vv, {eid:`${k}`, editable:1}); 
-      if(inst) Soln += DropDown(Raw + ss,k) + txt; else Soln += '<br/>Soln:<br/>' + vv; 
-
+      var Raw= ` <button onclick="EditJSONByKeyRaw('${f}','${k}${uqid}msg','${k}.a'); ">Raw</button><div id=${k}${uqid}msg></div> `;
+      if(inst) Soln += DropDown(ss+Raw,k); 
+      Soln += TextEditor(f, `${k}.v`, Q[k].v?Q[k].v:'Edit me', inst?editor:'none', {uqid:uqid, k:k}); 
       if(aL.Drawing) Soln += Sketchpad_Placeholder({uqid:`${k}${uqid}`, editable:1}); // Place holder for Sketpad
     } 
 
@@ -896,6 +899,13 @@ function OneI(f,oid='AllQS', O={}) {
 
 function ASwap(array, indexA, indexB) { var tmp = array[indexA]; array[indexA] = array[indexB]; array[indexB] = tmp; };
 function I_ReorderA(f,k,from,to) { db.doc(f).get().then(doc=>{  var A=doc.get(k); ASwap(A,from,to); db.doc(f).update({[`${k}`]: A}); }) }
+function TextEditor(f, kk, vv, editor='none', O={}) { var txt='';
+   if(editor=='ckeditor') txt += IO_DescCKEditor(f, kk, vv , `${O.uqid}ck${O.k}`,{});  
+   else if(editor=='textarea')  txt += IO_TA({id:f, k:kk, v:vv});
+   else if(editor=='none')  txt  += '<br/>Soln:<br/>' + vv;
+   else txt  += IO_Desc(f, kk, vv, {eid:`${O.k}`, editable:1}); 
+   return txt; 
+}
 
 
 var sketchpads={}, image=new Image();
