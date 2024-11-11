@@ -73,9 +73,9 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();
   s=''; 
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss='<td>${k}</td>';
       console.log(k, v); 
-     // for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
-     //  ss += `<td>${kk}</td>`;
-     // }
+      for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
+       ss += `<td>${kk}</td>`;
+      }
       s += `<tr>${ss}</tr>`;
                                 
   }
