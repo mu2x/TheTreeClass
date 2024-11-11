@@ -70,9 +70,13 @@ var dbWords = '/wordle/words/word', dbsrc='/RobinhoodVK/LINK/summary/LastOrder';
 db.doc(dbsrc).get().then((d) => {
   console.log(d.data());
   s=''; 
-  for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; 
+  for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss='<td>${k}</td>';
       console.log(k, v); 
-      s += `<tr><td>${k}</td><td> ${v['P']}</td></tr>`; 
+      for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
+       ss += `<td>${kk}</td>`;
+      }
+      s += `<tr>${s}</tr>`;
+                                
   }
   $('#WordList').html('<table border=1>'+s+'</table>')
 })
