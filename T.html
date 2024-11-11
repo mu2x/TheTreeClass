@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+   
+   
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-firestore.js"></script>
+  
+
+  <script type="text/javascript">
+    var name, email, emailVerified, uid, uinfo={};
+    var firebaseConfig = {
+      apiKey: "AIzaSyD8SyHAMMVV0Gtcs871LSM0tficArYX5eg",
+      authDomain: "zrenix-aae2e.firebaseapp.com",
+      databaseURL: "https://zrenix-aae2e.firebaseio.com",
+      projectId: "zrenix-aae2e",
+      storageBucket: "zrenix-aae2e.appspot.com",
+      messagingSenderId: "1095365181062",
+      appId: "1:1095365181062:web:db9b34e80b0572fc",
+      measurementId: "G-GR8YWKSF7F"
+    };
+    firebase.initializeApp(firebaseConfig); 
+    var  editors=[], qdata={}, nchoice=0, realtime, debug=0, role='student', admin=0, db = firebase.firestore();
+
+    
+    window.addEventListener('load', function() { 
+      initApp({}); 
+    });
+  </script>
+
+</head>
+
+<body>
+    <span  id=Top11 >HOME</span>     
+    <span style='float:right;'> <span id=Login data-logged=0>Login</span>   </span>
+  <div id=Top21></div>
+  <hr/>
+
+  <table id=Middle1 width="100%" border="1">   
+    <tr width="100%" align="center" >
+      <td valign="middle"> Admin
+         <br/>
+          <button onclick="NewWord(); ">New</button>  
+          <button onclick="List('/wordle/words/word','WordList'); ">List the words</button>  
+          <p id="NewWord"></p> 
+
+        <br/> <span  id="WordList"></span> 
+      </td>
+    </tr> 
+
+    <tr width="100%" align="center" >
+      <td valign="middle"> Student
+         <input id=SubmitUserInput value=""  /> 
+        <button id=SubmitUserInput>Submit</button>   
+          <br/><input id=SubmittedUserInput value=""  disabled />
+      </td>
+    </tr> 
+
+  </table>
+ 
+    <script>
+var dbWords = '/wordle/words/word'; 
+function NewWord() { 
+  var id='NewWord'; 
+  var s= `
+         <input id=${id}W title='Word' size=3 value=""></input> 
+         <input id=${id}C title='Category' size=7 value=""></input>   
+         <input id=${id}M title='Meaning' size=7 value=""></input>   
+        <button onclick=" Save('${id}'); ">Save</button>  
+  `;
+  $('#NewWord').html(s); 
+}
+
+function EditWord(v,c,m) { 
+  var id=v; 
+  var s= `
+         <input id=${id}W title='Word' size=3 value="${v}"></input> 
+         <input id=${id}C title='Category' size=7 value="${c}"></input>   
+         <input id=${id}M title='Meaning' size=7 value="${m}"></input>   
+        <button onclick=" Save('${id}'); ">Save</button>  
+  `;
+  return s;  
+}
+
+function Save(id){ var d={}; 
+  var v=$(`#${id}W`).val(), c=$(`#${id}C`).val(), m=$(`#${id}M`).val(); 
+  var v = (v=='')?'t':v;  
+  db.doc(`${dbWords}/${v}`).set({category:c, meaning:m});
+}
+
+function List(docid, oid) { 
+ db.collection(docid).get()
+ .then((querySnapshot) => {
+        var s = '', i=0;
+        querySnapshot.forEach((doc) => { var d=doc.data(), id=doc.id;  i++; 
+           // console.log(doc.id, " => ", doc.data());
+            s += '<br/>'+EditWord(doc.id, d.category, d.meaning)
+        });
+        $('#'+oid).html(s);
+    })
+
+}
+
+
+function update(id, e) { var k=e.attr('k'), v = e.val(); 
+ var d={}; d[k]=v; 
+ db.doc(id).set(d, {merge:true}); 
+}
+
+test({});
+  function test(O) {
+    db.doc('/wordle/test').onSnapshot(function(doc) {
+      var source = doc.metadata.hasPendingWrites ? 'Local' : 'Server';
+        if(doc.data()) {
+          if(source=='Server') {
+            $('#SubmitUserInput').val(doc.data().v);
+          }
+        }
+
+      console.log(doc.data());
+    });
+  }
+
+
+//--------------------------
+function initApp(O) {
+    firebase.auth().onAuthStateChanged(function(user) {
+     if (user) { 
+       uinfo = user; email=user.email; 
+       LoggedOutDisplay({id:'Login',photo:0},user);
+     } else {  LoginDisplay({id:'Login'});  }
+    }, function(error) { console.log(error); }
+    );
+  };
+
+  
+  function SignIn(O) {
+      var errors;
+      if(O.provider=='microsoft') {  var provider = new firebase.auth.OAuthProvider('microsoft.com');
+      } else {  var provider = new firebase.auth.GoogleAuthProvider(); 
+      }
+      if(O.option=='Redirect') { // Sign-in with redirect
+        firebase.auth().signInWithRedirect(provider);
+        firebase.auth().getRedirectResult().then(function(result) {
+            if (result.credential) { var token = result.credential.accessToken; }
+            var user = result.user;
+        });
+      } else { // Sign-in with Popup [Default]
+        firebase.auth().signInWithPopup(provider).then(function(result) {
+            var token = result.credential.accessToken, user = result.user;
+        }).catch(function(error) { errors = error; });
+      }
+    }
+
+    function SignOut(O) { firebase.auth().signOut().then(function(results) {}).catch(function(error) { errors = error;}); }
+
+      function LoginDisplay(O) { 
+        var id= O.hasOwnProperty('id')? O.id : 'Login';
+       $('#'+id).html(
+         '<span>Sign-in with </span> ' 
+         + '<button onclick="SignIn({option:'+"'Redirect'"+'});">Google</button> '
+         + '<button onclick="SignIn({});">GooglePopup</button> '
+         + '<button onclick="SignIn({option:' + "'Redirect',provider:'microsoft'" + '});">Microsoft</button>'
+       );
+      } 
+      function LoggedOutDisplay(O,user) { 
+        var id= O.hasOwnProperty('id')? O.id : 'Login';
+        var n = '<span title='+user.email+'>'+user.displayName+'</span>'; 
+        var signout = `${n} <button onclick="SignOut({});">Logout</button> `; 
+        $('#'+id).html( signout);
+      } 
+
+    </script>
+</body>
+
+
+</html>
