@@ -166,6 +166,7 @@ function initApp(O) {
        $('#'+id).html(
          '<span>Sign-in with </span> ' 
          + '<button onclick="SignIn({option:'+"'Redirect'"+'});">Google</button> '
+         + '<button onclick="SignIn({});">GooglePopup</button> '
          + '<button onclick="SignIn({option:' + "'Redirect',provider:'microsoft'" + '});">Microsoft</button>'
        );
       } 
