@@ -64,9 +64,10 @@
     </tr> 
 
   </table>
- 
+ <button onclick="LoadRH();">LoadRH/button>
     <script>
 var dbWords = '/wordle/words/word', dbsrc='/RobinhoodVK/LINK/summary/LastOrder'; 
+function LoadRH() {
 db.doc(dbsrc).get().then((d1) => { var d=d1.data();
   console.log(d);
   s=''; 
@@ -80,6 +81,7 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();
   }
   $('#WordList').html('<table border=1>'+s+'</table>')
 })
+}
 function NewWord() { 
   var id='NewWord'; 
   var s= `
