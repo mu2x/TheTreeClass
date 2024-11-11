@@ -74,12 +74,13 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
       console.log(k, v); 
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
-       ss += `<td>${kk}</td>`;
+       str = JSON.Stringify(vv); 
+       ss += `<td>${vv['P']}</td>`;
       }
       s += `<tr>${ss}</tr>`;
                                 
   }
-  $('#WordList').html('<table border=1>'+s+'</table>'); //<table border=1>'+s+'</table>
+  $('#WordList').html('<table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
 })
 }
 function NewWord() { 
