@@ -79,7 +79,7 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();
       s += `<tr>${s}</tr>`;
                                 
   }
-  $('#WordList').html('<table border=1>'+s+'</table>')
+  $('#WordList').html('table'); //<table border=1>'+s+'</table>
 })
 }
 function NewWord() { 
