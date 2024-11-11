@@ -48,17 +48,23 @@
                 });
         }
 
-        // Google login
+
         function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    document.getElementById("login-status").innerText = "Login successful!";
-                })
-                .catch((error) => {
-                    document.getElementById("login-status").innerText = "Error: " + error.message;
-                });
-        }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            document.getElementById("login-status").innerText = `Login successful! Welcome, ${result.user.displayName}`;
+        })
+        .catch((error) => {
+            console.error("Error during Google login:", error);
+            document.getElementById("login-status").innerText = `Error: ${error.message}`;
+            if (error.code === 'auth/popup-blocked') {
+                alert("Please allow pop-ups for this site to log in with Google.");
+            }
+        });
+}
+
+        
     </script>
 </body>
 </html>
