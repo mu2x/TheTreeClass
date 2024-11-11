@@ -69,6 +69,12 @@
 var dbWords = '/wordle/words/word', dbsrc='/RobinhoodVK/LINK/summary/LastOrder'; 
 db.doc(dbsrc).get().then((d) => {
   console.log(d.data());
+  s=''; 
+  for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; 
+      console.log(k, v); 
+      s += `<tr><td>${k}</td><td> ${v['P']}</td></tr>`; 
+  }
+  $('#WordList').html('<table border=1>'+s+'</table>')
 })
 function NewWord() { 
   var id='NewWord'; 
