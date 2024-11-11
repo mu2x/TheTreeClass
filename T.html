@@ -75,7 +75,7 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();
       console.log(k, v); 
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
        str = JSON.stringify(vv); 
-       ss += `<td><div onclick="$('#str-${k}-${kk}').toggle();">${vv['P']}</div><div id='str-${k}-${kk}'>${str}</div></td>`;
+       ss += `<td><div onclick="$('#str-${k}-${kk}').toggle();">${vv['P']}</div><div style='display:none;' id='str-${k}-${kk}'>${str}</div></td>`;
       }
       s += `<tr>${ss}</tr>`;
                                 
