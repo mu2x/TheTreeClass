@@ -30,8 +30,8 @@
         var id= O.hasOwnProperty('id')? O.id : 'Login';
        $('#'+id).html(
          '<span>Sign-in with </span> ' 
-         + '<button onclick="SignIn({option:'+"'Redirect'"+'});">Google</button> '
-         + '<button onclick="SignIn({option:' + "'Redirect',provider:'microsoft'" + '});">Microsoft</button>'
+         + '<button onclick="SignIn({option:'+"'Popup'"+'});">Google</button> '
+         + '<button onclick="SignIn({option:' + "'Popup',provider:'microsoft'" + '});">Microsoft</button>'
        );
       } 
       function LoggedOutDisplay(O,user) { 
