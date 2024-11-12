@@ -38,36 +38,22 @@
 </head>
 
 <body>
-    <span  id=Top11 >HOME</span>     
+    <span  id=Top11 >    <button onclick="LoadRH();">LoadRH </button>   </span>
     <span style='float:right;'> <span id=Login data-logged=0>Login</span>   </span>
   <div id=Top21></div>
   <hr/>
 
   <table id=Middle1 width="100%" border="1">   
     <tr width="100%" align="center" >
-      <td valign="middle"> Admin
-         <br/>
-          <button onclick="NewWord(); ">New</button>  
-          <button onclick="List('/wordle/words/word','WordList'); ">List the words</button>  
-          <p id="NewWord"></p> 
-
-        <br/> <span  id="WordList"></span> 
+      <td valign="middle"> 
+         <span  id="mainMSG"></span> 
       </td>
     </tr> 
-
-    <tr width="100%" align="center" >
-      <td valign="middle"> Student
-         <input id=SubmitUserInput value=""  /> 
-        <button id=SubmitUserInput>Submit</button>   
-          <br/><input id=SubmittedUserInput value=""  disabled />
-      </td>
-    </tr> 
-
   </table>
- <button onclick="LoadRH();">LoadRH </button>
-    <script>
+
+<script>
 var dbWords = '/wordle/words/word', dbsrc='/RobinhoodVK/LINK/summary/LastOrder'; 
-function LoadRH() {
+function LoadRH(oid) {
 db.doc(dbsrc).get().then((d1) => { var d=d1.data();
   console.log(d);
   s=''; 
@@ -80,7 +66,7 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();
       s += `<tr>${ss}</tr>`;
                                 
   }
-  $('#WordList').html('<table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
+  $(`'#${oid}'`).html('<table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
 })
 }
 function NewWord() { 
