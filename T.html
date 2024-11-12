@@ -64,7 +64,7 @@ function Raw(oid) {
 function LoadRH(oid) {
 var tic = $('#tic').val(), dbsrc=`/RobinhoodVK/${tic}/summary/LastOrder`; 
 header = tic; 
-header += ` | <input type=checkbox onclick="$('.P').toggle();">P</input>`; 
+header += ` | <input type=checkbox onclick="$('.P').toggle();" checked=checked>P</input>`; 
 header += ` | <input type=checkbox onclick="$('.T').toggle();">T</input>`; 
 header += ` | <input type=checkbox onclick="$('.A').toggle();">Amount</input>`; 
 header += ` | <input type=checkbox onclick="$('.Q').toggle();">Quantity</input>`; 
@@ -76,7 +76,7 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s='';
        str = JSON.stringify(vv); 
        var T=vv.hasOwnProperty('T')?parseFloat(vv['T']).toFixed(2):0;  
        var a=vv.hasOwnProperty('amount')?parseFloat(vv['amount']).toFixed(2):0;                                   
-       var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']).toFixed(2):0;                                   
+       var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']).toFixed(0):0;                                   
                             
        ss += `<td>
           <span class=P style='display:inline;' onclick="$('#str-${k}-${kk}').toggle();">${vv['P']}</span>
