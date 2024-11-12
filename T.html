@@ -79,10 +79,10 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s='';
        var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']).toFixed(0):0;                                   
                             
        ss += `<td>
-          <span class=P style='display:inline;' onclick="$('#str-${k}-${kk}').toggle();">${vv['P']}</span>
-          <span class=T style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${T}</span>
-          <span class=A style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${a}</span>
-          <span class=Q style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${q}</span>
+          <div class=P style='display:inline;' onclick="$('#str-${k}-${kk}').toggle();">${vv['P']}</div>
+          <div class=T style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${T}</div>
+          <div class=A style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${a}</div>
+          <div class=Q style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${q}</div>
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
         </td>`;
       }
