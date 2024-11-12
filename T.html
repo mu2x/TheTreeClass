@@ -63,6 +63,9 @@ function Raw(oid) {
   
 function LoadRH(oid) {
 var tic = $('#tic').val(), dbsrc=`/RobinhoodVK/${tic}/summary/LastOrder`; 
+header = tic; 
+header += `<input type=checkbox onclick="$('.P').toggle();">P</input>`; 
+  
 db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s=''; 
   //console.log(d);
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
@@ -73,14 +76,17 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s='';
        var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']).toFixed(2):0;                                   
                             
        ss += `<td>
-          <div onclick="$('#str-${k}-${kk}').toggle();">${vv['P']}, ${T}, ${a} ${q}</div>
+          <span class=P style='display:inline;' onclick="$('#str-${k}-${kk}').toggle();">${vv['P']}</span>
+          <span class=T style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${T}</span>
+          <span class=A style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${a}</span>
+          <span class=Q style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${q}</span>
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
         </td>`;
       }
       s += `<tr>${ss}</tr>`;
                                 
   }
-  $('#'+oid).html(tic+'<br/><table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
+  $('#'+oid).html(header+'<br/><table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
 })
 }
 function NewWord() { 
