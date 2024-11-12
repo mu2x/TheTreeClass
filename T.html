@@ -63,7 +63,7 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();
       s += `<tr>${ss}</tr>`;
                                 
   }
-  $(`'#${oid}'`).html('<table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
+  $(`'#mainMSG'`).html('<table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
 })
 }
 function NewWord() { 
