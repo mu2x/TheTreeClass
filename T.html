@@ -46,7 +46,8 @@
   </span>
   <span style='float:right;'> <span id=Login data-logged=0>Login</span>   </span>
   <hr/>
-
+  <div onclick="Raw('TA');"></div>
+  <textarea id='TA'></textarea>
   <table id=Middle1 width="100%" border="1">   
     <tr width="100%" align="center" >
       <td valign="middle">  <span  id="mainMSG"></span>  </td>
@@ -54,6 +55,11 @@
   </table>
 
 <script>
+function Raw(oid) {
+ var tic = $('#tic').val(), dbsrc=`/RobinhoodVK/${tic}/summary/LastOrder`; 
+ db.doc(dbsrc).get().then((d1) => { var d=d1.data();   $('#'+oid).val(JSON.stringify(d)); })
+}
+  
 function LoadRH(oid) {
 var tic = $('#tic').val(), dbsrc=`/RobinhoodVK/${tic}/summary/LastOrder`; 
 db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s=''; 
