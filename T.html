@@ -69,7 +69,7 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s='';
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
        str = JSON.stringify(vv); 
        ss += `<td>
-          <div onclick="$('#str-${k}-${kk}').toggle();">${vv['P']}</div>
+          <div onclick="$('#str-${k}-${kk}').toggle();">${vv['P']} ${vv['T']} ${vv['amount']} ${vv['quantity']}</div>
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
         </td>`;
       }
