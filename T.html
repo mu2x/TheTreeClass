@@ -54,9 +54,8 @@
   </table>
 
 <script>
-var tic = $('#tic').val(); 
-var dbsrc=`/RobinhoodVK/${tic}/summary/LastOrder`; 
 function LoadRH(oid) {
+var tic = $('#tic').val(), dbsrc=`/RobinhoodVK/${tic}/summary/LastOrder`; 
 db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s=''; 
   //console.log(d);
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
