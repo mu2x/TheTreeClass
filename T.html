@@ -68,9 +68,12 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s='';
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
        str = JSON.stringify(vv); 
-       var T=vv.hasOwnProperty('T')?parseFloat(vv['T']).toFixed(2):0;                                   
+       var T=vv.hasOwnProperty('T')?parseFloat(vv['T']).toFixed(2):0;  
+       var a=vv.hasOwnProperty('amount')?parseFloat(vv['amount']).toFixed(2):0;                                   
+       var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']).toFixed(2):0;                                   
+                            
        ss += `<td>
-          <div onclick="$('#str-${k}-${kk}').toggle();">${vv['P']} ${T} ${vv['amount']} ${vv['quantity']}</div>
+          <div onclick="$('#str-${k}-${kk}').toggle();">${vv['P']}, ${T}, ${a} ${q}</div>
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
         </td>`;
       }
