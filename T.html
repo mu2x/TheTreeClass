@@ -72,7 +72,7 @@ header += ` | <input type=checkbox onclick="$('.Q').toggle();">Quantity</input>`
 db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s=''; 
    
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
-      Pk = parseFloat(d['P']); dpk= parseFloat(v['dp']);                                
+      Pk = parseFloat(d['P']); dpk= parseFloat(v['dp']);  console.log(Pk, dpk);                               
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
        str = JSON.stringify(vv); 
        if(vv['side'] == 'sell') {Pkk = Pk + dpk; } else if  (vv['side'] == 'buy')  {Pkk = Pk - dpk; } else { Pkk=Pk; }                               
