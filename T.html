@@ -65,7 +65,7 @@ function LoadRH(oid) {
 var tic = $('#tic').val(), dbsrc=`/RobinhoodVK/${tic}/summary/LastOrder`; 
 header = tic; 
 header += ` | <input type=checkbox onclick="$('.P').toggle();" checked=checked>P</input>`; 
-header += ` | <input type=checkbox onclick="$('.T').toggle();">T</input>`; 
+header += ` | <input type=checkbox onclick="$('.abyq').toggle();">A/q</input>`; 
 header += ` | <input type=checkbox onclick="$('.A').toggle();">Amount</input>`; 
 header += ` | <input type=checkbox onclick="$('.Q').toggle();">Quantity</input>`; 
   
@@ -77,12 +77,13 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s='';
        var T=vv.hasOwnProperty('T')?parseFloat(vv['T']).toFixed(2):0;  
        var a=vv.hasOwnProperty('amount')?parseFloat(vv['amount']).toFixed(2):0;                                   
        var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']).toFixed(0):0;                                   
-                            
+       var abyq=q>0?(a/q).toFixed(0):0;                                   
+                     
        ss += `<td>
           <div class=P style='display:inline;' onclick="$('#str-${k}-${kk}').toggle();">${vv['P']}</div>
-          <div class=T style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${T}</div>
-          <div class=A style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${a}</div>
-          <div class=Q style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${q}</div>
+          <span class=abyq style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${abyq} = </span>
+          <span class=A style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${a} / </span>
+          <span class=Q style='display:none;' onclick="$('#str-${k}-${kk}').toggle();">${q}</span>
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
         </td>`;
       }
