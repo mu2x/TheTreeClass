@@ -54,7 +54,7 @@
       <td valign="middle">  <span  id="mainMSG"></span>  </td>
     </tr> 
   </table>
-
+<span id=market2>P</span>
 <script>
 function Raw(oid) {
  var tic = $('#tic').val(), dbsrc=`/RobinhoodVK/${tic}/summary/LastOrder`; 
@@ -68,7 +68,7 @@ header += ` | <input type=checkbox onclick="$('.P').toggle();" checked=checked>P
 header += ` | <input type=checkbox onclick="$('.abyq').toggle();">A/q</input>`; 
 header += ` | <input type=checkbox onclick="$('.A').toggle();">Amount</input>`; 
 header += ` | <input type=checkbox onclick="$('.Q').toggle();">Quantity</input>`; 
-header += ` | <span id=market>P</span>`; 
+header += ` | <span id=market2>P</span>`; 
 
   
 db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s=''; 
