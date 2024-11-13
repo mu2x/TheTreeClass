@@ -68,11 +68,13 @@ header += ` | <input type=checkbox onclick="$('.P').toggle();" checked=checked>P
 header += ` | <input type=checkbox onclick="$('.abyq').toggle();">A/q</input>`; 
 header += ` | <input type=checkbox onclick="$('.A').toggle();">Amount</input>`; 
 header += ` | <input type=checkbox onclick="$('.Q').toggle();">Quantity</input>`;
-header += `<span id=market>P</span>`; 
+ 
 
 db.doc(dbsrc).onSnapshot(function(d1) {  //db.doc(dbsrc).get().then((d1) => { 
-  var d=d1.data();   s=''; 
-  var mP=d.hasOwnProperty('market')?parseFloat(d['market']['P']).toFixed(5):0; $('#market').html(mP);  console.log(mP);
+  var d=d1.data();   s='';  header2=''; 
+  var mP=d.hasOwnProperty('market')?parseFloat(d['market']['P']).toFixed(5):0; 
+  header2 += `<span id=market>{mP}</span>`;
+  //$('#market').html(mP);  console.log(mP);
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
       Pk = parseFloat(v['P']); dpk= parseFloat(v['dp']);  
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
@@ -95,7 +97,7 @@ db.doc(dbsrc).onSnapshot(function(d1) {  //db.doc(dbsrc).get().then((d1) => {
       s += `<tr>${ss}</tr>`;
                                 
   }
-  $('#'+oid).html(header+'<br/><table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
+  $('#'+oid).html(header+header2+'<br/><table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
 })
 }
 function NewWord() { 
