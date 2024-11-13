@@ -93,7 +93,7 @@ db.doc(dbsrc).get().then((d1) => {
                      
        ss += `<td>
           <div class=P style='display:inline; background-color: ${bgcolor};' onclick="$('#str-${k}-${kk}').toggle();">&dollar;${P}</div>
-          <span class=abyq style='display:none;'><br/> &dollar;${abyq} = </span>
+          <span class=abyq style='display:none;'><br/> &dollar;${parseFloat(abyq).toFixed(2)} = </span>
           <span class=A style='display:none;'>&dollar;${parseFloat(a).toFixed(0)} / </span>
           <span class=Q style='display:none;'>${parseFloat(q).toFixed(0)}</span> 
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
