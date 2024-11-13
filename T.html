@@ -76,7 +76,7 @@ db.doc(dbsrc).onSnapshot(function(d1) {  //db.doc(dbsrc).get().then((d1) => {
       Pk = parseFloat(v['P']); dpk= parseFloat(v['dp']);  
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
        str = JSON.stringify(vv); bgcolor='none'; 
-       if(vv['side'] == 'sell') {Pkk = Pk + dpk; bgcolor='#005500';} else if  (vv['side'] == 'buy')  {Pkk = Pk - dpk; } else { Pkk=Pk; }                               
+       if(vv['side'] == 'sell') {Pkk = Pk + dpk; bgcolor='#00ff00';} else if  (vv['side'] == 'buy')  {Pkk = Pk - dpk; } else { Pkk=Pk; }                               
        var P=vv.hasOwnProperty('P')?parseFloat(vv['P']).toFixed(2):Pkk.toFixed(2);  
        var T=vv.hasOwnProperty('T')?parseFloat(vv['T']).toFixed(2):0;  
        var a=vv.hasOwnProperty('amount')?parseFloat(vv['amount']).toFixed(2):0;                                   
