@@ -49,7 +49,7 @@
   <hr/>
   <textarea id='TA' style="display:none;width:100%" rows=3></textarea>
 
-  Market: <span id=market>P</span>
+  Market: <span id=market2>P</span>
   <table id=Middle1 width="100%" border="1">   
     <tr width="100%" align="center" >
       <td valign="middle">  <span  id="mainMSG"></span>  </td>
@@ -67,7 +67,8 @@ header = tic;
 header += ` | <input type=checkbox onclick="$('.P').toggle();" checked=checked>P</input>`; 
 header += ` | <input type=checkbox onclick="$('.abyq').toggle();">A/q</input>`; 
 header += ` | <input type=checkbox onclick="$('.A').toggle();">Amount</input>`; 
-header += ` | <input type=checkbox onclick="$('.Q').toggle();">Quantity</input>`; 
+header += ` | <input type=checkbox onclick="$('.Q').toggle();">Quantity</input>`;
+header += `<span id=market>P</span>`; 
 
 db.doc(dbsrc).onSnapshot(function(d1) {  //db.doc(dbsrc).get().then((d1) => { 
   var d=d1.data();   s=''; 
