@@ -85,7 +85,10 @@ db.doc(dbsrc).get().then((d1) => {
        var P=vv.hasOwnProperty('P')?parseFloat(vv['P']):Pkk;  
        var T=vv.hasOwnProperty('T')?parseFloat(vv['T']):0;  
                                            
-       if(kk=='0') { aPrev = T; qPrev = aPrev/P; } else {aPrev = a; qPrev = aPrev/P; }  
+       if(kk=='0') { aPrev = T; qPrev = aPrev/P; 
+       } else {
+         if(vv['side']=='sell') { qPrev = q;  aPrev = q*P; } else {aPrev = a; qPrev = a/P;}
+       }  
                                            
        var a=vv.hasOwnProperty('amount')?parseFloat(vv['amount']):aPrev;                                   
        var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']):qPrev;                                   
