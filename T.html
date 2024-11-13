@@ -81,7 +81,7 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s='';
                      
        ss += `<td>
           <div class=P style='display:inline;' onclick="$('#str-${k}-${kk}').toggle();">&dollar;${vv['P']}</div>
-          <div class=abyq style='display:none;'>&dollar;${abyq} = </div>
+          <span class=abyq style='display:none;'>&dollar;${abyq} = </span>
           <span class=A style='display:none;'>&dollar;${a} / </span>
           <span class=Q style='display:none;'>${q}</span>
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
