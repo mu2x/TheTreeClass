@@ -84,9 +84,11 @@ db.doc(dbsrc).get().then((d1) => {
        if(vv['side'] == 'sell') {Pkk = Pk + dpk; bgcolor='#00ff00';} else if  (vv['side'] == 'buy')  {Pkk = Pk - dpk; } else { Pkk=Pk; }                               
        var P=vv.hasOwnProperty('P')?parseFloat(vv['P']).toFixed(2):Pkk.toFixed(2);  
        var T=vv.hasOwnProperty('T')?parseFloat(vv['T']).toFixed(2):0;  
-       if(kk=='0') { aPrev = T; } else {aPrev = a; }                                     
+                                           
+       if(kk=='0') { aPrev = T; qPrev = aPrev/P; } else {aPrev = a; qPrev = aPrev/P; }  
+                                           
        var a=vv.hasOwnProperty('amount')?parseFloat(vv['amount']).toFixed(0):aPrev;                                   
-       var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']).toFixed(0):0;                                   
+       var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']).toFixed(0):aPrev;                                   
        var abyq=q>0?(a/q).toFixed(2):0;                                   
                      
        ss += `<td>
