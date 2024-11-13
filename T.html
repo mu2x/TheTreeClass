@@ -87,15 +87,15 @@ db.doc(dbsrc).get().then((d1) => {
                                            
        if(kk=='0') { aPrev = T; qPrev = aPrev/P; } else {aPrev = a; qPrev = aPrev/P; }  
                                            
-       var a=vv.hasOwnProperty('amount')?parseFloat(vv['amount']):aPrev);                                   
-       var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']):qPrev);                                   
+       var a=vv.hasOwnProperty('amount')?parseFloat(vv['amount']):aPrev;                                   
+       var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']):qPrev;                                   
        var abyq=q>0?(a/q):0;                                   
                      
        ss += `<td>
           <div class=P style='display:inline; background-color: ${bgcolor};' onclick="$('#str-${k}-${kk}').toggle();">&dollar;${P}</div>
           <span class=abyq style='display:none;'><br/> &dollar;${abyq} = </span>
-          <span class=A style='display:none;'>&dollar;${a.toFixed(2)} / </span>
-          <span class=Q style='display:none;'>${q.toFixed(2)}</span>
+          <span class=A style='display:none;'>&dollar;${a.toFixed(0)} / </span>
+          <span class=Q style='display:none;'>${q.toFixed(0)}</span>
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
         </td>`;
       }
