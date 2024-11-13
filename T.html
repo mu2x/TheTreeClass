@@ -74,8 +74,8 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s='';
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
       Pk = parseFloat(v['P']); dpk= parseFloat(v['dp']);  
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
-       str = JSON.stringify(vv); 
-       if(vv['side'] == 'sell') {Pkk = Pk + dpk; } else if  (vv['side'] == 'buy')  {Pkk = Pk - dpk; } else { Pkk=Pk; }                               
+       str = JSON.stringify(vv); bgcolor='none'; 
+       if(vv['side'] == 'sell') {Pkk = Pk + dpk; bgcolor='green';} else if  (vv['side'] == 'buy')  {Pkk = Pk - dpk; } else { Pkk=Pk; }                               
        var P=vv.hasOwnProperty('P')?parseFloat(vv['P']).toFixed(2):Pkk.toFixed(2);  
        var T=vv.hasOwnProperty('T')?parseFloat(vv['T']).toFixed(2):0;  
        var a=vv.hasOwnProperty('amount')?parseFloat(vv['amount']).toFixed(2):0;                                   
@@ -83,7 +83,7 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s='';
        var abyq=q>0?(a/q).toFixed(2):0;                                   
                      
        ss += `<td>
-          <div class=P style='display:inline;' onclick="$('#str-${k}-${kk}').toggle();">&dollar;${P}</div>
+          <div class=P style='display:inline; background-color: ${bgcolor};' onclick="$('#str-${k}-${kk}').toggle();">&dollar;${P}</div>
           <span class=abyq style='display:none;'><br/> &dollar;${abyq} = </span>
           <span class=A style='display:none;'>&dollar;${a} / </span>
           <span class=Q style='display:none;'>${q}</span>
