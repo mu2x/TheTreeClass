@@ -71,7 +71,7 @@ header += ` | <input type=checkbox onclick="$('.Q').toggle();">Quantity</input>`
 
 db.doc(dbsrc).onSnapshot(function(d1) {  //db.doc(dbsrc).get().then((d1) => { 
   var d=d1.data();   s=''; 
-  var mP=d.hasOwnProperty('market')?parseFloat(d['market']['P']).toFixed(2):0; $('#market').html(mP); 
+  var mP=d.hasOwnProperty('market')?parseFloat(d['market']['P']).toFixed(5):0; $('#market').html(mP);  console.log(mP);
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
       Pk = parseFloat(v['P']); dpk= parseFloat(v['dp']);  
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
