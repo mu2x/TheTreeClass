@@ -75,7 +75,7 @@ db.doc(dbsrc).get().then((d1) => { var d=d1.data();   s='';
       Pk = parseFloat(d['P']); dpk= parseFloat(v['dp']);                                
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
        str = JSON.stringify(vv); 
-       if(vv['side'] == 'sell') {Pkk = Pk + dp; } else if  (vv['side'] == 'buy')  {Pkk = Pk - dp; } else { Pkk=Pk; }                               
+       if(vv['side'] == 'sell') {Pkk = Pk + dpk; } else if  (vv['side'] == 'buy')  {Pkk = Pk - dpk; } else { Pkk=Pk; }                               
        var P=vv.hasOwnProperty('P')?parseFloat(vv['P']).toFixed(2):Pk.toFixed(2);  
        var T=vv.hasOwnProperty('T')?parseFloat(vv['T']).toFixed(2):0;  
        var a=vv.hasOwnProperty('amount')?parseFloat(vv['amount']).toFixed(2):0;                                   
