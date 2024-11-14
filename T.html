@@ -75,7 +75,7 @@ db.doc(dbsrc).onSnapshot(function(d1) {  //Realtime updates
 db.doc(dbsrc).get().then((d1) => { 
   var d=d1.data();   s='';  header2=''; 
   var mP=d.hasOwnProperty('market')?parseFloat(d['market']['P']).toFixed(5):0; 
-  header2 += `(P=<span id=market>${mP}</span>)`;
+  header2 += ` (P=<span id=market>${mP}</span>, ${d['type']})`;
   //$('#market').html(mP);  console.log(mP);
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
       Pk = parseFloat(v['P']); dpk= parseFloat(v['dp']);  
