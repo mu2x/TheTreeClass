@@ -67,7 +67,8 @@ header += ` | <input type=checkbox onclick="$('.P').toggle();" checked=checked>P
 header += ` | <input type=checkbox onclick="$('.abyq').toggle();">A/q</input>`; 
 header += ` | <input type=checkbox onclick="$('.A').toggle();">Amount</input>`; 
 header += ` | <input type=checkbox onclick="$('.Q').toggle();">Quantity</input>`;
- 
+header += ` | <input type=checkbox onclick="$('.T').toggle();">T</input>`; 
+
 db.doc(dbsrc).onSnapshot(function(d1) {  //Realtime updates
   var d=d1.data();   var mP=d.hasOwnProperty('market')?parseFloat(d['market']['P']).toFixed(5):0; 
   $('#market').html(mP); 
@@ -99,6 +100,8 @@ db.doc(dbsrc).get().then((d1) => {
           <span class=abyq style='display:none;'><br/> &dollar;${parseFloat(abyq).toFixed(2)} = </span>
           <span class=A style='display:none;'>&dollar;${parseFloat(a).toFixed(0)} / </span>
           <span class=Q style='display:none;'>${parseFloat(q).toFixed(0)}</span> 
+          <span class=T style='display:none;'>${parseFloat(T).toFixed(0)}</span> 
+
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
         </td>`;
       }
