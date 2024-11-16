@@ -94,10 +94,10 @@ db.doc(dbsrc).get().then((d1) => {
        } else {
          if(vv['side']=='sell') { 
            qPrev = q;  aPrev = q*P; 
-           Cash = (status=='filled')? Cash+parseFloat(vv['amount']):Cash; Stock = (status=='filled')?0:Stock;
+           Cash = (status=='filled')? Cash+parseFloat(vv['amount']):Cash; Stock = (status=='filled')?0:q*mP;
          } else {
            aPrev = a; qPrev = a/P;
-           Cash = (status=='filled')? Cash-parseFloat(vv['amount']):Cash; Stock = (status=='filled')?parseFloat(vv['amount']):Stock;
+           Cash = (status=='filled')? Cash-parseFloat(vv['amount']):Cash; Stock = (status=='filled')?q*mP:0;
          }
        }  
                                            
