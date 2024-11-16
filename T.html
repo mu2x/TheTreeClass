@@ -81,7 +81,7 @@ db.doc(dbsrc).get().then((d1) => {
   header2 += ` (P=<span id="market" title=${d['market']['time']}>${mP}</span>, ${d.hasOwnProperty('type')?d['type']:'VarAmount'})`;
   //$('#market').html(mP);  console.log(mP);
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
-      Pk = parseFloat(v['P']); dpk= parseFloat(v['dp']);  Cash = 0; Stock=0; CS = 0; 
+      Pk = parseFloat(v['P']); dpk= parseFloat(v['dp']);  Cash = 0; Stock=0; CS = 0; CS0=0; 
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
        str = JSON.stringify(vv); bgcolor='none'; 
        if(vv['side'] == 'sell') {Pkk = Pk + dpk; bgcolor='#00ff00';} else if  (vv['side'] == 'buy')  {Pkk = Pk - dpk; } else { Pkk=Pk; }                               
@@ -91,6 +91,7 @@ db.doc(dbsrc).get().then((d1) => {
                                            
        if(kk=='0') { aPrev = T; qPrev = aPrev/P; 
          Cash = (status=='filled')?0:aPrev; Stock = (status=='filled')?parseFloat(vv['amount']):0;
+         CS0 = Cash+Stock; 
        } else {
          if(vv['side']=='sell') { 
            qPrev = q;  aPrev = q*P; 
@@ -116,7 +117,8 @@ db.doc(dbsrc).get().then((d1) => {
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
         </td>`;
       }
-      s += `<tr>${ss}</tr>`;
+      ss2 = `<td>${CS-CS0} = ${CS}-${CS0}</td>`                                
+      s += `<tr>${ss2} ${ss}</tr>`;
                                 
   }
   $('#'+oid).html(header+header2+'<br/><table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
