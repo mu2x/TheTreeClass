@@ -120,12 +120,12 @@ db.doc(dbsrc).get().then((d1) => {
         </td>`;
       }
       dCS =  CS-CS0; TCS += CS; TCS0 += CS0; TdCS += dCS;  pdCS = 100*dCS/CS0;                              
-      ss2 = `<td>${k} (${parseFloat(dCS).toFixed(0)} (${parseFloat(pdCS).toFixed(0)}) = ${parseFloat(CS).toFixed(0)}-${parseFloat(CS0).toFixed(0)})</td>`                                
+      ss2 = `<td>${k} (${parseFloat(dCS).toFixed(0)} (${parseFloat(pdCS).toFixed(0)}%)</td><td> = ${parseFloat(CS).toFixed(0)}-${parseFloat(CS0).toFixed(0)})</td>`                                
       s += `<tr>${ss2} ${ss}</tr>`;
                                 
   }
   pTdCS = 100*dCS/CS0;
-  s += `<tr><td>T: &dollar;${parseFloat(TdCS).toFixed(0)} (${parseFloat(pTdCS).toFixed(0)}) = ${parseFloat(TCS).toFixed(0)}-${parseFloat(TCS0).toFixed(0)}</td></tr>` 
+  s += `<tr><td>T: &dollar;${parseFloat(TdCS).toFixed(0)} (${parseFloat(pTdCS).toFixed(0)}%)</td><td> = ${parseFloat(TCS).toFixed(0)}-${parseFloat(TCS0).toFixed(0)}</td></tr>` 
   $('#'+oid).html(header+header2+'<br/><table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
 })
 }
