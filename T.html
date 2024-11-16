@@ -90,7 +90,7 @@ db.doc(dbsrc).get().then((d1) => {
        var status = vv.hasOwnProperty('status')?  vv['status']: 'none';                                   
                                            
        if(kk=='0') { aPrev = T; qPrev = aPrev/P; 
-         Cash = (status=='filled')?0:aPrev; Stock = (status=='filled')?aPrev:0;
+         Cash = (status=='filled')?0:aPrev; Stock = (status=='filled')?parseFloat(vv['amount']):0;
        } else {
          if(vv['side']=='sell') { 
            qPrev = q;  aPrev = q*P; 
