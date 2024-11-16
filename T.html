@@ -124,7 +124,7 @@ db.doc(dbsrc).get().then((d1) => {
       s += `<tr>${ss2} ${ss}</tr>`;
                                 
   }
-  s += `<tr><td>Total: (${parseFloat(TdCS).toFixed(0)} = ${parseFloat(TCS).toFixed(0)}-${parseFloat(TCS0).toFixed(0)})</td></tr>` 
+  s += `<tr><td>T: ${parseFloat(TdCS).toFixed(0)} = ${parseFloat(TCS).toFixed(0)}-${parseFloat(TCS0).toFixed(0)}</td></tr>` 
   $('#'+oid).html(header+header2+'<br/><table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
 })
 }
