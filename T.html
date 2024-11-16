@@ -79,7 +79,9 @@ header += ` | <input type=checkbox onclick="$('.T').toggle();">T</input>`;
 db.doc(dbsrc).get().then((d1) => { 
   var d=d1.data();   s='';  header2=''; 
   var mP=d.hasOwnProperty('market')?parseFloat(d['market']['P']).toFixed(5):0; 
-  header2 += ` (P=<span id="market" title=${d['market']['time']}>${mP}</span>, ${d.hasOwnProperty('type')?d['type']:'VarAmount'})`;
+  var n=d['market'].hasOwnProperty('n')?parseFloat(d['market']['n']).toFixed(0):0; 
+  mVal = n*mP; 
+  header2 += ` (P=<span id="market" title=${d['market']['time']}>${mP}</span>*${n}=${mVal}, ${d.hasOwnProperty('type')?d['type']:'VarAmount'})`;
   //$('#market').html(mP);  console.log(mP);
   TCS=0; TCS0 = 0; TdCS = 0; 
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; 
