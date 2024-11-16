@@ -81,7 +81,7 @@ db.doc(dbsrc).get().then((d1) => {
   var mP=d.hasOwnProperty('market')?parseFloat(d['market']['P']).toFixed(5):0; 
   var n=d['market'].hasOwnProperty('n')?parseFloat(d['market']['n']).toFixed(0):0; 
   mVal = parseFloat(n*mP).toFixed(0); 
-  header2 += ` (P=<span id="market" title=${d['market']['time']}>${mP}</span>*${n}=${mVal}, ${d.hasOwnProperty('type')?d['type']:'VarAmount'})`;
+  header2 += ` (P=<span id="market" title=${d['market']['time']}>${mP}</span>*${n}= &dollar;${mVal}, ${d.hasOwnProperty('type')?d['type']:'VarAmount'})`;
   //$('#market').html(mP);  console.log(mP);
   TCS=0; TCS0 = 0; TdCS = 0; Tpnsell = 0; 
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; 
@@ -123,12 +123,12 @@ db.doc(dbsrc).get().then((d1) => {
         </td>`;
       }
       dCS =  CS-CS0; TCS += CS; TCS0 += CS0; TdCS += dCS;  pdCS = 100*dCS/(CS0>0?CS0:1);    Tpnsell += pnsell;                           
-      ss2 = `<td>${k}, &dollar;${parseFloat(dCS).toFixed(0)} (${parseFloat(pdCS).toFixed(0)}%), ${Tpnsell}</td><td> = ${parseFloat(CS).toFixed(0)}-${parseFloat(CS0).toFixed(0)}</td>`                                
+      ss2 = `<td>${k}, &dollar;${parseFloat(dCS).toFixed(0)} (${parseFloat(pdCS).toFixed(0)}%)</td><td> = ${parseFloat(CS).toFixed(0)}-${parseFloat(CS0).toFixed(0)}</td>`                                
       s += `<tr>${ss2} ${ss}</tr>`;
                                 
   }
   pTdCS = 100*TdCS/TCS0;
-  s += `<tr><td>T: &dollar;${parseFloat(TdCS).toFixed(0)} (${parseFloat(pTdCS).toFixed(0)}%)</td><td> = ${parseFloat(TCS).toFixed(0)}-${parseFloat(TCS0).toFixed(0)}</td></tr>` 
+  s += `<tr><td>T: &dollar;${parseFloat(TdCS).toFixed(0)} (${parseFloat(pTdCS).toFixed(0)}%), ${Tpnsell}</td><td> = ${parseFloat(TCS).toFixed(0)}-${parseFloat(TCS0).toFixed(0)}</td></tr>` 
   $('#'+oid).html(header+header2+'<br/><table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
 })
 }
