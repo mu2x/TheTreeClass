@@ -73,7 +73,7 @@ header += ` | <input type=checkbox onclick="$('.T').toggle();">T</input>`;
 
 db.doc(dbsrc).onSnapshot(function(d1) {  //Realtime updates
   var d=d1.data();   var mP=d.hasOwnProperty('market')?parseFloat(d['market']['P']).toFixed(5):0; 
-  $(`'#market'`).html(mP); $(`'#market'`).attr('title', d['market']['time']); 
+  $('#market').html(mP); $('#market').attr('title', d['market']['time']); 
 })
 db.doc(dbsrc).get().then((d1) => { 
   var d=d1.data();   s='';  header2=''; 
