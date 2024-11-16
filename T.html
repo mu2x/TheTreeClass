@@ -81,7 +81,8 @@ db.doc(dbsrc).get().then((d1) => {
   header2 += ` (P=<span id="market" title=${d['market']['time']}>${mP}</span>, ${d.hasOwnProperty('type')?d['type']:'VarAmount'})`;
   //$('#market').html(mP);  console.log(mP);
   TCS=0; TCS0 = 0; TdCS = 0; 
-  for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
+  for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; 
+      ss= ``; //`<td>${k}</td>`;
       Pk = parseFloat(v['P']); dpk= parseFloat(v['dp']);  Cash = 0; Stock=0; CS = 0; CS0=0; 
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
        str = JSON.stringify(vv); bgcolor='none'; 
@@ -119,10 +120,11 @@ db.doc(dbsrc).get().then((d1) => {
         </td>`;
       }
       dCS =  CS-CS0; TCS += CS; TCS0 += CS0; TdCS += dCS;                               
-      ss2 = `<td>${k} (${parseFloat(dCS).toFixed(0)} = ${parseFloat(CS).toFixed(0)}-${parseFloat(CS0).toFixed(0)})</td>`                                
+      ss2 = `<td width=5%>${k} (${parseFloat(dCS).toFixed(0)} = ${parseFloat(CS).toFixed(0)}-${parseFloat(CS0).toFixed(0)})</td>`                                
       s += `<tr>${ss2} ${ss}</tr>`;
                                 
   }
+  s += `<td width=5%>Total: (${parseFloat(TdCS).toFixed(0)} = ${parseFloat(TCS).toFixed(0)}-${parseFloat(TCS0).toFixed(0)})</td>` 
   $('#'+oid).html(header+header2+'<br/><table border=1 width=100%>'+s+'</table>'); //<table border=1>'+s+'</table>
 })
 }
