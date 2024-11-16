@@ -119,7 +119,7 @@ db.doc(dbsrc).get().then((d1) => {
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
         </td>`;
       }
-      dCS =  CS-CS0; TCS += CS; TCS0 += CS0; TdCS += dCS;  pdCS = 100*dCS/CS0;                              
+      dCS =  CS-CS0; TCS += CS; TCS0 += CS0; TdCS += dCS;  pdCS = 100*dCS/(CS0>0?CS0:1);                              
       ss2 = `<td>${k} (${parseFloat(dCS).toFixed(0)} (${parseFloat(pdCS).toFixed(0)}%)</td><td> = ${parseFloat(CS).toFixed(0)}-${parseFloat(CS0).toFixed(0)})</td>`                                
       s += `<tr>${ss2} ${ss}</tr>`;
                                 
