@@ -81,7 +81,7 @@ db.doc(dbsrc).get().then((d1) => {
   header2 += ` (P=<span id="market" title=${d['market']['time']}>${mP}</span>, ${d.hasOwnProperty('type')?d['type']:'VarAmount'})`;
   //$('#market').html(mP);  console.log(mP);
   for(var k of Object.keys(d['NE'])) { var v = d['NE'][k]; ss=`<td>${k}</td>`;
-      Pk = parseFloat(v['P']); dpk= parseFloat(v['dp']);  Cash = 0; Stock=0; 
+      Pk = parseFloat(v['P']); dpk= parseFloat(v['dp']);  Cash = 0; Stock=0; CS = 0; 
       for(var kk of Object.keys(v['BS'])) { var vv = d['NE'][k]['BS'][kk]; 
        str = JSON.stringify(vv); bgcolor='none'; 
        if(vv['side'] == 'sell') {Pkk = Pk + dpk; bgcolor='#00ff00';} else if  (vv['side'] == 'buy')  {Pkk = Pk - dpk; } else { Pkk=Pk; }                               
@@ -103,7 +103,7 @@ db.doc(dbsrc).get().then((d1) => {
                                            
        var a=vv.hasOwnProperty('amount')?parseFloat(vv['amount']):aPrev;                                   
        var q=vv.hasOwnProperty('quantity')?parseFloat(vv['quantity']):qPrev;                                   
-       var abyq=q>0?(a/q):0;                                   
+       var abyq=q>0?(a/q):0;  CS = Cash + Stock;                                  
        
                                            
        ss += `<td>
@@ -111,7 +111,7 @@ db.doc(dbsrc).get().then((d1) => {
           <span class=abyq style='display:none;'><br/> &dollar;${parseFloat(abyq).toFixed(2)} = </span>
           <span class=A style='display:none;'>&dollar;${parseFloat(a).toFixed(0)} / </span>
           <span class=Q style='display:none;'>${parseFloat(q).toFixed(0)}</span> 
-          <span class=T style='display:none;'>, ${parseFloat(T).toFixed(0)} C=${parseFloat(Cash).toFixed(0)} S=${parseFloat(Stock).toFixed(0)}</span> 
+          <span class=T style='display:none;'>, (${parseFloat(CS).toFixed(0)} =${parseFloat(Cash).toFixed(0)} + ${parseFloat(Stock).toFixed(0)})</span> 
 
           <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
         </td>`;
