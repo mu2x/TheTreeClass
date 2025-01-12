@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.6.1/firebase-firestore.js"></script>
+
+
+  <script type="text/javascript">
+    var name, email, emailVerified, uid, uinfo = {};
+    var firebaseConfig = {
+      apiKey: "AIzaSyD8SyHAMMVV0Gtcs871LSM0tficArYX5eg",
+      authDomain: "zrenix-aae2e.firebaseapp.com",
+      databaseURL: "https://zrenix-aae2e.firebaseio.com",
+      projectId: "zrenix-aae2e",
+      storageBucket: "zrenix-aae2e.appspot.com",
+      messagingSenderId: "1095365181062",
+      appId: "1:1095365181062:web:db9b34e80b0572fc",
+      measurementId: "G-GR8YWKSF7F"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var editors = [], qdata = {}, nchoice = 0, realtime, debug = 0, role = 'student', admin = 0, db = firebase.firestore();
+
+
+    window.addEventListener('load', function () {
+      initApp({});
+    });
+  </script>
+
+</head>
+
+<body>
+  <span id=Top11>
+    <button onclick="LoadRH('mainMSG');">LoadRH </button>
+    <button onclick="Raw('TA'); $('#TAMain').toggle(); ">Raw</button>
+    <select id="tic" name="options" onchange="LoadRH('mainMSG');">
+      <option value="Select">Select</option>
+    </select>
+  </span>
+  <span style='float:right;'> <span id=Login data-logged=0>Login</span> </span>
+  <hr />
+  <div id=TAMain style="display:none;">
+    <textarea id='TA' style="width:100%" rows=3></textarea>
+    <div id=TASave></div>
+  </div>
+
+  <table id=Middle1 width="100%" border="1">
+    <tr width="100%" align="center">
+      <td valign="middle"> <span id="mainMSG"></span> </td>
+    </tr>
+  </table>
+  <script>
+    var rootsrc = '/public'; //'/RobinhoodVK';
+    Portfolio('tic');
+    function Portfolio(id) {
+      db.doc(`${rootsrc}/Portfolio`).get().then((d1) => {
+        var d = d1.data(); for (var k of Object.keys(d)) {
+          $(`#${id}`).append(`<option value="${k}">${k}</option>`);
+        }
+      })
+    }
+    function Raw(oid) {
+      var tic = $('#tic').val(), dbsrc = `${rootsrc}/${tic}/summary/LastOrder`;
+      db.doc(dbsrc).get().then((d1) => {var d = d1.data(); $('#' + oid).val(JSON.stringify(d));})
+      $(`#${oid}Save`).html(`
+      <input type="text" id='${oid}docid' value="${dbsrc}" />
+      <button onclick="SaveTAJSON('${oid}');">Save</button>
+      <button onclick="LoadTAJSON('${oid}');">Load</button>
+      <input type=checkbox id='${oid}merge' checked>merge</button>
+
+      `);
+    }
+
+    function LoadRH(oid) {
+      var tic = $('#tic').val(), dbsrc = `${rootsrc}/${tic}/summary/LastOrder`;
+      header = tic;
+      header += ` | <input type=checkbox onclick="$('.P').toggle();" checked=checked>P</input>`;
+      header += ` | <input type=checkbox onclick="$('.abyq').toggle();">A/q</input>`;
+      header += ` | <input type=checkbox onclick="$('.A').toggle();">Amount</input>`;
+      header += ` | <input type=checkbox onclick="$('.Q').toggle();">Quantity</input>`;
+      header += ` | <input type=checkbox onclick="$('.T').toggle();">T</input>`;
+
+      //db.doc(dbsrc).onSnapshot(function(d1) {  //Realtime updates
+      //var d=d1.data();   var mP=d.hasOwnProperty('market')?parseFloat(d['market']['P']).toFixed(5):0; 
+      //$('#market').html(mP); $('#market').attr('title', d['market']['time']); 
+      //})
+      db.doc(dbsrc).get().then((d1) => {
+        var d = d1.data(); s = ''; header2 = '';
+        var mP = d.hasOwnProperty('market') ? parseFloat(d['market']['P']).toFixed(2) : 0;
+        if(d.hasOwnProperty('market')) {
+          var n = d['market'].hasOwnProperty('n') ? parseFloat(d['market']['n']).toFixed(0) : 0;
+        mVal = parseFloat(n * mP).toFixed(0);
+        header2 += ` (P=<span id="market" title=${d['market']['time']}>${mP}</span>*${n}= &dollar;${mVal}, ${d.hasOwnProperty('type') ? d['type'] : 'VarAmount'})`;
+    }
+
+        //$('#market').html(mP);  console.log(mP);
+        TCS = 0; TCS0 = 0; TdCS = 0; Tpnsell = 0;
+        for (var k of Object.keys(d['NE'])) {
+            if(!d['NE'][k].hasOwnProperty('BS')){
+                d['NE'][k]['BS'] = {"BS":{"0":{"side":"buy"}}}
+            }
+          var v = d['NE'][k];
+
+          ss = ``; //`<td>${k}</td>`;
+          Pk = parseFloat(v['P']); dpk = parseFloat(v['dp']); Cash = 0; Stock = 0; CS = 0; CS0 = 0; pnsell = 0;
+          for (var kk of Object.keys(v['BS'])) {
+            var vv = d['NE'][k]['BS'][kk];
+            str = JSON.stringify(vv); bgcolor = 'none';
+            if (vv['side'] == 'sell') {Pkk = Pk + dpk; bgcolor = '#00ff00';} else if (vv['side'] == 'buy') {Pkk = Pk - dpk;} else {Pkk = Pk;}
+            var P = vv.hasOwnProperty('P') ? parseFloat(vv['P']) : Pkk;
+            var T = vv.hasOwnProperty('T') ? parseFloat(vv['T']) : 0;
+            var status = vv.hasOwnProperty('status') ? vv['status'] : 'none';
+
+            if (kk == '0') {
+              aPrev = T; qPrev = aPrev / P;
+              Cash = 0; Stock = (status == 'filled') ? parseFloat(vv['amount']) : 0;
+              CS0 = Cash + Stock;
+            } else {
+              if (vv['side'] == 'sell') {
+                qPrev = q; aPrev = q * P; pnsell = (status != 'filled') ? q : 0;
+                Cash = (status == 'filled') ? Cash + parseFloat(vv['amount']) : Cash; Stock = (status == 'filled') ? 0 : q * mP;
+              } else {
+                aPrev = a; qPrev = a / P;
+                Cash = (status == 'filled') ? Cash - parseFloat(vv['amount']) : Cash; Stock = (status == 'filled') ? q * mP : 0;
+              }
+            }
+
+            var a = vv.hasOwnProperty('amount') ? parseFloat(vv['amount']) : aPrev;
+            var q = vv.hasOwnProperty('quantity') ? parseFloat(vv['quantity']) : qPrev;
+            var abyq = q > 0 ? (a / q) : 0; CS = Cash + Stock;
+
+
+            ss += `<td>
+          <div class=P style='display:inline; background-color: ${bgcolor};' onclick="$('#str-${k}-${kk}').toggle();">&dollar;${P}</div>
+          <span class=abyq style='display:none;'><br/> &dollar;${parseFloat(abyq).toFixed(2)} = </span>
+          <span class=A style='display:none;'>&dollar;${parseFloat(a).toFixed(0)} / </span>
+          <span class=Q style='display:none;'>${parseFloat(q).toFixed(0)}</span> 
+          <span class=T style='display:none;'>, (${parseFloat(CS).toFixed(0)} =${parseFloat(Cash).toFixed(0)} + ${parseFloat(Stock).toFixed(0)})</span> 
+
+          <div style='display:none;' id='str-${k}-${kk}'>${str}</div>
+        </td>`;
+          }
+          dCS = CS - CS0; TCS += CS; TCS0 += CS0; TdCS += dCS; pdCS = 100 * dCS / (CS0 > 0 ? CS0 : 1); Tpnsell += pnsell;
+
+          kstr = `<span onclick="EditRowJSON({oid:'row-${k}', row:${k}, docid:'${dbsrc}'}); ">${k}</span>`; 
+          ss2 = `
+           <td>${kstr}, &dollar;${parseFloat(dCS).toFixed(0)} (${parseFloat(pdCS).toFixed(0)}%)
+            <div id=row-${k} style='display:none;'></div>
+           </td>
+           <td> = ${parseFloat(CS).toFixed(0)}-${parseFloat(CS0).toFixed(0)}</td>`
+          s += `<tr>${ss2} ${ss}</tr>`;
+
+        }
+        pTdCS = 100 * TdCS / TCS0;
+
+        newR = `New<input id=NewBS size=50 value='{"NE":{"${k}":{"P":${Pk}, "dp":${dpk}, "quantity":1}}}' /><button onclick="db.doc('${dbsrc}').set(JSON.parse($('#NewBS').val()),{merge:true})">Save</button>`;
+
+        s += `<tr><td>T: &dollar;${parseFloat(TdCS).toFixed(0)} (${parseFloat(pTdCS).toFixed(0)}%), ${parseFloat(Tpnsell).toFixed(0)}</td><td> = ${parseFloat(TCS).toFixed(0)}-${parseFloat(TCS0).toFixed(0)}</td></tr>`
+        $('#' + oid).html(header + header2 + '<br/><table border=1 width=100%>' + s + '</table>' + newR); //<table border=1>'+s+'</table>
+      })
+    }
+    function EditRowJSON(O) { var oid=O.oid, row=O.row; 
+        $(`#${oid}`).toggle(); s = ''; 
+
+        db.doc(O.docid).get().then((d1) => {var d=d1.data(); 
+         for (var k of Object.keys(d['NE'])) { 
+            if(k==O.row) { 
+                s = JSON.stringify( d['NE'][k] ); 
+                Save = `<button onclick="SaveKeyContent('${O.docid}', 'NE.${k}', 'TA-row-${row}');">Save</button>`; 
+                $(`#${oid}`).html(`<textarea id='TA-row-${row}'>`+s+'</textarea>'+Save); 
+            }
+         }
+
+
+        })
+    }
+    function SaveKeyContent(docid,key,vid) { v = JSON.parse($(`#${vid}`).val()); 
+      db.doc(docid).update(key,v);
+    }
+
+    function NewWord() {
+      var id = 'NewWord';
+      var s = `
+         <input id=${id}W title='Word' size=3 value=""></input> 
+         <input id=${id}C title='Category' size=7 value=""></input>   
+         <input id=${id}M title='Meaning' size=7 value=""></input>   
+        <button onclick=" Save('${id}'); ">Save</button>  
+  `;
+      $('#NewWord').html(s);
+    }
+
+    function EditWord(v, c, m) {
+      var id = v;
+      var s = `
+         <input id=${id}W title='Word' size=3 value="${v}"></input> 
+         <input id=${id}C title='Category' size=7 value="${c}"></input>   
+         <input id=${id}M title='Meaning' size=7 value="${m}"></input>   
+        <button onclick=" Save('${id}'); ">Save</button>  
+  `;
+      return s;
+    }
+
+    function SaveTAJSON(tid) {
+      var d = {};
+      var v = $(`#${tid}`).val(), docid = $(`#${tid}docid`).val();
+      var v = (v == '') ? '{}' : JSON.parse(v);
+      db.doc(`${docid}`).set(v, {merge:$(`#${tid}merge`).is(':checked')});
+    }
+    function LoadTAJSON(tid) {
+      db.doc($(`#${tid}docid`).val()).get().then((d1) => {$(`#${tid}`).val(JSON.stringify(d1.data()));})
+    }
+
+    function List(docid, oid) {
+      db.collection(docid).get()
+        .then((querySnapshot) => {
+          var s = '', i = 0;
+          querySnapshot.forEach((doc) => {
+            var d = doc.data(), id = doc.id; i++;
+            // console.log(doc.id, " => ", doc.data());
+            s += '<br/>' + EditWord(doc.id, d.category, d.meaning)
+          });
+          $('#' + oid).html(s);
+        })
+
+    }
+
+
+    function update(id, e) {
+      var k = e.attr('k'), v = e.val();
+      var d = {}; d[k] = v;
+      db.doc(id).set(d, {merge: true});
+    }
+
+    test({});
+    function test(O) {
+      db.doc('/wordle/test').onSnapshot(function (doc) {
+        var source = doc.metadata.hasPendingWrites ? 'Local' : 'Server';
+        if (doc.data()) {
+          if (source == 'Server') {
+            $('#SubmitUserInput').val(doc.data().v);
+          }
+        }
+
+        console.log(doc.data());
+      });
+    }
+
+
+    //--------------------------
+    function initApp(O) {
+      firebase.auth().onAuthStateChanged(function (user) {
+        if (user) {
+          uinfo = user; email = user.email;
+          LoggedOutDisplay({id: 'Login', photo: 0}, user);
+        } else {LoginDisplay({id: 'Login'});}
+      }, function (error) {console.log(error);}
+      );
+    };
+
+
+    function SignIn(O) {
+      var errors;
+      if (O.provider == 'microsoft') {
+        var provider = new firebase.auth.OAuthProvider('microsoft.com');
+      } else {
+        var provider = new firebase.auth.GoogleAuthProvider();
+      }
+      if (O.option == 'Redirect') { // Sign-in with redirect
+        firebase.auth().signInWithRedirect(provider);
+        firebase.auth().getRedirectResult().then(function (result) {
+          if (result.credential) {var token = result.credential.accessToken;}
+          var user = result.user;
+        });
+      } else { // Sign-in with Popup [Default]
+        firebase.auth().signInWithPopup(provider).then(function (result) {
+          var token = result.credential.accessToken, user = result.user;
+        }).catch(function (error) {errors = error;});
+      }
+    }
+
+    function SignOut(O) {firebase.auth().signOut().then(function (results) { }).catch(function (error) {errors = error;});}
+
+    function LoginDisplay(O) {
+      var id = O.hasOwnProperty('id') ? O.id : 'Login';
+      $('#' + id).html(
+        '<span>Sign-in with </span> '
+        + '<button onclick="SignIn({option:' + "'Redirect'" + '});">Google</button> '
+        + '<button onclick="SignIn({});">GooglePopup</button> '
+        + '<button onclick="SignIn({option:' + "'Redirect',provider:'microsoft'" + '});">Microsoft</button>'
+      );
+    }
+    function LoggedOutDisplay(O, user) {
+      var id = O.hasOwnProperty('id') ? O.id : 'Login';
+      var n = '<span title=' + user.email + '>' + user.displayName + '</span>';
+      var signout = `${n} <button onclick="SignOut({});">Logout</button> `;
+      $('#' + id).html(signout);
+    }
+
+  </script>
+</body>
+
+
+</html>
