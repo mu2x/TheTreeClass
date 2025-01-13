@@ -58,8 +58,10 @@
       <td valign="middle"> <span id="mainMSG"></span> </td>
     </tr>
   </table>
+
+
   <script>
-    var rootsrc = '/RobinhoodVK'; //'/public'; //'/RobinhoodVK';
+    var rootsrc = '/public'; //'/RobinhoodVK';
     Portfolio('tic');
     function Portfolio(id) {
       db.doc(`${rootsrc}/Portfolio`).get().then((d1) => {
@@ -95,14 +97,11 @@
       //})
       db.doc(dbsrc).get().then((d1) => {
         var d = d1.data(); s = ''; header2 = '';
-        var mP = d.hasOwnProperty('market') ? parseFloat(d['market']['P']).toFixed(2) : 0;
         if(d.hasOwnProperty('market')) {
-          var n = d['market'].hasOwnProperty('n') ? parseFloat(d['market']['n']).toFixed(0) : 0;
-        mVal = parseFloat(n * mP).toFixed(0);
-        header2 += ` (P=<span id="market" title=${d['market']['time']}>${mP}</span>*${n}= &dollar;${mVal}, ${d.hasOwnProperty('type') ? d['type'] : 'VarAmount'})`;
-    }
+            var mP = parseFloat(d['market']['P']).toExponential(2), n = parseFloat(d['market']['n']).toFixed(0), mp= parseFloat(d['market']['P']).toFixed(2), mVal = parseFloat(n * mP).toFixed(0);
+            header2 += ` (&dollar;${mVal} = <span id="market" title=${d['market']['time']}>${n}*&dollar;${mP}</span>, ${d.hasOwnProperty('type') ? d['type'] : 'VarAmount'})`;
+        }
 
-        //$('#market').html(mP);  console.log(mP);
         TCS = 0; TCS0 = 0; TdCS = 0; Tpnsell = 0;
         for (var k of Object.keys(d['NE'])) {
             if(!d['NE'][k].hasOwnProperty('BS')){
@@ -162,7 +161,8 @@
         }
         pTdCS = 100 * TdCS / TCS0;
 
-        newR = `New<input id=NewBS size=50 value='{"NE":{"${k}":{"P":${Pk}, "dp":${dpk}, "quantity":1}}}' /><button onclick="db.doc('${dbsrc}').set(JSON.parse($('#NewBS').val()),{merge:true})">Save</button>`;
+        newR = `New<input id=NewBS size=100 value='{"NE":{"${k}":{"P":${Pk}, "dp":${dpk}, "quantity":${q}, "BS":{"0":{"P":${Pk}, "side":"buy", "status":"filled", "quantity":${q}}}}}}' />
+                <button onclick="db.doc('${dbsrc}').set(JSON.parse($('#NewBS').val()),{merge:true}); LoadRH('mainMSG');">Save</button>`;
 
         s += `<tr><td>T: &dollar;${parseFloat(TdCS).toFixed(0)} (${parseFloat(pTdCS).toFixed(0)}%), ${parseFloat(Tpnsell).toFixed(0)}</td><td> = ${parseFloat(TCS).toFixed(0)}-${parseFloat(TCS0).toFixed(0)}</td></tr>`
         $('#' + oid).html(header + header2 + '<br/><table border=1 width=100%>' + s + '</table>' + newR); //<table border=1>'+s+'</table>
