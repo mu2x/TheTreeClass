@@ -161,8 +161,12 @@
         }
         pTdCS = 100 * TdCS / TCS0;
 
-        newR = `New<input id=NewBS size=100 value='{"NE":{"${k}":{"P":${Pk}, "dp":${dpk}, "quantity":${q}, "BS":{"0":{"P":${Pk}, "side":"buy", "status":"filled", "quantity":${q}}}}}}' />
-                <button onclick="db.doc('${dbsrc}').set(JSON.parse($('#NewBS').val()),{merge:true}); LoadRH('mainMSG');">Save</button>`;
+        newR = `<button onclick="$('#Newtoggle').toggle();">New</button>
+                <span id=Newtoggle style='display:none;'>
+                <input id=NewBS size=100 value='{"NE":{"${k}":{"P":${Pk}, "dp":${dpk}, "quantity":${q}, "BS":{"0":{"P":${Pk}, "side":"buy", "status":"filled", "quantity":${q}}}}}}' />
+                <button onclick="db.doc('${dbsrc}').set(JSON.parse($('#NewBS').val()),{merge:true}); LoadRH('mainMSG');">Save</button>
+                </span>
+                `;
 
         s += `<tr><td>T: &dollar;${parseFloat(TdCS).toFixed(0)} (${parseFloat(pTdCS).toFixed(0)}%), ${parseFloat(Tpnsell).toFixed(0)}</td><td> = ${parseFloat(TCS).toFixed(0)}-${parseFloat(TCS0).toFixed(0)}</td></tr>`
         $('#' + oid).html(header + header2 + '<br/><table border=1 width=100%>' + s + '</table>' + newR); //<table border=1>'+s+'</table>
