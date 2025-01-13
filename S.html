@@ -61,7 +61,7 @@
 
 
   <script>
-    var rootsrc = '/RobinhoodVK';  //'/public'; //'/RobinhoodVK';
+    var rootsrc = '/RobinhoodVK'; //'/public'; //'/RobinhoodVK';
     Portfolio('tic');
     function Portfolio(id) {
       db.doc(`${rootsrc}/Portfolio`).get().then((d1) => {
@@ -161,10 +161,13 @@
         }
         pTdCS = 100 * TdCS / TCS0;
 
+        defaultNew = {"NE":{}};
+        defaultNew["NE"][k]={"P":Pk, "dp":dpk, "quantity":q, "BS":{"0":{"P":Pk, "side":"buy", "status":"filled", "amount":a, "quantity":q}, "1":{"side":"sell", "status":"none"} }}; 
+
         newR = `<button onclick="$('#Newtoggle').toggle();">New</button>
                 <span id=Newtoggle style='display:none;'>
-                <input id=NewBS size=100 value='{"NE":{"${k}":{"P":${Pk}, "dp":${dpk}, "quantity":${q}, "BS":{"0":{"P":${Pk}, "side":"buy", "status":"filled", "amount":${a}, "quantity":${q}}}}}}' />
-                <button onclick="db.doc('${dbsrc}').set(JSON.parse($('#NewBS').val()),{merge:true}); LoadRH('mainMSG');">Save</button>
+                  <textarea id=NewBS size=100 rows=30 cols=50>${JSON.stringify(defaultNew, null, 2)} </textarea>
+                  <button onclick="db.doc('${dbsrc}').set(JSON.parse($('#NewBS').val()),{merge:true}); LoadRH('mainMSG');">Save</button>
                 </span>
                 `;
 
